@@ -1,0 +1,30 @@
+{
+  "name": "sprintos",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Milestone review and settlement on Stellar, with an advisory AI that cannot pay anyone",
+  "repository": "https://github.com/egekoca/SprintOS",
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@10.15.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm --filter @sprintos/web dev",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "lint:boundaries": "node scripts/check-boundaries.mjs",
+    "contract:test": "cargo test --package sprintos-settlement",
+    "contract:build": "stellar contract build",
+    "format:check": "cargo fmt --all -- --check"
+  },
+  "pnpm": {
+    "overrides": {
+      "axios": "1.18.0",
+      "postcss": "8.5.18",
+      "protobufjs": "7.6.1",
+      "sharp": "0.35.0"
+    }
+  }
+}
