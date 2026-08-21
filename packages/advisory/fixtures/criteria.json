@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0.0",
+  "engagement_id": "0",
+  "milestone_idx": 0,
+  "title": "Soroban settlement contract",
+  "criteria": [
+    {
+      "id": "c1",
+      "text": "The settlement contract is deployed to Stellar testnet and its contract id is public"
+    },
+    {
+      "id": "c2",
+      "text": "Unauthorized callers cannot approve a milestone or release funds"
+    },
+    {
+      "id": "c3",
+      "text": "A milestone cannot be released twice"
+    },
+    {
+      "id": "c4",
+      "text": "A sponsor can reclaim an undelivered milestone after its deadline, but not before"
+    },
+    {
+      "id": "c5",
+      "text": "An automated test shows that an advisory score of 100 cannot release funds"
+    }
+  ]
+}

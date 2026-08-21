@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0.0",
+  "engagement_id": "0",
+  "milestone_idx": 0,
+  "submitted_at": "2026-08-24T10:00:00.000Z",
+  "links": [
+    {
+      "url": "https://github.com/egekoca/sprintos-private-notes",
+      "type": "repo"
+    },
+    {
+      "url": "https://example.com/wip",
+      "type": "docs"
+    }
+  ]
+}

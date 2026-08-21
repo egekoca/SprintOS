@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0.0",
+  "engagement_id": "0",
+  "milestone_idx": 0,
+  "submitted_at": "2026-08-24T10:00:00.000Z",
+  "links": [
+    {
+      "url": "https://github.com/egekoca/SprintOS",
+      "type": "repo"
+    },
+    {
+      "url": "https://github.com/egekoca/SprintOS/pull/1",
+      "type": "pull_request"
+    },
+    {
+      "url": "https://stellar.expert/explorer/testnet/contract/CA7N7EPNGY2OSYAIA2HDYJTHACJR7M7P65VWA6I7PLBHTJ6W3HFUKHNK",
+      "type": "demo"
+    }
+  ]
+}

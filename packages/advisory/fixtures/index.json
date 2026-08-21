@@ -1,0 +1,20 @@
+[
+  {
+    "name": "01-complete-delivery",
+    "score": 94,
+    "recommendation": "ReadyForReview",
+    "report_hash": "sha256:7d4ae04fa8be843b16bb80e76d6d572a60059796b31b659d47e074092f28d11f"
+  },
+  {
+    "name": "02-partial-delivery",
+    "score": 58,
+    "recommendation": "RevisionSuggested",
+    "report_hash": "sha256:c09b1a7ab219fb85186a12e1d2d1d2d7de5b19ba17bf64a2e91a5b72ca57de29"
+  },
+  {
+    "name": "03-insufficient-evidence",
+    "score": 8,
+    "recommendation": "RevisionSuggested",
+    "report_hash": "sha256:bbc30f374725d2cd29267587c320e8ba441bae4870522725689bde60f7b08d5f"
+  }
+]

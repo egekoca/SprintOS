@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0.0",
+  "report_id": "33333333-3333-4333-8333-333333333333",
+  "engagement_id": "0",
+  "milestone_idx": 0,
+  "generated_at": "2026-08-24T12:00:00.000Z",
+  "model": "claude-opus-5",
+  "binding": false,
+  "disclaimer": "Advisory only. This report is not binding. It cannot approve a milestone, authorize a transaction, or release funds. Only the assigned human reviewer can do that, by signing with their own wallet.",
+  "advisory_score": 8,
+  "recommendation": "RevisionSuggested",
+  "criteria": [
+    {
+      "id": "c1",
+      "text": "The settlement contract is deployed to Stellar testnet and its contract id is public",
+      "verdict": "cannot_verify",
+      "confidence": "low",
+      "supporting_links": [],
+      "rationale": "No contract id or explorer link was submitted, and the linked repository is not publicly readable."
+    },
+    {
+      "id": "c2",
+      "text": "Unauthorized callers cannot approve a milestone or release funds",
+      "verdict": "cannot_verify",
+      "confidence": "low",
+      "supporting_links": [],
+      "rationale": "No source or test output could be read."
+    },
+    {
+      "id": "c3",
+      "text": "A milestone cannot be released twice",
+      "verdict": "cannot_verify",
+      "confidence": "low",
+      "supporting_links": [],
+      "rationale": "No source or test output could be read."
+    },
+    {
+      "id": "c4",
+      "text": "A sponsor can reclaim an undelivered milestone after its deadline, but not before",
+      "verdict": "cannot_verify",
+      "confidence": "low",
+      "supporting_links": [],
+      "rationale": "No source or test output could be read."
+    },
+    {
+      "id": "c5",
+      "text": "An automated test shows that an advisory score of 100 cannot release funds",
+      "verdict": "cannot_verify",
+      "confidence": "low",
+      "supporting_links": [],
+      "rationale": "No source or test output could be read."
+    }
+  ],
+  "evidence": [
+    {
+      "url": "https://github.com/egekoca/sprintos-private-notes",
+      "type": "repo",
+      "fetched": false,
+      "public": false,
+      "summary": "Not found, or private. Private sources are never opened.",
+      "error": "Not found, or private. Private sources are never opened."
+    },
+    {
+      "url": "https://example.com/wip",
+      "type": "docs",
+      "fetched": true,
+      "public": true,
+      "summary": "Example Domain. This domain is for use in illustrative examples in documents."
+    }
+  ],
+  "missing_information": [
+    "The first link is private or does not exist. This module only reads public sources — a public repository, commit, or pull request is needed.",
+    "The second link resolves to a placeholder page with no project content.",
+    "A deployed contract id or explorer link.",
+    "Test run output covering the authorization, duplicate-release and refund cases."
+  ],
+  "report_hash": "sha256:bbc30f374725d2cd29267587c320e8ba441bae4870522725689bde60f7b08d5f"
+}

@@ -1,0 +1,90 @@
+{
+  "schema_version": "1.0.0",
+  "report_id": "22222222-2222-4222-8222-222222222222",
+  "engagement_id": "0",
+  "milestone_idx": 0,
+  "generated_at": "2026-08-24T12:00:00.000Z",
+  "model": "claude-opus-5",
+  "binding": false,
+  "disclaimer": "Advisory only. This report is not binding. It cannot approve a milestone, authorize a transaction, or release funds. Only the assigned human reviewer can do that, by signing with their own wallet.",
+  "advisory_score": 58,
+  "recommendation": "RevisionSuggested",
+  "criteria": [
+    {
+      "id": "c1",
+      "text": "The settlement contract is deployed to Stellar testnet and its contract id is public",
+      "verdict": "met",
+      "confidence": "high",
+      "supporting_links": [
+        "https://stellar.expert/explorer/testnet/contract/CA7N7EPNGY2OSYAIA2HDYJTHACJR7M7P65VWA6I7PLBHTJ6W3HFUKHNK"
+      ],
+      "rationale": "The contract id resolves on the testnet explorer."
+    },
+    {
+      "id": "c2",
+      "text": "Unauthorized callers cannot approve a milestone or release funds",
+      "verdict": "partially_met",
+      "confidence": "medium",
+      "supporting_links": [
+        "https://github.com/egekoca/SprintOS/pull/1"
+      ],
+      "rationale": "The diff adds require_auth on approve and release, but no test output was submitted showing a wrong-role call being refused."
+    },
+    {
+      "id": "c3",
+      "text": "A milestone cannot be released twice",
+      "verdict": "cannot_verify",
+      "confidence": "low",
+      "supporting_links": [],
+      "rationale": "No test result or transaction was submitted that attempts a second release."
+    },
+    {
+      "id": "c4",
+      "text": "A sponsor can reclaim an undelivered milestone after its deadline, but not before",
+      "verdict": "partially_met",
+      "confidence": "medium",
+      "supporting_links": [
+        "https://github.com/egekoca/SprintOS/pull/1"
+      ],
+      "rationale": "A refund function with a deadline check is present in the diff; the before-deadline refusal is not demonstrated."
+    },
+    {
+      "id": "c5",
+      "text": "An automated test shows that an advisory score of 100 cannot release funds",
+      "verdict": "cannot_verify",
+      "confidence": "low",
+      "supporting_links": [],
+      "rationale": "No test file or run output covering the advisory-score case appears in the submitted evidence."
+    }
+  ],
+  "evidence": [
+    {
+      "url": "https://github.com/egekoca/SprintOS",
+      "type": "repo",
+      "fetched": true,
+      "public": true,
+      "summary": "Repository: egekoca/SprintOS · contracts/settlement present"
+    },
+    {
+      "url": "https://github.com/egekoca/SprintOS/pull/1",
+      "type": "pull_request",
+      "fetched": true,
+      "public": true,
+      "summary": "Pull request #1: Settlement contract · open · +860 / -0 across 6 files"
+    },
+    {
+      "url": "https://stellar.expert/explorer/testnet/contract/CA7N7EPNGY2OSYAIA2HDYJTHACJR7M7P65VWA6I7PLBHTJ6W3HFUKHNK",
+      "type": "demo",
+      "fetched": true,
+      "public": true,
+      "summary": "Contract CA7N7EPN… on Stellar testnet"
+    }
+  ],
+  "missing_information": [
+    "A test run showing an unauthorized caller being refused on approve and release.",
+    "A test asserting that a second release attempt fails and no balance moves.",
+    "A test covering refund before the deadline.",
+    "The test named in criterion 5, or its run output."
+  ],
+  "report_hash": "sha256:c09b1a7ab219fb85186a12e1d2d1d2d7de5b19ba17bf64a2e91a5b72ca57de29"
+}
