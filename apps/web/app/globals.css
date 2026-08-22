@@ -1,0 +1,411 @@
+/* ==========================================================================
+   SprintOS design system
+
+   Street surface, ledger discipline.
+
+   The visual language is graffiti — concrete ground, spray-paint orange,
+   stencil display type, tape and drips. But this application moves money, so
+   the texture is a skin over a strict information layer, never a substitute
+   for it. Anywhere a reviewer reads numbers, hashes or evidence, the noise
+   drops away and legibility wins.
+
+   One rule governs colour, and it is the same rule the contract enforces:
+
+       Brand orange belongs to human authority.
+
+   Approve, Hold, Release and Sign wear it. The advisory module never does —
+   it is rendered in concrete grey with a dashed edge, so a reviewer can see at
+   a glance which parts of the screen can act and which can only advise.
+   ========================================================================== */
+
+/* -------------------------------------------------------------- tokens */
+:root {
+  /* Sampled from the logo: fox gradient over cool ink. */
+  --orange:        #FA6419;
+  --orange-lo:     #FF7A1E;
+  --orange-hi:     #E63C14;
+  --orange-glow:   rgba(250, 100, 25, 0.28);
+  --spray:         linear-gradient(118deg, var(--orange-lo), var(--orange-hi));
+
+  /* Asphalt and concrete. Neutrals carry the logo ink's cool blue bias. */
+  --asphalt:       #0B0E12;
+  --concrete:      #12171D;
+  --concrete-2:    #191F27;
+  --concrete-3:    #222A34;
+  --chalk:         #EEF2F6;
+  --chalk-dim:     #9AA5B2;
+  --chalk-faint:   #6B7683;
+  --edge:          #242D38;
+  --edge-bright:   #38434F;
+
+  /* State. Deliberately none of these is orange — orange means "a human may
+     act here", and a status pill is a fact, not an action. */
+  --st-pending:    #7C8794;
+  --st-submitted:  #5B9DFF;
+  --st-approved:   #2ED8A0;
+  --st-held:       #B69BFF;
+  --st-released:   #17C98A;
+  --st-refunded:   #8792A0;
+  --danger:        #FF6B78;
+
+  /* The advisory palette: intentionally the dullest thing on screen. */
+  --advisory-bg:   #151A21;
+  --advisory-edge: #2E3843;
+  --advisory-ink:  #8E99A6;
+
+  --radius:        4px;   /* stencilled, not soft */
+  --radius-lg:     8px;
+  --tape:          #D9CFA8;
+
+  --font-display: "Anton", "Arial Narrow", sans-serif;
+  --font-body:    "Barlow", ui-sans-serif, system-ui, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-tag:     "Permanent Marker", var(--font-display);
+}
+
+/* This product commits to one visual world: a wall at night. It is painted
+   explicitly rather than inheriting a host theme, so it holds on any ground. */
+
+/* ---------------------------------------------------------------- base */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background-color: var(--asphalt);
+  background-image:
+    /* pooled light from somewhere off-frame */
+    radial-gradient(1100px 620px at 78% -12%, rgba(250,100,25,0.10), transparent 62%),
+    radial-gradient(760px 480px at 4% 8%, rgba(91,157,255,0.055), transparent 60%);
+  color: var(--chalk);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+/* Concrete grain. A fixed overlay so it reads as the surface the interface is
+   painted on, rather than as a texture riding on each panel. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
+}
+
+main, header, footer { position: relative; z-index: 1; }
+
+/* ---------------------------------------------------------- typography */
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+  text-wrap: balance;
+  margin: 0;
+  line-height: 0.94;
+}
+
+h1 { font-size: clamp(2.75rem, 8vw, 6.5rem); }
+h2 { font-size: clamp(1.75rem, 4vw, 2.75rem); }
+h3 { font-size: clamp(1.15rem, 2vw, 1.4rem); }
+
+p { margin: 0; }
+
+a { color: var(--orange-lo); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible, input:focus-visible,
+textarea:focus-visible, select:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+code, .mono { font-family: var(--font-mono); font-variant-ligatures: none; }
+
+/* Painted through a stencil: the gradient shows through the letterforms. */
+.stencil {
+  background: var(--spray);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* A hand-tagged word. Used at most once per screen — restraint is what keeps
+   it reading as a tag rather than as a font choice. */
+.tag {
+  font-family: var(--font-tag);
+  text-transform: none;
+  color: var(--orange-lo);
+  transform: rotate(-2.5deg);
+  display: inline-block;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+}
+
+.lede { font-size: clamp(1rem, 1.6vw, 1.1875rem); color: var(--chalk-dim); max-width: 62ch; }
+
+.muted { color: var(--chalk-dim); }
+.faint { color: var(--chalk-faint); }
+
+/* ------------------------------------------------------------- layout */
+.shell { width: min(100% - 2.5rem, 1200px); margin-inline: auto; }
+.stack   { display: flex; flex-direction: column; gap: 1.25rem; }
+.stack-s { display: flex; flex-direction: column; gap: 0.625rem; }
+.stack-l { display: flex; flex-direction: column; gap: 2.5rem; }
+.row     { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+.spread  { display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+
+.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+.grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+
+/* --------------------------------------------------------------- panel */
+.panel {
+  background: var(--concrete);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.375rem;
+}
+
+.panel-tight { padding: 1rem; }
+
+/* A stencilled rail down the left edge, like a mark sprayed along the seam. */
+.panel-marked { border-left: 3px solid transparent; border-image: var(--spray) 1; }
+
+/* ------------------------------------------------------------- buttons */
+.btn {
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0.6875rem 1.25rem;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: transform 0.12s ease, filter 0.12s ease, background 0.12s ease;
+  text-decoration: none;
+}
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn:not(:disabled):hover { transform: translateY(-1px); }
+.btn:not(:disabled):active { transform: translateY(0); }
+
+/* The only element on the site that wears the full spray. Reserved for actions
+   a human is authorizing with their own wallet. */
+.btn-primary {
+  background: var(--spray);
+  color: #fff;
+  box-shadow: 0 0 0 0 var(--orange-glow);
+}
+.btn-primary:not(:disabled):hover { filter: brightness(1.08); box-shadow: 0 6px 22px -8px var(--orange-glow); }
+
+.btn-ghost { background: transparent; color: var(--chalk); border-color: var(--edge-bright); }
+.btn-ghost:not(:disabled):hover { background: var(--concrete-2); border-color: var(--chalk-faint); }
+
+.btn-hold { background: transparent; color: var(--st-held); border-color: var(--st-held); }
+.btn-hold:not(:disabled):hover { background: rgba(182,155,255,0.1); }
+
+.btn-sm { font-size: 0.8125rem; padding: 0.4375rem 0.8125rem; }
+
+/* --------------------------------------------------------------- pills */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 2px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+.pill::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+.pill-pending   { color: var(--st-pending); }
+.pill-submitted { color: var(--st-submitted); }
+.pill-approved  { color: var(--st-approved); }
+.pill-held      { color: var(--st-held); }
+.pill-released  { color: var(--st-released); }
+.pill-refunded  { color: var(--st-refunded); }
+.pill-neutral   { color: var(--chalk-faint); }
+
+/* ------------------------------------------------------------ advisory */
+/* The design thesis, expressed in CSS: dashed edge, dulled surface, no orange
+   anywhere. This block is the only place in the app that looks provisional,
+   and that is exactly what it is. */
+.advisory {
+  background: var(--advisory-bg);
+  border: 1.5px dashed var(--advisory-edge);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  color: var(--advisory-ink);
+}
+.advisory h3 { color: var(--chalk-dim); }
+
+.advisory-score {
+  font-family: var(--font-display);
+  font-size: 3.25rem;
+  line-height: 1;
+  color: var(--advisory-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.advisory-banner {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+  border-top: 1px dashed var(--advisory-edge);
+  padding-top: 0.625rem;
+}
+
+/* --------------------------------------------------------------- data */
+.data { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+.addr {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--chalk-dim);
+  word-break: break-all;
+}
+
+.amount {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.table-wrap { overflow-x: auto; border: 1px solid var(--edge); border-radius: var(--radius-lg); }
+table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 0.9375rem; }
+th, td { text-align: left; padding: 0.75rem 1rem; border-bottom: 1px solid var(--edge); }
+thead th {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+  background: var(--concrete-2);
+}
+tbody tr:last-child td { border-bottom: none; }
+
+/* --------------------------------------------------------------- forms */
+label { font-size: 0.8125rem; font-weight: 600; color: var(--chalk-dim); letter-spacing: 0.01em; }
+
+input[type="text"], input[type="number"], input[type="url"], input[type="date"],
+input[type="datetime-local"], textarea, select {
+  width: 100%;
+  background: var(--asphalt);
+  border: 1px solid var(--edge-bright);
+  border-radius: var(--radius);
+  color: var(--chalk);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  padding: 0.5625rem 0.75rem;
+}
+input::placeholder, textarea::placeholder { color: var(--chalk-faint); }
+input:focus, textarea:focus, select:focus { border-color: var(--orange); }
+
+.field { display: flex; flex-direction: column; gap: 0.3125rem; }
+
+/* The gate in front of every decision. Styled as a physical checkbox rather
+   than a nicety — the reviewer is attesting to something. */
+.attest {
+  display: flex;
+  gap: 0.625rem;
+  align-items: flex-start;
+  padding: 0.75rem 0.875rem;
+  background: var(--concrete-2);
+  border: 1px solid var(--edge-bright);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--chalk-dim);
+}
+.attest input { accent-color: var(--orange); width: 1rem; height: 1rem; margin-top: 0.1875rem; flex-shrink: 0; }
+.attest:has(input:checked) { border-color: var(--orange); color: var(--chalk); }
+
+/* ---------------------------------------------------------- decoration */
+/* A drip running off an edge. Pure decoration, and hidden from assistive tech
+   wherever it is used. */
+.drip { display: block; color: var(--orange); }
+
+/* Strip of masking tape, for labels stuck onto the wall. */
+.tape-label {
+  display: inline-block;
+  background: var(--tape);
+  color: #16130C;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.75rem;
+  transform: rotate(-1.2deg);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+
+/* Stencilled section number. Only used where the content is genuinely a
+   sequence — the settlement flow — never as decoration. */
+.stencil-num {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--edge-bright);
+  font-variant-numeric: tabular-nums;
+}
+
+.hr-spray { height: 2px; border: 0; background: var(--spray); opacity: 0.55; }
+
+/* ------------------------------------------------------------- utility */
+.badge-link {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--chalk-dim);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--edge-bright);
+}
+.badge-link:hover { color: var(--orange-lo); border-color: var(--orange); }
+
+.notice {
+  border: 1px solid var(--edge-bright);
+  border-left: 3px solid var(--danger);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 0.75rem 1rem;
+  background: var(--concrete);
+  font-size: 0.875rem;
+  color: var(--chalk-dim);
+}
+.notice-ok { border-left-color: var(--st-released); }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  .tag, .tape-label { transform: none; }
+}
+
+@media (max-width: 640px) {
+  .shell { width: min(100% - 1.5rem, 1200px); }
+  .panel { padding: 1rem; }
+}
