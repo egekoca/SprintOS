@@ -1,0 +1,23 @@
+{
+  "network": "testnet",
+  "networkPassphrase": "Test SDF Network ; September 2015",
+  "rpcUrl": "https://soroban-testnet.stellar.org",
+  "horizonUrl": "https://horizon-testnet.stellar.org",
+  "settlementContractId": "CAJUEUOEP6UUNLQ65XOINCUNVBXYPOGNWZC2XZQE7HRV66KTLERPHLND",
+  "usdcSacId": "CAR6QZIC7NTQ4PFLOTD2434YZ6PRDHVJHL5GZIRT62VAJJBRL5IYUIU3",
+  "usdcAsset": "USDC:GDZZXFY56X2OALF2VUAX4BM4IB4Q6KTMREKDSMEAQ3M33LRHDDRTSHFG",
+  "usdcIssuer": "GDZZXFY56X2OALF2VUAX4BM4IB4Q6KTMREKDSMEAQ3M33LRHDDRTSHFG",
+  "deployedAt": "2026-08-25T12:00:50Z",
+  "features": {
+    "builderClaim": true
+  },
+  "explorer": {
+    "contract": "https://stellar.expert/explorer/testnet/contract/CAJUEUOEP6UUNLQ65XOINCUNVBXYPOGNWZC2XZQE7HRV66KTLERPHLND",
+    "usdc": "https://stellar.expert/explorer/testnet/contract/CAR6QZIC7NTQ4PFLOTD2434YZ6PRDHVJHL5GZIRT62VAJJBRL5IYUIU3"
+  },
+  "demoAccounts": {
+    "sponsor": "GCBSZV7G3Z27TJTUDMD3TNMXD5LSM3IN5VADGIB4ZPLE63CZSUGZQVXI",
+    "builder": "GDKBTJDF6HQRE4JHLBSKV5K7EY5BKCY2H2LCHXHDOFBBG6MBHQV3HWPK",
+    "reviewer": "GBIFJZC2QVNDKDJQEBC247BF5URT4T24FXCRC53527P3TXUUIEIRZSMA"
+  }
+}
