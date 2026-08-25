@@ -1,13 +1,5 @@
 "use client";
 
-import { Networks, StellarWalletsKit } from "@creit-tech/stellar-wallets-kit";
-import { FreighterModule, FREIGHTER_ID } from "@creit-tech/stellar-wallets-kit/modules/freighter";
-import { xBullModule } from "@creit-tech/stellar-wallets-kit/modules/xbull";
-import { AlbedoModule } from "@creit-tech/stellar-wallets-kit/modules/albedo";
-import { LobstrModule } from "@creit-tech/stellar-wallets-kit/modules/lobstr";
-import { HanaModule } from "@creit-tech/stellar-wallets-kit/modules/hana";
-import { RabetModule } from "@creit-tech/stellar-wallets-kit/modules/rabet";
-
 /**
  * Wallet access.
  *
@@ -22,24 +14,50 @@ import { RabetModule } from "@creit-tech/stellar-wallets-kit/modules/rabet";
  */
 
 let initialized = false;
+let kitPromise: ReturnType<typeof importWalletKit> | null = null;
 
-function ensureInit(): void {
-  if (initialized) return;
+/**
+ * The kit writes its theme variables to `document.documentElement` as soon as
+ * its module is evaluated. A static import therefore changes the root `<html>`
+ * before React hydrates and produces a server/client attribute mismatch.
+ * Loading it on the first wallet action keeps the initial DOM deterministic
+ * and also avoids shipping wallet UI code to visitors who only read the site.
+ */
+async function importWalletKit() {
+  const [kit, freighter, xbull, albedo, lobstr, hana, rabet] = await Promise.all([
+    import("@creit-tech/stellar-wallets-kit"),
+    import("@creit-tech/stellar-wallets-kit/modules/freighter"),
+    import("@creit-tech/stellar-wallets-kit/modules/xbull"),
+    import("@creit-tech/stellar-wallets-kit/modules/albedo"),
+    import("@creit-tech/stellar-wallets-kit/modules/lobstr"),
+    import("@creit-tech/stellar-wallets-kit/modules/hana"),
+    import("@creit-tech/stellar-wallets-kit/modules/rabet"),
+  ]);
+  return { kit, freighter, xbull, albedo, lobstr, hana, rabet };
+}
+
+async function ensureInit() {
+  kitPromise ??= importWalletKit();
+  const modules = await kitPromise;
+  if (initialized) return modules.kit;
+
+  const { StellarWalletsKit, Networks } = modules.kit;
   StellarWalletsKit.init({
     // Testnet is pinned here as well as in config. Mainnet is out of scope for
     // this engagement, and there is no switch to flip by accident.
     network: Networks.TESTNET,
-    selectedWalletId: FREIGHTER_ID,
+    selectedWalletId: modules.freighter.FREIGHTER_ID,
     modules: [
-      new FreighterModule(),
-      new xBullModule(),
-      new AlbedoModule(),
-      new LobstrModule(),
-      new HanaModule(),
-      new RabetModule(),
+      new modules.freighter.FreighterModule(),
+      new modules.xbull.xBullModule(),
+      new modules.albedo.AlbedoModule(),
+      new modules.lobstr.LobstrModule(),
+      new modules.hana.HanaModule(),
+      new modules.rabet.RabetModule(),
     ],
   });
   initialized = true;
+  return modules.kit;
 }
 
 export interface ConnectedWallet {
@@ -53,7 +71,7 @@ export interface ConnectedWallet {
  * is not an error and should not be reported as one.
  */
 export async function connectWallet(): Promise<ConnectedWallet | null> {
-  ensureInit();
+  const { StellarWalletsKit, Networks } = await ensureInit();
   try {
     const { address } = await StellarWalletsKit.authModal();
     if (!address) return null;
@@ -77,7 +95,7 @@ export async function connectWallet(): Promise<ConnectedWallet | null> {
  * it themselves. Nothing in this codebase can sign on their behalf.
  */
 export async function signTransaction(xdr: string, address: string): Promise<string> {
-  ensureInit();
+  const { StellarWalletsKit, Networks } = await ensureInit();
   const { networkPassphrase } = await StellarWalletsKit.getNetwork();
   if (networkPassphrase !== Networks.TESTNET) {
     throw new Error("The connected wallet is not on Stellar testnet.");
@@ -91,5 +109,6 @@ export async function signTransaction(xdr: string, address: string): Promise<str
 
 export async function disconnectWallet(): Promise<void> {
   if (!initialized) return;
+  const { StellarWalletsKit } = await ensureInit();
   await StellarWalletsKit.disconnect().catch(() => undefined);
 }
