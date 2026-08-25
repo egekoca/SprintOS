@@ -1,6 +1,7 @@
 "use client";
 
 import type { AdvisoryReport } from "@sprintos/schemas/report";
+import { FoxSpinner } from "./FoxLoader";
 
 /**
  * The advisory report, rendered as the least authoritative thing on the page.
@@ -18,9 +19,9 @@ const VERDICT_LABEL: Record<string, string> = {
 };
 
 const VERDICT_COLOR: Record<string, string> = {
-  met: "var(--st-approved)",
-  partially_met: "var(--st-held)",
-  not_met: "var(--danger)",
+  met: "var(--chalk-dim)",
+  partially_met: "var(--advisory-ink)",
+  not_met: "var(--paper)",
   cannot_verify: "var(--chalk-faint)",
 };
 
@@ -43,7 +44,7 @@ export function AdvisoryPanel({
           <h3 id="advisory-heading" style={{ marginTop: "0.25rem" }}>AI review</h3>
         </div>
         <button type="button" className="btn btn-ghost btn-sm" onClick={onGenerate} disabled={loading}>
-          {loading ? "Reading evidence…" : report ? "Run again" : "Generate report"}
+          {loading ? <><FoxSpinner /> Reading evidence…</> : report ? "Run again" : "Generate report"}
         </button>
       </div>
 

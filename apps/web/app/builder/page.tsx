@@ -12,6 +12,7 @@ import {
 import { BUILDER_CLAIM_ENABLED, formatUsdc } from "@/lib/stellar/config";
 import { StatusPill } from "@/components/StatusPill";
 import { TxLink } from "@/components/TxLink";
+import { FoxLoader, FoxSpinner } from "@/components/FoxLoader";
 import { MAX_EVIDENCE, type EvidenceType } from "@sprintos/schemas/milestone";
 
 /**
@@ -134,7 +135,7 @@ export default function BuilderPage() {
           <TxLink hash={done.hash} />
         </div>
       )}
-      {loading && <p className="muted">Reading the ledger…</p>}
+      {loading && <FoxLoader label="Reading the ledger" />}
 
       {!loading && mine.length === 0 && (
         <div className="panel">
@@ -182,7 +183,7 @@ export default function BuilderPage() {
                           disabled={busy}
                           onClick={() => handleClaim(e.id, idx)}
                         >
-                          {busy ? "Waiting for signature…" : "Claim approved payment"}
+                          {busy ? <><FoxSpinner /> Waiting for signature…</> : "Claim approved payment"}
                         </button>
                       )}
                     </div>
@@ -228,7 +229,7 @@ export default function BuilderPage() {
 
                       <div className="row">
                         <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={busy}>
-                          {busy ? "Waiting for signature…" : "Sign: submit evidence"}
+                          {busy ? <><FoxSpinner /> Waiting for signature…</> : "Sign: submit evidence"}
                         </button>
                       </div>
 

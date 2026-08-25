@@ -1,55 +1,59 @@
+import { WIDTH, HEIGHT, SILHOUETTE, MID, BRIGHT, NAVY } from "./fox-paths";
+
+type FoxMarkProps = {
+  size?: number;
+  className?: string;
+  decorative?: boolean;
+};
+
+const LOGO_ASPECT_RATIO = 978 / 306;
+const FOX_ASPECT_RATIO = WIDTH / HEIGHT;
+
 /**
- * The SprintOS mark, drawn rather than loaded.
+ * The fox mark, drawn from vector.
  *
- * The supplied PNG has no alpha channel — its "transparent" checkerboard is
- * baked into the pixels — so it cannot sit on the dark ground this interface
- * uses. An inline SVG also inherits currentColor and scales without a second
- * asset.
+ * The team supplied the artwork as a 278x306 PNG with a soft fringe in its
+ * alpha channel, so it blurs as soon as it is drawn any larger — which it is,
+ * on the landing page and the app gateway. These are the same shapes traced to
+ * paths, so the mark stays sharp at any size, and the fills are taken from
+ * custom properties so callers can recolour it (the button spinner does).
+ *
+ * FoxSculpture uses the same paths for the lit, three-dimensional hero mark.
  */
-export function Logo({ size = 28, withWordmark = true }: { size?: number; withWordmark?: boolean }) {
+export function FoxMark({ size = 36, className = "", decorative = false }: FoxMarkProps) {
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
-      <svg
-        width={size}
+    <svg
+      className={`fox-mark ${className}`.trim()}
+      viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+      width={Math.round(size * FOX_ASPECT_RATIO)}
+      height={size}
+      role={decorative ? undefined : "img"}
+      aria-label={decorative ? undefined : "SprintOS fox"}
+      aria-hidden={decorative || undefined}
+      focusable="false"
+    >
+      <path d={SILHOUETTE} fillRule="evenodd" fill="var(--orange-hi, #D9360B)" />
+      <path d={MID} fillRule="evenodd" fill="var(--orange, #FF5A12)" />
+      <path d={BRIGHT} fillRule="evenodd" fill="var(--orange-lo, #FF7A1E)" />
+      <path d={NAVY} fillRule="evenodd" fill="var(--fox-eye, #22303A)" />
+    </svg>
+  );
+}
+
+/** The exact horizontal fox + SprintOS wordmark supplied by the team. */
+export function Logo({ size = 36, withWordmark = true }: { size?: number; withWordmark?: boolean }) {
+  if (!withWordmark) return <FoxMark size={size} decorative />;
+
+  return (
+    <span className="brand-lockup">
+      <img
+        className="brand-logo"
+        src="/brand/sprintos-logo.png"
+        width={Math.round(size * LOGO_ASPECT_RATIO)}
         height={size}
-        viewBox="0 0 64 64"
-        role="img"
-        aria-label="SprintOS"
-        style={{ flexShrink: 0 }}
-      >
-        <defs>
-          <linearGradient id="fox" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#FF7A1E" />
-            <stop offset="100%" stopColor="#E63C14" />
-          </linearGradient>
-        </defs>
-        {/* Fox head: two ears, a tapering muzzle, and a tail curling behind. */}
-        <path
-          d="M12 14 L21 25 Q32 20 43 25 L52 14 L50 30 Q56 38 48 47 Q38 56 26 52 Q14 48 12 36 Z"
-          fill="url(#fox)"
-        />
-        <path
-          d="M12 30 Q4 38 10 48 Q16 57 28 55 Q18 50 16 41 Q15 35 12 30 Z"
-          fill="url(#fox)"
-          opacity="0.75"
-        />
-        <path d="M24 33 l6 2 -5 3 Z" fill="#12171D" />
-        <path d="M44 33 l-6 2 5 3 Z" fill="#12171D" />
-        <path d="M31 42 h6 l-3 4 Z" fill="#12171D" />
-      </svg>
-      {withWordmark && (
-        <span
-          style={{
-            fontFamily: "var(--font-display)",
-            fontSize: `${size * 0.66}px`,
-            letterSpacing: "0.01em",
-            textTransform: "uppercase",
-            color: "var(--chalk)",
-          }}
-        >
-          Sprint<span className="stencil">OS</span>
-        </span>
-      )}
+        alt="SprintOS"
+        draggable={false}
+      />
     </span>
   );
 }

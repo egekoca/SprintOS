@@ -8,6 +8,7 @@ import { useWallet } from "@/components/WalletProvider";
 import { AdvisoryPanel } from "@/components/AdvisoryPanel";
 import { StatusPill } from "@/components/StatusPill";
 import { TxLink } from "@/components/TxLink";
+import { FoxLoader, FoxSpinner } from "@/components/FoxLoader";
 import {
   approveMilestone,
   getEngagement,
@@ -135,7 +136,7 @@ export default function ReviewDeskPage({ params }: { params: Promise<{ id: strin
   }
 
   if (loading) {
-    return <section className="shell" style={{ paddingBlock: "4rem" }}><p className="muted">Reading the ledger…</p></section>;
+    return <section className="shell" style={{ paddingBlock: "4rem" }}><FoxLoader label="Preparing the review desk" /></section>;
   }
   if (!engagement) {
     return (
@@ -319,16 +320,16 @@ export default function ReviewDeskPage({ params }: { params: Promise<{ id: strin
               {canDecide && (
                 <>
                   <button type="button" className="btn btn-primary" disabled={!documentsVerified || !attested || busy !== null} onClick={() => act("approve")}>
-                    {busy === "approve" ? "Waiting for signature…" : "Sign: approve"}
+                    {busy === "approve" ? <><FoxSpinner /> Waiting for signature…</> : "Sign: approve"}
                   </button>
                   <button type="button" className="btn btn-hold" disabled={!documentsVerified || !attested || busy !== null} onClick={() => act("hold")}>
-                    {busy === "hold" ? "Waiting for signature…" : "Sign: hold for revision"}
+                    {busy === "hold" ? <><FoxSpinner /> Waiting for signature…</> : "Sign: hold for revision"}
                   </button>
                 </>
               )}
               {canRelease && (
                 <button type="button" className="btn btn-primary" disabled={!documentsVerified || !attested || busy !== null} onClick={() => act("release")}>
-                  {busy === "release" ? "Waiting for signature…" : `Sign: release ${formatUsdc(milestone.amount)} USDC`}
+                  {busy === "release" ? <><FoxSpinner /> Waiting for signature…</> : `Sign: release ${formatUsdc(milestone.amount)} USDC`}
                 </button>
               )}
             </div>

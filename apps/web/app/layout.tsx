@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "SprintOS — milestone settlement on Stellar",
   description:
     "Fund milestones in testnet USDC, submit public proof of work, and let a human reviewer decide. The AI advises; it cannot pay anyone.",
+  icons: { icon: "/brand/sprintos-fox.png" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

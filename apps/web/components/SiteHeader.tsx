@@ -5,8 +5,10 @@ import { usePathname } from "next/navigation";
 import { Logo } from "./Logo";
 import { useWallet } from "./WalletProvider";
 import { explorerAccount, shortAddress } from "@/lib/stellar/config";
+import { FoxSpinner } from "./FoxLoader";
 
 const NAV = [
+  { href: "/app", label: "Overview" },
   { href: "/sponsor", label: "Sponsor" },
   { href: "/builder", label: "Builder" },
   { href: "/review", label: "Review" },
@@ -16,14 +18,32 @@ export function SiteHeader() {
   const { address, connecting, connect, disconnect, error } = useWallet();
   const pathname = usePathname();
 
+  if (pathname === "/") {
+    return (
+      <header className="marketing-header">
+        <div className="shell marketing-header-inner">
+          <Link href="/" aria-label="SprintOS home" style={{ textDecoration: "none" }}>
+            <Logo size={40} />
+          </Link>
+          <nav className="marketing-nav" aria-label="Landing page navigation">
+            <a href="#problem">Problem</a>
+            <a href="#solution">Solution</a>
+            <a href="#trust">Trust</a>
+          </nav>
+          <Link href="/app" className="marketing-enter">Enter app <span>↗</span></Link>
+        </div>
+      </header>
+    );
+  }
+
   return (
-    <header style={{ borderBottom: "1px solid var(--edge)", background: "rgba(11,14,18,0.82)", backdropFilter: "blur(8px)", position: "sticky", top: 0, zIndex: 20 }}>
-      <div className="shell spread" style={{ paddingBlock: "0.875rem" }}>
-        <Link href="/" style={{ textDecoration: "none" }}>
+    <header style={{ borderBottom: "1px solid var(--edge)", background: "rgba(9,9,9,0.86)", backdropFilter: "blur(10px)", position: "sticky", top: 0, zIndex: 20 }}>
+      <div className="shell spread site-header-inner" style={{ paddingBlock: "0.875rem" }}>
+        <Link href="/" aria-label="SprintOS home" style={{ textDecoration: "none" }}>
           <Logo />
         </Link>
 
-        <nav className="row" style={{ gap: "0.25rem" }}>
+        <nav className="row site-nav" aria-label="Primary navigation" style={{ gap: "0.25rem" }}>
           {NAV.map((item) => {
             const active = pathname.startsWith(item.href);
             return (
@@ -49,7 +69,7 @@ export function SiteHeader() {
           })}
         </nav>
 
-        <div className="row" style={{ gap: "0.5rem" }}>
+        <div className="row wallet-actions" style={{ gap: "0.5rem" }}>
           {address ? (
             <>
               <a
@@ -67,7 +87,7 @@ export function SiteHeader() {
             </>
           ) : (
             <button type="button" className="btn btn-primary btn-sm" onClick={connect} disabled={connecting}>
-              {connecting ? "Connecting…" : "Connect wallet"}
+              {connecting ? <><FoxSpinner /> Connecting…</> : "Connect wallet"}
             </button>
           )}
         </div>

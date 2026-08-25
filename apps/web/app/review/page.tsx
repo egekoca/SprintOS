@@ -6,6 +6,7 @@ import { useWallet } from "@/components/WalletProvider";
 import { listEngagements, roleOf, type Engagement } from "@/lib/stellar/contract";
 import { formatUsdc, shortAddress } from "@/lib/stellar/config";
 import { EngagementPill, StatusPill } from "@/components/StatusPill";
+import { FoxLoader } from "@/components/FoxLoader";
 
 /**
  * The review list.
@@ -50,7 +51,7 @@ export default function ReviewListPage() {
       )}
 
       {error && <p className="notice">{error}</p>}
-      {loading && <p className="muted">Reading the ledger…</p>}
+      {loading && <FoxLoader label="Reading the ledger" />}
 
       {waiting.length > 0 && (
         <div className="stack">

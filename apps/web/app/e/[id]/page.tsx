@@ -11,6 +11,7 @@ import {
   shortAddress,
 } from "@/lib/stellar/config";
 import { EngagementPill, StatusPill } from "@/components/StatusPill";
+import { FoxLoader } from "@/components/FoxLoader";
 
 /**
  * The public engagement page.
@@ -35,7 +36,7 @@ export default function EngagementPage({ params }: { params: Promise<{ id: strin
   }, [id]);
 
   if (loading) {
-    return <section className="shell" style={{ paddingBlock: "4rem" }}><p className="muted">Reading the ledger…</p></section>;
+    return <section className="shell" style={{ paddingBlock: "4rem" }}><FoxLoader label="Reading the ledger" /></section>;
   }
   if (!engagement) {
     return (
