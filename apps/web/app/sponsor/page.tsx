@@ -6,6 +6,9 @@ import { useWallet } from "@/components/WalletProvider";
 import { createEngagement, fundEngagement, type MilestoneDraft } from "@/lib/stellar/contract";
 import { formatUsdc, parseUsdc } from "@/lib/stellar/config";
 import { TxLink } from "@/components/TxLink";
+import { FoxSpinner } from "@/components/FoxLoader";
+import { GitHubRepositoryPanel, type ImportedMilestone } from "@/components/GitHubRepositoryPanel";
+import { ProductIcon } from "@/components/ProductIcon";
 import { MAX_CRITERIA, MAX_MILESTONES } from "@sprintos/schemas/milestone";
 
 /**
@@ -55,6 +58,18 @@ export default function SponsorPage() {
 
   function update(idx: number, patch: Partial<MilestoneForm>) {
     setMilestones((prev) => prev.map((m, i) => (i === idx ? { ...m, ...patch } : m)));
+  }
+
+  function importMilestones(imported: ImportedMilestone[]) {
+    setError(null);
+    setCreated(null);
+    setFunded(null);
+    setMilestones(imported.slice(0, MAX_MILESTONES).map((milestone, index) => ({
+      title: milestone.title,
+      criteria: milestone.criteria.slice(0, MAX_CRITERIA),
+      amount: "",
+      deadline: milestone.deadline ?? emptyMilestone(7 * (index + 1)).deadline,
+    })));
   }
 
   async function handleCreate() {
@@ -120,36 +135,35 @@ export default function SponsorPage() {
     }
   }
 
-  if (!address) {
-    return (
-      <section className="shell" style={{ paddingBlock: "4rem" }}>
-        <div className="panel stack" style={{ maxWidth: "42rem" }}>
-          <h2>Sponsor</h2>
-          <p className="muted">
-            Connect the wallet that will fund the escrow. It becomes the sponsor of record and the
-            only address that can reclaim an undelivered milestone after its deadline.
-          </p>
-          <div><button type="button" className="btn btn-primary" onClick={connect}>Connect wallet</button></div>
-        </div>
-      </section>
-    );
-  }
-
   return (
-    <section className="shell stack-l" style={{ paddingBlock: "3rem" }}>
-      <div className="stack-s">
-        <p className="eyebrow">Sponsor</p>
-        <h2>Define and fund<span style={{ color: "var(--orange)" }}>.</span></h2>
-        <p className="lede">
-          Up to {MAX_MILESTONES} milestones, each with up to {MAX_CRITERIA} acceptance criteria.
-          Funding moves the whole total into escrow in one transaction.
-        </p>
+    <section className="shell sponsor-page" style={{ paddingBlock: "3rem" }}>
+      <div className="sponsor-title-row">
+        <div className="stack-s">
+          <p className="eyebrow">Sponsor workspace</p>
+          <h2>Build the engagement<span style={{ color: "var(--orange)" }}>.</span></h2>
+        </div>
+        <div className="sponsor-wallet-state">
+          <ProductIcon name="wallet" size={21} />
+          {address ? <span className="mono">Wallet ready</span> : <button type="button" onClick={connect}>Connect wallet</button>}
+        </div>
       </div>
 
       {error && <p className="notice">{error}</p>}
 
-      <div className="panel stack">
-        <h3>Roles</h3>
+      <div className="sponsor-flow" aria-label="Engagement setup steps">
+        <FlowStep number="1" icon="github" label="Repository" active />
+        <FlowStep number="2" icon="milestone" label="Milestones" active={milestones.some((milestone) => milestone.title)} />
+        <FlowStep number="3" icon="wallet" label="Roles" active={Boolean(builder && reviewer)} />
+        <FlowStep number="4" icon="signature" label="Sign & fund" active={Boolean(created)} />
+      </div>
+
+      <GitHubRepositoryPanel onImport={importMilestones} />
+
+      <div className="panel stack sponsor-section">
+        <div className="sponsor-section-title">
+          <span><ProductIcon name="wallet" size={22} /></span>
+          <div><p className="eyebrow">03 · Parties</p><h3>Assign roles</h3></div>
+        </div>
         <div className="grid-2">
           <div className="field">
             <label htmlFor="builder">Builder address</label>
@@ -160,16 +174,21 @@ export default function SponsorPage() {
             <input id="reviewer" type="text" placeholder="G…" value={reviewer} onChange={(e) => setReviewer(e.target.value)} />
           </div>
         </div>
-        <p className="faint" style={{ fontSize: "0.8125rem" }}>
-          All three roles must be different addresses. A sponsor who is also the reviewer could
-          approve and pay themselves, so the contract refuses it.
-        </p>
       </div>
 
+      <div className="sponsor-milestones-heading">
+        <div className="sponsor-section-title">
+          <span><ProductIcon name="milestone" size={22} /></span>
+          <div><p className="eyebrow">02 · Scope</p><h3>Milestones</h3></div>
+        </div>
+        <span className="mono faint">{milestones.length}/{MAX_MILESTONES}</span>
+      </div>
+
+      <div className="sponsor-milestone-list">
       {milestones.map((m, idx) => (
-        <div key={idx} className="panel stack">
+        <div key={idx} className="panel stack sponsor-milestone-card">
           <div className="spread">
-            <h3>Milestone {idx + 1}</h3>
+            <div className="row"><span className="sponsor-milestone-number">0{idx + 1}</span><h3>{m.title || `Milestone ${idx + 1}`}</h3></div>
             {milestones.length > 1 && (
               <button type="button" className="btn btn-ghost btn-sm" onClick={() => setMilestones((p) => p.filter((_, i) => i !== idx))}>
                 Remove
@@ -214,8 +233,9 @@ export default function SponsorPage() {
           </div>
         </div>
       ))}
+      </div>
 
-      <div className="spread">
+      <div className="spread sponsor-total-row">
         {milestones.length < MAX_MILESTONES ? (
           <button type="button" className="btn btn-ghost" onClick={() => setMilestones((p) => [...p, emptyMilestone(7 * (p.length + 1))])}>
             Add milestone
@@ -228,16 +248,19 @@ export default function SponsorPage() {
         </span>
       </div>
 
-      <div className="panel panel-marked stack">
-        <h3>Create, then fund</h3>
-        <p className="muted" style={{ fontSize: "0.9375rem" }}>
-          Two signatures. Creating records the milestones and their criteria hashes; funding moves
-          the USDC. Nothing is escrowed until you sign the second one.
-        </p>
+      <div className="panel panel-marked stack sponsor-sign-panel">
+        <div className="sponsor-section-title">
+          <span><ProductIcon name="signature" size={22} /></span>
+          <div><p className="eyebrow">04 · Authorization</p><h3>Create & fund</h3></div>
+        </div>
         <div className="row">
-          <button type="button" className="btn btn-primary" onClick={handleCreate} disabled={busy !== null || !builder || !reviewer}>
-            {busy === "create" ? "Waiting for signature…" : "Sign: create engagement"}
-          </button>
+          {address ? (
+            <button type="button" className="btn btn-primary" onClick={handleCreate} disabled={busy !== null || !builder || !reviewer}>
+              {busy === "create" ? <><FoxSpinner /> Waiting for signature…</> : <><ProductIcon name="signature" size={18} /> Sign engagement</>}
+            </button>
+          ) : (
+            <button type="button" className="btn btn-primary" onClick={connect}><ProductIcon name="wallet" size={18} /> Connect wallet</button>
+          )}
         </div>
         {created && (
           <div className="stack-s">
@@ -249,7 +272,7 @@ export default function SponsorPage() {
                 <input id="eid" type="text" value={engagementId} onChange={(e) => setEngagementId(e.target.value)} placeholder="0" />
               </div>
               <button type="button" className="btn btn-primary" onClick={handleFund} disabled={busy !== null || !engagementId} style={{ alignSelf: "flex-end" }}>
-                {busy === "fund" ? "Waiting for signature…" : `Sign: fund ${formatUsdc(total)} USDC`}
+                {busy === "fund" ? <><FoxSpinner /> Waiting for signature…</> : `Sign: fund ${formatUsdc(total)} USDC`}
               </button>
             </div>
             <p className="faint" style={{ fontSize: "0.8125rem" }}>
@@ -267,5 +290,14 @@ export default function SponsorPage() {
         )}
       </div>
     </section>
+  );
+}
+
+function FlowStep({ number, icon, label, active }: { number: string; icon: "github" | "milestone" | "wallet" | "signature"; label: string; active: boolean }) {
+  return (
+    <div className={`sponsor-flow-step${active ? " is-active" : ""}`}>
+      <span className="sponsor-flow-icon"><ProductIcon name={icon} size={19} /></span>
+      <span><small>{number.padStart(2, "0")}</small>{label}</span>
+    </div>
   );
 }
