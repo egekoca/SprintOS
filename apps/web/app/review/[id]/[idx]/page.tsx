@@ -18,6 +18,8 @@ import {
   type Engagement,
 } from "@/lib/stellar/contract";
 import { formatUsdc, shortAddress } from "@/lib/stellar/config";
+import { documentHashInBrowser, hashesMatch } from "@/lib/document-hash";
+import { EvidenceBundle as EvidenceBundleSchema } from "@sprintos/schemas/milestone";
 
 /**
  * The reviewer desk — the screen the whole product exists to produce.
@@ -30,6 +32,50 @@ import { formatUsdc, shortAddress } from "@/lib/stellar/config";
  * not the control — the contract independently requires the reviewer's
  * signature and would refuse anyone else regardless of what this page allows.
  */
+function DocumentBadge({ state }: { state: DocumentState }) {
+  if (state === "verified") return <span className="pill pill-approved">matches chain</span>;
+  if (state === "mismatch") return <span className="pill pill-held">hash differs</span>;
+  return <span className="pill pill-neutral">not available here</span>;
+}
+
+/** Whether a document could be shown, and whether it is the one that was funded. */
+type DocumentState = "verified" | "mismatch" | "absent";
+
+/**
+ * Fetch an evidence bundle from the pointer anchored on chain and verify it.
+ *
+ * Returns the bundle only when it parses as an evidence bundle *and* hashes to
+ * the value the contract recorded. Anything else is treated as unavailable —
+ * a document that does not hash correctly is not evidence, it is a stranger's
+ * JSON, and it must never reach the screen a reviewer decides from.
+ */
+async function recoverEvidenceFromPointer(
+  uri: string | null,
+  anchoredHash: string | null,
+): Promise<{ bundle: EvidenceBundle | null; hash: string | null }> {
+  if (!uri || !anchoredHash) return { bundle: null, hash: null };
+  try {
+    /* The pointer is data read off the ledger, so it can name a host that is
+       slow, gone, or hostile. Recovery is a bonus path — it must never be able
+       to hold up the desk, so it gets a short leash and fails quietly. */
+    const response = await fetch(uri, {
+      cache: "no-store",
+      redirect: "follow",
+      signal: AbortSignal.timeout(6000),
+    });
+    if (!response.ok) return { bundle: null, hash: null };
+    const body = await response.json();
+    const candidate = (body as { evidence?: unknown }).evidence ?? body;
+    const parsed = EvidenceBundleSchema.safeParse(candidate);
+    if (!parsed.success) return { bundle: null, hash: null };
+    const hash = await documentHashInBrowser(parsed.data);
+    if (!hashesMatch(hash, anchoredHash)) return { bundle: null, hash: null };
+    return { bundle: parsed.data, hash };
+  } catch {
+    return { bundle: null, hash: null };
+  }
+}
+
 export default function ReviewDeskPage({ params }: { params: Promise<{ id: string; idx: string }> }) {
   const { id, idx: idxParam } = use(params);
   const idx = Number(idxParam);
@@ -42,6 +88,10 @@ export default function ReviewDeskPage({ params }: { params: Promise<{ id: strin
   const [criteriaHash, setCriteriaHash] = useState<string | null>(null);
   const [evidence, setEvidence] = useState<EvidenceBundle | null>(null);
   const [evidenceHash, setEvidenceHash] = useState<string | null>(null);
+  /* Where the bundle came from. "pointer" means this deployment did not hold
+     it and it was recovered from the URI the contract anchored, then verified
+     against the anchored hash before being shown. */
+  const [evidenceSource, setEvidenceSource] = useState<"store" | "pointer" | null>(null);
   const [report, setReport] = useState<AdvisoryReport | null>(null);
 
   const [loading, setLoading] = useState(true);
@@ -65,6 +115,7 @@ export default function ReviewDeskPage({ params }: { params: Promise<{ id: strin
     setCriteriaHash(null);
     setEvidence(null);
     setEvidenceHash(null);
+    setEvidenceSource(null);
     setReport(null);
     setError(null);
     if (!validId || !validIdx) {
@@ -89,9 +140,26 @@ export default function ReviewDeskPage({ params }: { params: Promise<{ id: strin
         ]);
         setCriteria(c.criteria ?? null);
         setCriteriaHash(c.hash ?? null);
-        setEvidence(ev.evidence ?? null);
-        setEvidenceHash(ev.hash ?? null);
         setReport(r.report ?? null);
+
+        if (ev.evidence) {
+          setEvidence(ev.evidence);
+          setEvidenceHash(ev.hash ?? null);
+          setEvidenceSource("store");
+        } else {
+          /* This deployment does not hold the bundle. The contract anchored a
+             public pointer to it precisely so it can still be read, and the
+             anchored hash is what makes the fetched copy trustworthy — a
+             document that hashes to the on-chain value is the document that
+             was submitted, wherever it was served from. */
+          const recovered = await recoverEvidenceFromPointer(
+            milestone.evidence_uri,
+            milestone.evidence_hash,
+          );
+          setEvidence(recovered.bundle);
+          setEvidenceHash(recovered.hash);
+          setEvidenceSource(recovered.bundle ? "pointer" : null);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : String(err));
       } finally {
@@ -175,17 +243,24 @@ export default function ReviewDeskPage({ params }: { params: Promise<{ id: strin
   const isReviewer = role === "reviewer";
   const canDecide = milestone.status === "EvidenceSubmitted";
   const canRelease = milestone.status === "Approved";
-  // A real comparison: the hash of the document being displayed against the
-  // hash the sponsor anchored on chain at funding time. If these differ, the
-  // criteria on screen are not the ones that were funded.
-  const criteriaMatch =
-    criteriaHash !== null &&
-    criteriaHash.toLowerCase() === milestone.criteria_hash.toLowerCase();
-  const evidenceMatch =
-    evidenceHash !== null &&
-    milestone.evidence_hash !== null &&
-    evidenceHash.toLowerCase() === milestone.evidence_hash.toLowerCase();
-  const documentsVerified = criteriaMatch && evidenceMatch;
+  /* A real comparison: the hash of the document on screen against the hash the
+     contract anchored. "Absent" and "mismatch" are deliberately separate — one
+     means this deployment cannot show the document, the other means the
+     document it can show is not the one that was funded. Both block a
+     decision, but only the second is a red flag, and telling a reviewer their
+     hashes "differ" when the file is simply missing sent them looking for the
+     wrong problem. */
+  const criteriaState: DocumentState = criteria === null
+    ? "absent"
+    : hashesMatch(criteriaHash, milestone.criteria_hash) ? "verified" : "mismatch";
+
+  const evidenceState: DocumentState = milestone.evidence_hash === null
+    ? "absent"
+    : evidence === null
+      ? "absent"
+      : hashesMatch(evidenceHash, milestone.evidence_hash) ? "verified" : "mismatch";
+
+  const documentsVerified = criteriaState === "verified" && evidenceState === "verified";
 
   return (
     <section className="shell stack-l" style={{ paddingBlock: "2.5rem" }}>
@@ -218,11 +293,7 @@ export default function ReviewDeskPage({ params }: { params: Promise<{ id: strin
         <div className="panel stack-s">
           <div className="spread">
             <p className="eyebrow">Acceptance criteria</p>
-            {criteria && (
-              <span className={`pill ${criteriaMatch ? "pill-approved" : "pill-held"}`}>
-                {criteriaMatch ? "matches chain" : "hash differs"}
-              </span>
-            )}
+            <DocumentBadge state={criteriaState} />
           </div>
           {criteria ? (
             <ol className="stack-s" style={{ paddingLeft: "1.125rem", margin: 0 }}>
@@ -231,12 +302,16 @@ export default function ReviewDeskPage({ params }: { params: Promise<{ id: strin
               ))}
             </ol>
           ) : (
-            <p className="muted" style={{ fontSize: "0.9375rem" }}>
-              The criteria document is not on this deployment. Its hash is on chain:{" "}
-              <code style={{ fontSize: "0.6875rem" }}>{milestone.criteria_hash.slice(0, 16)}…</code>
-            </p>
+            <>
+              <p className="muted" style={{ fontSize: "0.9375rem" }}>
+                This deployment does not hold the criteria document, so there is nothing to check
+                the evidence against. It is stored by content hash, so restoring the exact file the
+                sponsor anchored is enough to unblock this decision.
+              </p>
+              <p className="criteria-hash"><code>{milestone.criteria_hash}</code></p>
+            </>
           )}
-          {!criteriaMatch && criteria && (
+          {criteriaState === "mismatch" && (
             <p className="notice">
               These criteria do not hash to what the ledger recorded. Do not decide on them — ask
               the sponsor which version was funded.
@@ -248,11 +323,7 @@ export default function ReviewDeskPage({ params }: { params: Promise<{ id: strin
         <div className="panel stack-s">
           <div className="spread">
             <p className="eyebrow">Submitted evidence</p>
-            {evidence && (
-              <span className={`pill ${evidenceMatch ? "pill-approved" : "pill-held"}`}>
-                {evidenceMatch ? "matches chain" : "hash differs"}
-              </span>
-            )}
+            <DocumentBadge state={evidenceState} />
           </div>
           {evidence ? (
             <>
@@ -277,13 +348,19 @@ export default function ReviewDeskPage({ params }: { params: Promise<{ id: strin
             </>
           ) : milestone.evidence_uri ? (
             <p className="muted" style={{ fontSize: "0.9375rem" }}>
-              The bundle is not on this deployment, but the ledger records a pointer:{" "}
+              This deployment does not hold the bundle, and the pointer the ledger records could
+              not be fetched and verified against the anchored hash:{" "}
               <a href={milestone.evidence_uri} target="_blank" rel="noreferrer" className="badge-link">{milestone.evidence_uri} ↗</a>
             </p>
           ) : (
             <p className="muted" style={{ fontSize: "0.9375rem" }}>Nothing submitted yet.</p>
           )}
-          {!evidenceMatch && evidence && (
+          {evidenceSource === "pointer" && (
+            <p className="faint" style={{ fontSize: "0.75rem" }}>
+              Recovered from the pointer on chain and verified against the anchored hash.
+            </p>
+          )}
+          {evidenceState === "mismatch" && (
             <p className="notice">
               This evidence bundle does not match the hash recorded on chain. Do not decide on it.
             </p>
@@ -316,7 +393,9 @@ export default function ReviewDeskPage({ params }: { params: Promise<{ id: strin
           <>
             {!documentsVerified && (
               <p className="notice">
-                The criteria and evidence must both match their on-chain hashes before this page enables a decision.
+                {criteriaState === "mismatch" || evidenceState === "mismatch"
+                  ? "A document on this page does not hash to what the ledger recorded. Deciding is blocked until that is resolved — the version on screen is not the version that was funded."
+                  : "A document behind this milestone is not available on this deployment, so nothing can be checked against the hashes on chain. Deciding is blocked until it is restored."}
               </p>
             )}
             <label className="attest">

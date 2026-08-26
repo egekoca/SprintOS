@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useWallet } from "@/components/WalletProvider";
 import { createEngagement, fundEngagement, type MilestoneDraft } from "@/lib/stellar/contract";
-import { formatUsdc, parseUsdc } from "@/lib/stellar/config";
+import { formatUsdc, parseUsdc, usdcInputValue } from "@/lib/stellar/config";
 import { TxLink } from "@/components/TxLink";
 import { FoxSpinner } from "@/components/FoxLoader";
 import { FoxSculpture } from "@/components/FoxSculpture";
@@ -85,25 +85,42 @@ export default function SponsorPage() {
   const [planning, setPlanning] = useState(false);
   const [builder, setBuilder] = useState("");
   const [reviewer, setReviewer] = useState("");
+  /* The sponsor may keep the decision themselves. The contract still records a
+     reviewer address — it is simply the sponsor's own. */
+  const [selfReview, setSelfReview] = useState(false);
+  /* The award as a single figure. Sponsors think in "we granted 5,000", so let
+     them enter that and spread it, while per-milestone amounts stay editable. */
+  const [grantTotal, setGrantTotal] = useState("");
   const [milestones, setMilestones] = useState<MilestoneForm[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<{ hash: string } | null>(null);
   const [funded, setFunded] = useState<{ hash: string } | null>(null);
   const [engagementId, setEngagementId] = useState("");
+  /* Two deliberate gates before the signature. Milestones and their
+     requirements are hashed into the contract and can never be edited
+     afterwards, so the last thing this wizard does is make sure the sponsor
+     knows that and has actually read what they are fixing. */
+  const [readEverything, setReadEverything] = useState(false);
+  const [confirming, setConfirming] = useState(false);
 
   const sourceReady = Boolean(repository);
   const planProblem = milestones.length === 0 ? "Add at least one milestone." : milestones.map(milestoneProblem).find(Boolean) ?? null;
   const milestonesReady = planProblem === null;
+  /* The reviewer is whoever will sign the decision: the sponsor themselves, or
+     a separate address they nominate. */
+  const effectiveReviewer = selfReview ? (address ?? "") : reviewer.trim();
   const roleProblem = !address
     ? "Connect the sponsor wallet."
     : !accountIsValid(builder)
       ? "Enter a valid G… account for the builder."
-      : !accountIsValid(reviewer)
-        ? "Enter a valid G… account for the reviewer."
-        : new Set([address, builder.trim(), reviewer.trim()]).size !== 3
-          ? "Sponsor, builder and reviewer must use three different accounts."
-          : null;
+      : !accountIsValid(effectiveReviewer)
+        ? "Enter a valid G… account for the reviewer, or choose to review it yourself."
+        : builder.trim() === address
+          ? "The builder cannot be the sponsor's own account."
+          : builder.trim() === effectiveReviewer
+            ? "The builder cannot also be the reviewer."
+            : null;
   const rolesReady = roleProblem === null;
   const completedThrough = !sourceReady ? 0 : !milestonesReady ? 1 : !rolesReady ? 2 : created ? 4 : 3;
 
@@ -111,9 +128,31 @@ export default function SponsorPage() {
     try { return sum + parseUsdc(milestone.amount || "0"); } catch { return sum; }
   }, 0n), [milestones]);
 
+  const grantTarget = useMemo(() => {
+    if (!grantTotal.trim()) return null;
+    try { return parseUsdc(grantTotal); } catch { return null; }
+  }, [grantTotal]);
+  const remaining = grantTarget === null ? null : grantTarget - total;
+
+  /* Spread the award across the milestones, giving any indivisible remainder to
+     the first one so the split always adds back up to the total exactly. */
+  function distributeEvenly() {
+    if (grantTarget === null || grantTarget <= 0n || milestones.length === 0) return;
+    const share = grantTarget / BigInt(milestones.length);
+    const leftover = grantTarget - share * BigInt(milestones.length);
+    setCreated(null);
+    setFunded(null);
+    setMilestones((current) => current.map((milestone, index) => ({
+      ...milestone,
+      amount: usdcInputValue(index === 0 ? share + leftover : share),
+    })));
+  }
+
   function update(index: number, patch: Partial<MilestoneForm>) {
     setCreated(null);
     setFunded(null);
+    setReadEverything(false);
+    setConfirming(false);
     setMilestones((current) => current.map((milestone, currentIndex) => currentIndex === index ? { ...milestone, ...patch } : milestone));
   }
 
@@ -134,12 +173,16 @@ export default function SponsorPage() {
   function removeMilestone(index: number) {
     setCreated(null);
     setFunded(null);
+    setReadEverything(false);
+    setConfirming(false);
     setMilestones((current) => current.filter((_, currentIndex) => currentIndex !== index));
   }
 
   function addMilestone() {
     setCreated(null);
     setFunded(null);
+    setReadEverything(false);
+    setConfirming(false);
     setMilestones((current) => [...current, emptyMilestone(current.length)]);
   }
 
@@ -217,9 +260,10 @@ export default function SponsorPage() {
         if (!response.ok || !body.hash) throw new Error(body.error ?? "The acceptance criteria were rejected.");
         return { title: milestone.title.trim(), criteriaHash: body.hash, amount: parseUsdc(milestone.amount), deadline: Math.floor(new Date(`${milestone.deadline}T23:59:59Z`).getTime() / 1000) };
       }));
-      const transaction = await createEngagement(address, builder.trim(), reviewer.trim(), drafts);
+      const transaction = await createEngagement(address, builder.trim(), effectiveReviewer, drafts);
       setCreated(transaction);
       setEngagementId(String(transaction.engagementId));
+
     } catch (createError) {
       setError(createError instanceof Error ? createError.message : String(createError));
     } finally {
@@ -278,6 +322,39 @@ export default function SponsorPage() {
 
           {planNotice && <p className="notice notice-ok">{planNotice}</p>}
           {planSummary && <p className="plan-summary"><span>Project</span>{planSummary}</p>}
+
+          {milestones.length > 0 && (
+            <section className="budget-bar">
+              <div className="field budget-total">
+                <label htmlFor="grant-total">Total award (optional)</label>
+                <input
+                  id="grant-total"
+                  type="text"
+                  inputMode="decimal"
+                  value={grantTotal}
+                  onChange={(event) => setGrantTotal(event.target.value)}
+                  placeholder="5000"
+                />
+              </div>
+              <button type="button" className="btn btn-ghost" onClick={distributeEvenly} disabled={grantTarget === null || grantTarget <= 0n}>
+                Split across {milestones.length} milestone{milestones.length === 1 ? "" : "s"}
+              </button>
+              <div className="budget-readout">
+                <span><small>Allocated</small><b>{formatUsdc(total)}</b></span>
+                {remaining !== null && (
+                  <span className={remaining === 0n ? "is-balanced" : remaining < 0n ? "is-over" : ""}>
+                    <small>{remaining < 0n ? "Over by" : "Unallocated"}</small>
+                    <b>{formatUsdc(remaining < 0n ? -remaining : remaining)}</b>
+                  </span>
+                )}
+              </div>
+              <p className="budget-hint">
+                Enter the whole award and split it, or leave this blank and price each milestone
+                directly below. Either way the escrow is funded with the allocated total.
+              </p>
+            </section>
+          )}
+
           {milestones.length > 0 && <MilestoneEditor milestones={milestones} update={update} remove={removeMilestone} add={addMilestone} />}
           <WizardActions back onBack={() => setStep(1)} nextLabel="Confirm plan" nextDisabled={!milestonesReady} nextHint={planProblem ?? undefined} onNext={() => setStep(3)} />
         </div>
@@ -288,7 +365,41 @@ export default function SponsorPage() {
           <div className="wizard-stage-heading"><div><p className="eyebrow">03 · Roles</p><h3>Assign the people</h3></div><span className="source-chip"><ProductIcon name="milestone" size={15} /> {milestones.length} milestones · {formatUsdc(total)} USDC</span></div>
           <div className="roles-gate">
             <div className="panel stack"><div className="sponsor-section-title"><span><ProductIcon name="wallet" size={22} /></span><div><p className="eyebrow">Sponsor</p><h3>Your wallet</h3></div></div>{address ? <p className="wallet-ready"><ProductIcon name="check" size={17} /><span>Connected</span><b>{address.slice(0, 8)}…{address.slice(-6)}</b></p> : <button type="button" className="btn btn-primary" onClick={connect}><ProductIcon name="wallet" size={18} /> Connect wallet</button>}</div>
-            <div className="panel stack"><div className="field"><label htmlFor="builder">Builder wallet address</label><input id="builder" type="text" placeholder="G…" value={builder} onChange={(event) => setBuilder(event.target.value)} /></div><div className="field"><label htmlFor="reviewer">Reviewer wallet address</label><input id="reviewer" type="text" placeholder="G…" value={reviewer} onChange={(event) => setReviewer(event.target.value)} /></div></div>
+            <div className="panel stack">
+              <div className="field">
+                <label htmlFor="builder">Builder wallet address</label>
+                <input id="builder" type="text" placeholder="G…" value={builder} onChange={(event) => setBuilder(event.target.value)} />
+                <small className="field-hint">The account that submits proof and receives each released milestone.</small>
+              </div>
+
+              <div className="field">
+                <label>Who signs the payout decision?</label>
+                <div className="reviewer-choice">
+                  <button type="button" className={selfReview ? "is-active" : ""} onClick={() => setSelfReview(true)}>
+                    <ProductIcon name="signature" size={19} />
+                    <b>I&rsquo;ll review it myself</b>
+                    <small>You wrote the milestones, so you read the score and release the money.</small>
+                  </button>
+                  <button type="button" className={!selfReview ? "is-active" : ""} onClick={() => setSelfReview(false)}>
+                    <ProductIcon name="eye" size={19} />
+                    <b>Someone else reviews</b>
+                    <small>Nominate an independent account to decide. You cannot overrule it.</small>
+                  </button>
+                </div>
+              </div>
+
+              {selfReview ? (
+                <p className="reviewer-self-note">
+                  <ProductIcon name="check" size={16} />
+                  The engagement will record your own account as reviewer{address ? ` (${address.slice(0, 8)}…${address.slice(-6)})` : ""}.
+                </p>
+              ) : (
+                <div className="field">
+                  <label htmlFor="reviewer">Reviewer wallet address</label>
+                  <input id="reviewer" type="text" placeholder="G…" value={reviewer} onChange={(event) => setReviewer(event.target.value)} />
+                </div>
+              )}
+            </div>
           </div>
           <WizardActions back onBack={() => setStep(2)} nextLabel="Review engagement" nextDisabled={!rolesReady} nextHint={roleProblem ?? undefined} onNext={() => setStep(4)} />
         </div>
@@ -297,8 +408,75 @@ export default function SponsorPage() {
       {step === 4 && (
         <div className="wizard-stage">
           <div className="wizard-stage-heading"><div><p className="eyebrow">04 · Final review</p><h3>Everything in one view</h3></div><span className="amount">{formatUsdc(total)} <small>USDC</small></span></div>
-          <div className="review-receipt"><ReceiptRow icon="github" label="Repository" value={repository?.repository.full_name ?? "—"} /><ReceiptRow icon="wallet" label="Builder" value={short(builder)} /><ReceiptRow icon="signature" label="Reviewer" value={short(reviewer)} />{milestones.map((milestone, index) => <div className="receipt-milestone" key={`${milestone.title}-${index}`}><span>0{index + 1}</span><div><strong>{milestone.title}</strong><small>{milestone.startDate} → {milestone.deadline}</small><ul>{milestone.criteria.filter(Boolean).map((criterion, criterionIndex) => <li key={`${criterionIndex}-${criterion}`}>{criterion}</li>)}</ul></div><b>{milestone.amount} USDC</b></div>)}</div>
-          {!created ? <div className="wizard-sign"><FoxSculpture size={108} idPrefix="final-sign" /><div><h3>Ready for your signature</h3><p>Criteria are hashed first. Your wallet then creates the engagement.</p></div><button type="button" className="btn btn-primary" onClick={handleCreate} disabled={busy !== null}>{busy === "create" ? <><FoxSpinner /> Waiting for signature…</> : <><ProductIcon name="signature" size={18} /> Sign engagement</>}</button></div> : <div className="panel panel-marked stack sponsor-sign-panel"><p className="notice notice-ok">Engagement created.</p><TxLink hash={created.hash} /><div className="row"><div className="field" style={{ maxWidth: "10rem" }}><label htmlFor="eid">Engagement id</label><input id="eid" type="text" value={engagementId} readOnly aria-readonly="true" /></div>{!funded && <button type="button" className="btn btn-primary" onClick={handleFund} disabled={busy !== null || !engagementId}>{busy === "fund" ? <><FoxSpinner /> Funding escrow…</> : `Fund ${formatUsdc(total)} USDC`}</button>}</div>{funded && <div className="stack-s"><p className="notice notice-ok">Escrow funded.</p><TxLink hash={funded.hash} /><Link href={`/e/${engagementId}`} className="badge-link">Open engagement →</Link></div>}</div>}
+          <div className="review-receipt"><ReceiptRow icon="github" label="Repository" value={repository?.repository.full_name ?? "—"} /><ReceiptRow icon="wallet" label="Builder" value={short(builder)} /><ReceiptRow icon="signature" label="Reviewer" value={selfReview ? `${short(address ?? "")} · you` : short(reviewer)} />{milestones.map((milestone, index) => <div className="receipt-milestone" key={`${milestone.title}-${index}`}><span>0{index + 1}</span><div><strong>{milestone.title}</strong><small>{milestone.startDate} → {milestone.deadline}</small><ul>{milestone.criteria.filter(Boolean).map((criterion, criterionIndex) => <li key={`${criterionIndex}-${criterion}`}>{criterion}</li>)}</ul></div><b>{milestone.amount} USDC</b></div>)}</div>
+          {!created ? (
+            <div className="commit-gate">
+              <div className="commit-warning">
+                <ProductIcon name="shield" size={22} />
+                <div>
+                  <h3>This is the last point you can change anything</h3>
+                  <p>
+                    Signing hashes every milestone, requirement, date and amount into the contract.
+                    After that they are fixed for good — not by policy, but because the builder is
+                    working against them and the ledger has recorded them. There is no edit screen
+                    later, and nobody can add or reword a requirement once work has started.
+                  </p>
+                </div>
+              </div>
+
+              <ul className="commit-facts">
+                <li><span>{milestones.length}</span> milestone{milestones.length === 1 ? "" : "s"}, fixed</li>
+                <li><span>{milestones.reduce((count, milestone) => count + milestone.criteria.filter(Boolean).length, 0)}</span> requirements, fixed</li>
+                <li><span>{formatUsdc(total)}</span> USDC committed to escrow</li>
+                <li><span>{selfReview ? "You" : short(reviewer)}</span> will decide each payout</li>
+              </ul>
+
+              <label className="attest">
+                <input
+                  type="checkbox"
+                  checked={readEverything}
+                  onChange={(event) => { setReadEverything(event.target.checked); setConfirming(false); }}
+                />
+                <span>
+                  I have read every milestone and requirement above, and I understand they cannot be
+                  edited after this signature.
+                </span>
+              </label>
+
+              {!confirming ? (
+                <div className="wizard-sign">
+                  <FoxSculpture size={108} idPrefix="final-sign" />
+                  <div>
+                    <h3>Ready when you are</h3>
+                    <p>One more confirmation before your wallet opens.</p>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    disabled={!readEverything}
+                    onClick={() => setConfirming(true)}
+                  >
+                    <ProductIcon name="signature" size={18} /> Continue to sign
+                  </button>
+                </div>
+              ) : (
+                <div className="commit-confirm">
+                  <p className="commit-confirm-question">
+                    Lock {milestones.length} milestone{milestones.length === 1 ? "" : "s"} and{" "}
+                    {formatUsdc(total)} USDC into engagement terms that can never be changed?
+                  </p>
+                  <div className="commit-confirm-actions">
+                    <button type="button" className="btn btn-ghost" onClick={() => setConfirming(false)} disabled={busy !== null}>
+                      No — let me change something
+                    </button>
+                    <button type="button" className="btn btn-primary" onClick={handleCreate} disabled={busy !== null}>
+                      {busy === "create" ? <><FoxSpinner /> Waiting for signature…</> : "Yes, lock and sign"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : <div className="panel panel-marked stack sponsor-sign-panel"><p className="notice notice-ok">Engagement created.</p><TxLink hash={created.hash} /><div className="row"><div className="field" style={{ maxWidth: "10rem" }}><label htmlFor="eid">Engagement id</label><input id="eid" type="text" value={engagementId} readOnly aria-readonly="true" /></div>{!funded && <button type="button" className="btn btn-primary" onClick={handleFund} disabled={busy !== null || !engagementId}>{busy === "fund" ? <><FoxSpinner /> Funding escrow…</> : `Fund ${formatUsdc(total)} USDC`}</button>}</div>{funded && <div className="stack-s"><p className="notice notice-ok">Escrow funded.</p><TxLink hash={funded.hash} /><Link href={`/e/${engagementId}`} className="badge-link">Open engagement →</Link></div>}</div>}
           {!created && <WizardActions back onBack={() => setStep(3)} />}
         </div>
       )}

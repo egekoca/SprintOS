@@ -9,13 +9,14 @@ import { FoxSpinner } from "./FoxLoader";
 
 const NAV = [
   { href: "/app", label: "Overview" },
+  { href: "/awards", label: "Awards" },
   { href: "/sponsor", label: "Sponsor" },
   { href: "/builder", label: "Builder" },
   { href: "/review", label: "Review" },
 ];
 
 export function SiteHeader() {
-  const { address, connecting, connect, disconnect, error } = useWallet();
+  const { address, connecting, connect, disconnect, error, offTestnet, recheck } = useWallet();
   const pathname = usePathname();
 
   if (pathname === "/") {
@@ -96,6 +97,23 @@ export function SiteHeader() {
       {error && (
         <div className="shell" style={{ paddingBottom: "0.75rem" }}>
           <p className="notice">{error}</p>
+        </div>
+      )}
+      {/* A warning, not a wall. Reading works on any network, and every
+          signature carries the testnet passphrase explicitly — but a wallet
+          pointed elsewhere may refuse to sign, so say so before they get
+          there. Only the wallet's own settings can change this. */}
+      {offTestnet && (
+        <div className="shell" style={{ paddingBottom: "0.75rem" }}>
+          <p className="notice network-notice">
+            <span>
+              Your wallet is not on Stellar testnet. Browsing works either way, but it may refuse to
+              sign — switch it to testnet in the wallet itself.
+            </span>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={recheck}>
+              I switched it
+            </button>
+          </p>
         </div>
       )}
     </header>

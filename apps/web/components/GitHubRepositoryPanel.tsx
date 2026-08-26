@@ -44,6 +44,10 @@ export function GitHubRepositoryPanel({
   const [selected, setSelected] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /* Signing in and pasting a public URL are two equally valid ways in. The
+     second one used to be hidden inside a collapsed `details`, which made the
+     whole step look like it required a GitHub account. */
+  const [mode, setMode] = useState<"account" | "public">("account");
 
   const selectedMilestones = useMemo(
     () => snapshot?.milestones.filter((milestone) => selected.includes(milestone.number)) ?? [],
@@ -54,7 +58,13 @@ export function GitHubRepositoryPanel({
     let cancelled = false;
     fetch("/api/github/session", { cache: "no-store" })
       .then(async (response) => ({ response, body: await response.json() as GitHubSessionState }))
-      .then(({ body }) => { if (!cancelled) setSession(body); })
+      .then(({ body }) => {
+        if (cancelled) return;
+        setSession(body);
+        /* Where OAuth is not configured, offering sign-in first is a dead end,
+           so open on the path that actually works. */
+        if (!body.configured && !body.connected) setMode("public");
+      })
       .catch(() => { if (!cancelled) setSession({ configured: false, connected: false, repositories: [], error: "GitHub status could not be loaded." }); });
     return () => { cancelled = true; };
   }, []);
@@ -114,7 +124,7 @@ export function GitHubRepositoryPanel({
     <section className="repo-panel wizard-card" aria-labelledby="repo-panel-title">
       <div className="repo-panel-heading">
         <span className="repo-panel-icon"><ProductIcon name="github" size={28} /></span>
-        <div><p className="eyebrow">01 · Source</p><h3 id="repo-panel-title">Connect GitHub</h3></div>
+        <div><p className="eyebrow">01 · Source</p><h3 id="repo-panel-title">Point this engagement at a repository</h3></div>
         {session?.connected && session.user ? (
           <div className="github-user">
             <img src={session.user.avatar_url} alt="" />
@@ -122,6 +132,25 @@ export function GitHubRepositoryPanel({
           </div>
         ) : null}
       </div>
+
+      <p className="repo-why">
+        The repository is what the milestones will be judged against. SprintOS reads its name,
+        default branch and any existing GitHub milestones and issues, and can turn those straight
+        into acceptance criteria. It never writes to your repository and never pushes code.
+      </p>
+
+      {!session?.connected && (
+        <div className="repo-mode-tabs" role="tablist" aria-label="How to select a repository">
+          <button type="button" role="tab" aria-selected={mode === "account"} className={mode === "account" ? "is-active" : ""} onClick={() => setMode("account")}>
+            <ProductIcon name="github" size={18} />
+            <span><b>Sign in to GitHub</b><small>Pick from your own repositories, public or private</small></span>
+          </button>
+          <button type="button" role="tab" aria-selected={mode === "public"} className={mode === "public" ? "is-active" : ""} onClick={() => setMode("public")}>
+            <ProductIcon name="link" size={18} />
+            <span><b>Paste a public URL</b><small>No account needed — works for any public repo</small></span>
+          </button>
+        </div>
+      )}
 
       {!session ? (
         <div className="repo-auth-wait"><FoxSpinner /> Checking GitHub…</div>
@@ -158,22 +187,27 @@ export function GitHubRepositoryPanel({
             </button>
           </div>
         </div>
-      ) : (
+      ) : mode === "account" ? (
         <div className="github-connect-gate">
-          <div><strong>Your repositories, ready to choose.</strong><p>Connect once. SprintOS only reads repository metadata and public project planning data.</p></div>
+          <div>
+            <strong>Sign in once, then pick a repository.</strong>
+            <p>SprintOS asks for read-only access to repository metadata and project planning data. You can disconnect at any time.</p>
+          </div>
           {session.configured ? (
             <a href="/api/github/auth?returnTo=/sponsor" className="btn btn-primary"><ProductIcon name="github" size={18} /> Connect GitHub</a>
-          ) : <span className="github-config-note">OAuth setup required</span>}
+          ) : (
+            <span className="github-config-note">GitHub sign-in is not configured on this deployment — use a public repository URL instead.</span>
+          )}
         </div>
-      )}
+      ) : null}
 
-      {!session?.connected && (
-        <details className="repo-public-fallback">
-          <summary>Use a public repository without signing in</summary>
+      {!session?.connected && mode === "public" && (
+        <div className="repo-public-entry">
+          <label htmlFor="public-repo">Public repository URL</label>
           <div className="repo-connect-row">
             <div className="repo-url-field">
               <ProductIcon name="link" size={18} />
-              <input aria-label="Public GitHub repository" type="url" value={repositoryUrl} onChange={(event) => {
+              <input id="public-repo" type="url" value={repositoryUrl} onChange={(event) => {
                 const value = event.target.value;
                 setRepositoryUrl(value);
                 if (snapshot && value.trim() !== snapshot.repository.html_url) {
@@ -183,9 +217,11 @@ export function GitHubRepositoryPanel({
                 }
               }} onKeyDown={(event) => { if (event.key === "Enter") void scanRepository(); }} placeholder="https://github.com/owner/repository" />
             </div>
-            <button type="button" className="btn btn-ghost" onClick={() => scanRepository()} disabled={loading || !repositoryUrl.trim()}>{loading ? <><FoxSpinner /> Reading…</> : "Use public repo"}</button>
+            <button type="button" className="btn btn-primary" onClick={() => scanRepository()} disabled={loading || !repositoryUrl.trim()}>
+              {loading ? <><FoxSpinner /> Reading…</> : <><ProductIcon name="scan" size={18} /> Read repository</>}
+            </button>
           </div>
-        </details>
+        </div>
       )}
 
       {(error ?? session?.error) && <p className="notice repo-notice">{error ?? session?.error}</p>}
@@ -197,7 +233,7 @@ export function GitHubRepositoryPanel({
             <div className="repo-summary-name"><a href={snapshot.repository.html_url} target="_blank" rel="noreferrer">{snapshot.repository.full_name} ↗</a><span>{snapshot.repository.default_branch}</span></div>
             <RepoStat value={String(snapshot.milestones.length)} label="milestones" />
             <RepoStat value={String(snapshot.repository.open_issues_count)} label="open items" />
-            <span className="repo-connected"><ProductIcon name="check" size={14} /> Selected</span>
+            <span className="repo-connected"><ProductIcon name="check" size={14} /> Attached to this engagement</span>
           </div>
 
           {snapshot.milestones.length > 0 ? (

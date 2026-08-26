@@ -19,13 +19,16 @@ export default function ReviewListPage() {
   const [engagements, setEngagements] = useState<Engagement[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
+    setLoading(true);
+    setError(null);
     listEngagements()
       .then(setEngagements)
       .catch((err) => setError(err instanceof Error ? err.message : String(err)))
       .finally(() => setLoading(false));
-  }, []);
+  }, [attempt]);
 
   const waiting = engagements.flatMap((e) =>
     e.milestones
@@ -50,7 +53,14 @@ export default function ReviewListPage() {
         </div>
       )}
 
-      {error && <p className="notice">{error}</p>}
+      {error && (
+        <div className="panel row" style={{ justifyContent: "space-between" }}>
+          <p className="muted">Could not read the ledger: {error}</p>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => setAttempt((n) => n + 1)}>
+            Try again
+          </button>
+        </div>
+      )}
       {loading && <FoxLoader label="Reading the ledger" />}
 
       {waiting.length > 0 && (
@@ -76,7 +86,10 @@ export default function ReviewListPage() {
         </div>
       )}
 
-      {!loading && engagements.length === 0 && (
+      {/* Only claim the contract is empty when the read actually succeeded. A
+          rejected read used to render as "no engagements", which hid a total
+          failure to reach the ledger behind a plausible-looking empty state. */}
+      {!loading && !error && engagements.length === 0 && (
         <div className="panel"><p className="muted">No engagements on this contract yet.</p></div>
       )}
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useWallet } from "@/components/WalletProvider";
 import {
@@ -13,14 +13,19 @@ import { BUILDER_CLAIM_ENABLED, formatUsdc } from "@/lib/stellar/config";
 import { StatusPill } from "@/components/StatusPill";
 import { TxLink } from "@/components/TxLink";
 import { FoxLoader, FoxSpinner } from "@/components/FoxLoader";
+import { MilestoneFlow } from "@/components/MilestoneFlow";
+import { MilestoneCriteria } from "@/components/MilestoneDocuments";
+import { ProductIcon } from "@/components/ProductIcon";
+import { WalletGate } from "@/components/WalletGate";
 import { MAX_EVIDENCE, type EvidenceType } from "@sprintos/schemas/milestone";
 
 /**
- * The builder's desk: the milestones assigned to the connected wallet, and a
- * form for attaching public proof of work.
+ * The builder's desk.
  *
- * Up to five links, each typed so the advisory module knows how to read it.
- * The bundle is hashed and anchored on chain along with a public pointer.
+ * One engagement at a time, read as the same milestone track the sponsor and
+ * the reviewer see, with the acceptance criteria for the selected milestone in
+ * full. The previous version listed milestones flat and showed only a hash, so
+ * a builder was asked to prove a milestone without being told what it required.
  */
 
 const TYPES: { value: EvidenceType; label: string }[] = [
@@ -34,94 +39,122 @@ const TYPES: { value: EvidenceType; label: string }[] = [
 
 interface LinkRow { url: string; type: EvidenceType }
 
+const emptyLinks = (): LinkRow[] => [{ url: "", type: "repo" }];
+
 export default function BuilderPage() {
   const { address, connect } = useWallet();
   const [engagements, setEngagements] = useState<Engagement[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState<{ id: string; idx: number } | null>(null);
-  const [links, setLinks] = useState<LinkRow[]>([{ url: "", type: "repo" }]);
+  const [engagementIndex, setEngagementIndex] = useState(0);
+  const [milestoneIndex, setMilestoneIndex] = useState(0);
+  const [links, setLinks] = useState<LinkRow[]>(emptyLinks);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<{ hash: string; action: "submit" | "claim" } | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
   const refresh = useCallback(async () => {
     setEngagements(await listEngagements());
   }, []);
 
   useEffect(() => {
+    setLoading(true);
+    setError(null);
     refresh()
       .catch((err) => setError(err instanceof Error ? err.message : String(err)))
       .finally(() => setLoading(false));
-  }, [refresh]);
+  }, [refresh, attempt]);
 
+  const mine = useMemo(
+    () => engagements.filter((engagement) => engagement.builder === address),
+    [engagements, address],
+  );
+  const engagement = mine[engagementIndex] ?? mine[0] ?? null;
+  const milestone = engagement?.milestones[milestoneIndex] ?? null;
+
+  /* Open on whatever is actually actionable, so the desk lands on the work
+     rather than always on milestone one. */
   useEffect(() => {
-    setSelected(null);
-    setLinks([{ url: "", type: "repo" }]);
+    setEngagementIndex(0);
+    setMilestoneIndex(0);
+    setLinks(emptyLinks());
     setNote("");
     setDone(null);
   }, [address]);
 
-  const mine = engagements.filter((e) => e.builder === address);
+  useEffect(() => {
+    const target = engagement?.milestones.findIndex(
+      (item) => item.status === "Pending" || item.status === "Held" || item.status === "Approved",
+    );
+    if (target !== undefined && target >= 0) setMilestoneIndex(target);
+  }, [engagement]);
+
+  function selectMilestone(index: number) {
+    setMilestoneIndex(index);
+    setLinks(emptyLinks());
+    setNote("");
+    setError(null);
+    setDone(null);
+  }
 
   async function handleSubmit() {
-    if (!address || !selected) return;
+    if (!address || !engagement || !milestone) return;
     setError(null);
     setBusy(true);
     try {
-      const cleaned = links.filter((l) => l.url.trim());
+      const cleaned = links.filter((link) => link.url.trim());
       if (cleaned.length === 0) throw new Error("Add at least one public link.");
 
       const bundle = {
         schema_version: "1.0.0" as const,
-        engagement_id: selected.id,
-        milestone_idx: selected.idx,
+        engagement_id: String(engagement.id),
+        milestone_idx: milestoneIndex,
         submitted_at: new Date().toISOString(),
         ...(note.trim() ? { note: note.trim() } : {}),
-        links: cleaned.map((l) => ({ url: l.url.trim(), type: l.type })),
+        links: cleaned.map((link) => ({ url: link.url.trim(), type: link.type })),
       };
 
-      const res = await fetch("/api/evidence", {
+      const response = await fetch("/api/evidence", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(bundle),
       });
-      const body = (await res.json()) as { hash?: string; error?: string };
-      if (!res.ok || !body.hash) throw new Error(body.error ?? "The evidence bundle was rejected.");
+      const body = (await response.json()) as { hash?: string; error?: string };
+      if (!response.ok || !body.hash) throw new Error(body.error ?? "The evidence bundle was rejected.");
 
       const bundleUri = new URL(`/api/evidence?hash=${encodeURIComponent(body.hash)}`, window.location.origin).toString();
-      const tx = await submitEvidence(address, BigInt(selected.id), selected.idx, body.hash, bundleUri);
+      const tx = await submitEvidence(address, engagement.id, milestoneIndex, body.hash, bundleUri);
       setDone({ hash: tx.hash, action: "submit" });
-      setSelected(null);
-      setLinks([{ url: "", type: "repo" }]);
+      setLinks(emptyLinks());
       setNote("");
       try {
         await refresh();
       } catch {
         setError("Evidence was recorded, but the milestone list could not refresh. Reload to see its new status.");
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : String(submitError));
     } finally {
       setBusy(false);
     }
   }
 
-  async function handleClaim(id: bigint, idx: number) {
-    if (!address) return;
+  async function handleClaim() {
+    if (!address || !engagement) return;
     setError(null);
     setDone(null);
     setBusy(true);
     try {
-      const tx = await claimApprovedMilestone(address, id, idx);
+      const tx = await claimApprovedMilestone(address, engagement.id, milestoneIndex);
       setDone({ hash: tx.hash, action: "claim" });
       try {
         await refresh();
       } catch {
         setError("Payment was claimed, but the milestone list could not refresh. Reload to see its new status.");
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+    } catch (claimError) {
+      setError(claimError instanceof Error ? claimError.message : String(claimError));
     } finally {
       setBusy(false);
     }
@@ -129,37 +162,63 @@ export default function BuilderPage() {
 
   if (!address) {
     return (
-      <section className="shell" style={{ paddingBlock: "4rem" }}>
-        <div className="panel stack" style={{ maxWidth: "42rem" }}>
-          <h2>Builder</h2>
-          <p className="muted">Connect the wallet a sponsor assigned as builder to see your milestones.</p>
-          <div><button type="button" className="btn btn-primary" onClick={connect}>Connect wallet</button></div>
-        </div>
-      </section>
+      <WalletGate eyebrow="Builder" title="Show your work">
+        Connect the wallet a sponsor assigned as builder. Your milestones, their acceptance
+        criteria and the evidence form all live here.
+      </WalletGate>
     );
   }
 
-  return (
-    <section className="shell stack-l" style={{ paddingBlock: "3rem" }}>
-      <div className="stack-s">
-        <p className="eyebrow">Builder</p>
-        <h2>Show your work<span style={{ color: "var(--orange)" }}>.</span></h2>
-        <p className="lede">
-          Up to {MAX_EVIDENCE} public links per milestone. Everything you submit must be readable
-          without a login — the review module never opens a private source.
-        </p>
-      </div>
+  const canSubmit = milestone?.status === "Pending" || milestone?.status === "Held";
+  const canClaim = milestone?.status === "Approved" && BUILDER_CLAIM_ENABLED;
 
-      {error && <p className="notice">{error}</p>}
+  return (
+    <section className="shell desk">
+      <header className="desk-head">
+        <div>
+          <p className="eyebrow">Builder</p>
+          <h2>Show your work</h2>
+        </div>
+        {mine.length > 1 && (
+          <label className="desk-switch">
+            <span>Engagement</span>
+            <select
+              value={engagementIndex}
+              onChange={(event) => {
+                setEngagementIndex(Number(event.target.value));
+                selectMilestone(0);
+              }}
+            >
+              {mine.map((item, index) => (
+                <option value={index} key={String(item.id)}>
+                  #{String(item.id)} · {formatUsdc(item.total_amount)} USDC
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+      </header>
+
+      {error && (
+        <div className="panel row" style={{ justifyContent: "space-between" }}>
+          <p className="muted">{error}</p>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => setAttempt((n) => n + 1)}>
+            Try again
+          </button>
+        </div>
+      )}
       {done && (
         <div className="stack-s">
-          <p className="notice notice-ok">{done.action === "claim" ? "Approved payment claimed." : "Evidence recorded on chain."}</p>
+          <p className="notice notice-ok">
+            {done.action === "claim" ? "Approved payment claimed." : "Evidence recorded on chain."}
+          </p>
           <TxLink hash={done.hash} />
         </div>
       )}
+
       {loading && <FoxLoader label="Reading the ledger" />}
 
-      {!loading && mine.length === 0 && (
+      {!loading && !error && mine.length === 0 && (
         <div className="panel">
           <p className="muted">
             No engagements name this wallet as builder yet. Ask your sponsor to create one with
@@ -168,107 +227,131 @@ export default function BuilderPage() {
         </div>
       )}
 
-      {mine.map((e) => (
-        <div key={String(e.id)} className="panel stack">
-          <div className="spread">
-            <h3>Engagement #{String(e.id)}</h3>
-            <Link href={`/e/${e.id}`} className="badge-link">Public page →</Link>
-          </div>
-          <div className="stack-s">
-            {e.milestones.map((m, idx) => {
-              const open = m.status === "Pending" || m.status === "Held";
-              const isSelected = selected?.id === String(e.id) && selected.idx === idx;
-              return (
-                <div key={idx} style={{ borderTop: "1px solid var(--edge)", paddingTop: "0.75rem" }}>
-                  <div className="spread">
-                    <div className="stack-s" style={{ gap: "0.25rem" }}>
-                      <strong>{m.title}</strong>
-                      <span className="faint mono" style={{ fontSize: "0.75rem" }}>
-                        {formatUsdc(m.amount)} USDC · due {new Date(Number(m.deadline) * 1000).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <div className="row">
-                      <StatusPill status={m.status} />
-                      {open && (
-                        <button
-                          type="button"
-                          className="btn btn-ghost btn-sm"
-                          onClick={() => {
-                            setSelected(isSelected ? null : { id: String(e.id), idx });
-                            setLinks([{ url: "", type: "repo" }]);
-                            setNote("");
-                            setError(null);
-                            setDone(null);
-                          }}
-                        >
-                          {isSelected ? "Cancel" : m.status === "Held" ? "Resubmit" : "Submit evidence"}
-                        </button>
-                      )}
-                      {m.status === "Approved" && BUILDER_CLAIM_ENABLED && (
-                        <button
-                          type="button"
-                          className="btn btn-primary btn-sm"
-                          disabled={busy}
-                          onClick={() => handleClaim(e.id, idx)}
-                        >
-                          {busy ? <><FoxSpinner /> Waiting for signature…</> : "Claim approved payment"}
-                        </button>
-                      )}
-                    </div>
-                  </div>
+      {engagement && milestone && (
+        <>
+          <MilestoneFlow
+            milestones={engagement.milestones}
+            activeIndex={milestoneIndex}
+            onSelect={selectMilestone}
+          />
 
-                  {isSelected && (
-                    <div className="stack" style={{ marginTop: "1rem", padding: "1rem", background: "var(--concrete-2)", borderRadius: "var(--radius)" }}>
-                      {m.status === "Held" && (
-                        <p className="notice" style={{ borderLeftColor: "var(--st-held)" }}>
-                          The reviewer put this milestone on hold. Address what they flagged and submit again.
-                        </p>
-                      )}
-                      <div className="stack-s">
-                        <label>Public links</label>
-                        {links.map((l, li) => (
-                          <div key={li} className="row" style={{ gap: "0.5rem", flexWrap: "nowrap" }}>
-                            <input
-                              type="url"
-                              placeholder="https://github.com/…"
-                              value={l.url}
-                              onChange={(ev) => setLinks((p) => p.map((x, i) => (i === li ? { ...x, url: ev.target.value } : x)))}
-                            />
-                            <select
-                              value={l.type}
-                              style={{ width: "auto", minWidth: "9rem" }}
-                              onChange={(ev) => setLinks((p) => p.map((x, i) => (i === li ? { ...x, type: ev.target.value as EvidenceType } : x)))}
-                            >
-                              {TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                            </select>
-                          </div>
+          <section className="mdetail">
+            <header className="mdetail-head">
+              <div>
+                <p className="eyebrow">Milestone {String(milestoneIndex + 1).padStart(2, "0")}</p>
+                <h3>{milestone.title}</h3>
+              </div>
+              <div className="mdetail-head-right">
+                <StatusPill status={milestone.status} />
+                <span className="amount mdetail-amount">
+                  {formatUsdc(milestone.amount)} <small>USDC</small>
+                </span>
+              </div>
+            </header>
+
+            <div className="mdetail-block">
+              <p className="eyebrow">
+                Deliver all of this · due {new Date(Number(milestone.deadline) * 1000).toLocaleDateString()}
+              </p>
+              <MilestoneCriteria criteriaHash={milestone.criteria_hash} />
+            </div>
+
+            {milestone.status === "Held" && (
+              <p className="notice" style={{ borderLeftColor: "var(--st-held)" }}>
+                The reviewer put this milestone on hold. Address what they flagged and submit again.
+              </p>
+            )}
+
+            {canSubmit && (
+              <div className="evidence-form">
+                <div className="stack-s">
+                  <label>Public links — proof anyone can open without a login</label>
+                  {links.map((link, index) => (
+                    <div className="evidence-row" key={index}>
+                      <input
+                        type="url"
+                        placeholder="https://github.com/…"
+                        value={link.url}
+                        onChange={(event) =>
+                          setLinks((current) =>
+                            current.map((row, i) => (i === index ? { ...row, url: event.target.value } : row)),
+                          )
+                        }
+                      />
+                      <select
+                        value={link.type}
+                        onChange={(event) =>
+                          setLinks((current) =>
+                            current.map((row, i) =>
+                              i === index ? { ...row, type: event.target.value as EvidenceType } : row,
+                            ),
+                          )
+                        }
+                      >
+                        {TYPES.map((type) => (
+                          <option key={type.value} value={type.value}>{type.label}</option>
                         ))}
-                        {links.length < MAX_EVIDENCE && (
-                          <button type="button" className="btn btn-ghost btn-sm" onClick={() => setLinks((p) => [...p, { url: "", type: "repo" }])}>
-                            Add link
-                          </button>
-                        )}
-                      </div>
-
-                      <div className="field">
-                        <label htmlFor="note">Note for the reviewer (optional)</label>
-                        <textarea id="note" rows={3} value={note} onChange={(ev) => setNote(ev.target.value)} placeholder="What changed since last time, or where to start reading." />
-                      </div>
-
-                      <div className="row">
-                        <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={busy}>
-                          {busy ? <><FoxSpinner /> Waiting for signature…</> : "Sign: submit evidence"}
+                      </select>
+                      {links.length > 1 && (
+                        <button
+                          type="button"
+                          className="evidence-remove"
+                          aria-label={`Remove link ${index + 1}`}
+                          onClick={() => setLinks((current) => current.filter((_, i) => i !== index))}
+                        >
+                          ×
                         </button>
-                      </div>
-
+                      )}
                     </div>
+                  ))}
+                  {links.length < MAX_EVIDENCE && (
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-sm"
+                      onClick={() => setLinks((current) => [...current, { url: "", type: "repo" }])}
+                    >
+                      Add link
+                    </button>
                   )}
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
+
+                <div className="field">
+                  <label htmlFor="note">Note for the reviewer (optional)</label>
+                  <textarea
+                    id="note"
+                    rows={3}
+                    value={note}
+                    onChange={(event) => setNote(event.target.value)}
+                    placeholder="What changed since last time, or where to start reading."
+                  />
+                </div>
+
+                <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={busy}>
+                  {busy ? <><FoxSpinner /> Waiting for signature…</> : <><ProductIcon name="signature" size={18} /> Sign: submit evidence</>}
+                </button>
+              </div>
+            )}
+
+            {canClaim && (
+              <button type="button" className="btn btn-primary mdetail-action" disabled={busy} onClick={handleClaim}>
+                {busy ? <><FoxSpinner /> Waiting for signature…</> : `Claim ${formatUsdc(milestone.amount)} USDC`}
+              </button>
+            )}
+
+            {!canSubmit && !canClaim && (
+              <p className="mdetail-note">
+                Nothing to do on this milestone right now. Pick another on the track above.
+              </p>
+            )}
+          </section>
+
+          <p className="desk-foot">
+            <Link href={`/e/${engagement.id}`} className="badge-link">
+              Public page for engagement #{String(engagement.id)} →
+            </Link>
+          </p>
+        </>
+      )}
     </section>
   );
 }
