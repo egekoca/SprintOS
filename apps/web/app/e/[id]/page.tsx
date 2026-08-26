@@ -23,17 +23,27 @@ import { FoxLoader } from "@/components/FoxLoader";
  */
 export default function EngagementPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const validId = /^(0|[1-9]\d*)$/.test(id);
   const [engagement, setEngagement] = useState<Engagement | null>(null);
   const [locked, setLocked] = useState<bigint | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
+    setEngagement(null);
+    setLocked(null);
+    setError(null);
+    if (!validId) {
+      setError("Engagement ids must be non-negative whole numbers.");
+      setLoading(false);
+      return;
+    }
     Promise.all([getEngagement(BigInt(id)), getBalance(BigInt(id))])
       .then(([e, b]) => { setEngagement(e); setLocked(b); })
       .catch((err) => setError(err instanceof Error ? err.message : String(err)))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, validId]);
 
   if (loading) {
     return <section className="shell" style={{ paddingBlock: "4rem" }}><FoxLoader label="Reading the ledger" /></section>;

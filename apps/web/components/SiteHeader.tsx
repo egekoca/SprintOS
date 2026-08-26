@@ -52,8 +52,9 @@ export function SiteHeader() {
                 href={item.href}
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: "0.75rem",
-                  letterSpacing: "0.12em",
+                  fontSize: "0.78rem",
+                  fontWeight: 600,
+                  letterSpacing: "0.1em",
                   textTransform: "uppercase",
                   padding: "0.375rem 0.75rem",
                   borderRadius: "var(--radius)",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useWallet } from "@/components/WalletProvider";
 import {
@@ -45,12 +45,22 @@ export default function BuilderPage() {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<{ hash: string; action: "submit" | "claim" } | null>(null);
 
+  const refresh = useCallback(async () => {
+    setEngagements(await listEngagements());
+  }, []);
+
   useEffect(() => {
-    listEngagements()
-      .then(setEngagements)
+    refresh()
       .catch((err) => setError(err instanceof Error ? err.message : String(err)))
       .finally(() => setLoading(false));
-  }, []);
+  }, [refresh]);
+
+  useEffect(() => {
+    setSelected(null);
+    setLinks([{ url: "", type: "repo" }]);
+    setNote("");
+    setDone(null);
+  }, [address]);
 
   const mine = engagements.filter((e) => e.builder === address);
 
@@ -82,6 +92,14 @@ export default function BuilderPage() {
       const bundleUri = new URL(`/api/evidence?hash=${encodeURIComponent(body.hash)}`, window.location.origin).toString();
       const tx = await submitEvidence(address, BigInt(selected.id), selected.idx, body.hash, bundleUri);
       setDone({ hash: tx.hash, action: "submit" });
+      setSelected(null);
+      setLinks([{ url: "", type: "repo" }]);
+      setNote("");
+      try {
+        await refresh();
+      } catch {
+        setError("Evidence was recorded, but the milestone list could not refresh. Reload to see its new status.");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -97,7 +115,11 @@ export default function BuilderPage() {
     try {
       const tx = await claimApprovedMilestone(address, id, idx);
       setDone({ hash: tx.hash, action: "claim" });
-      setEngagements(await listEngagements());
+      try {
+        await refresh();
+      } catch {
+        setError("Payment was claimed, but the milestone list could not refresh. Reload to see its new status.");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -129,9 +151,9 @@ export default function BuilderPage() {
       </div>
 
       {error && <p className="notice">{error}</p>}
-      {done?.action === "claim" && (
+      {done && (
         <div className="stack-s">
-          <p className="notice notice-ok">Approved payment claimed.</p>
+          <p className="notice notice-ok">{done.action === "claim" ? "Approved payment claimed." : "Evidence recorded on chain."}</p>
           <TxLink hash={done.hash} />
         </div>
       )}
@@ -171,7 +193,13 @@ export default function BuilderPage() {
                         <button
                           type="button"
                           className="btn btn-ghost btn-sm"
-                          onClick={() => { setSelected(isSelected ? null : { id: String(e.id), idx }); setDone(null); }}
+                          onClick={() => {
+                            setSelected(isSelected ? null : { id: String(e.id), idx });
+                            setLinks([{ url: "", type: "repo" }]);
+                            setNote("");
+                            setError(null);
+                            setDone(null);
+                          }}
                         >
                           {isSelected ? "Cancel" : m.status === "Held" ? "Resubmit" : "Submit evidence"}
                         </button>
@@ -233,14 +261,6 @@ export default function BuilderPage() {
                         </button>
                       </div>
 
-                      {done && (
-                        <div className="stack-s">
-                          <p className="notice notice-ok">
-                            {done.action === "claim" ? "Approved payment claimed." : "Evidence recorded on chain."}
-                          </p>
-                          <TxLink hash={done.hash} />
-                        </div>
-                      )}
                     </div>
                   )}
                 </div>

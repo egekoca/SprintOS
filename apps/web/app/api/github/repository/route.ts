@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { z } from "zod";
 import { parseGitHubRepository, type GitHubRepositorySnapshot } from "@/lib/github";
+import { decryptGitHubSession, GITHUB_SESSION_COOKIE } from "@/lib/github-auth";
 import { takeRateLimit } from "@/lib/rate-limit";
 import { requestClientKey } from "@/lib/request-security";
 
@@ -36,18 +38,18 @@ const Issue = z.object({
   pull_request: z.unknown().optional(),
 });
 
-function githubHeaders(): HeadersInit {
+function githubHeaders(accessToken?: string): HeadersInit {
   return {
     accept: "application/vnd.github+json",
     "user-agent": "SprintOS",
     "x-github-api-version": "2026-03-10",
-    ...(process.env.GITHUB_TOKEN ? { authorization: `Bearer ${process.env.GITHUB_TOKEN}` } : {}),
+    ...(accessToken || process.env.GITHUB_TOKEN ? { authorization: `Bearer ${accessToken ?? process.env.GITHUB_TOKEN}` } : {}),
   };
 }
 
-async function githubGet(path: string): Promise<unknown> {
+async function githubGet(path: string, accessToken?: string): Promise<unknown> {
   const response = await fetch(`https://api.github.com${path}`, {
-    headers: githubHeaders(),
+    headers: githubHeaders(accessToken),
     cache: "no-store",
     signal: AbortSignal.timeout(10_000),
   });
@@ -81,10 +83,12 @@ export async function GET(request: Request) {
 
   const segment = `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`;
   try {
+    const jar = await cookies();
+    const accessToken = decryptGitHubSession(jar.get(GITHUB_SESSION_COOKIE)?.value)?.accessToken;
     const [rawRepository, rawMilestones, rawIssues] = await Promise.all([
-      githubGet(segment),
-      githubGet(`${segment}/milestones?state=open&sort=due_on&direction=asc&per_page=10`),
-      githubGet(`${segment}/issues?state=open&milestone=*&sort=updated&direction=desc&per_page=100`),
+      githubGet(segment, accessToken),
+      githubGet(`${segment}/milestones?state=open&sort=due_on&direction=asc&per_page=10`, accessToken),
+      githubGet(`${segment}/issues?state=open&milestone=*&sort=updated&direction=desc&per_page=100`, accessToken),
     ]);
 
     const repository = Repository.parse(rawRepository);

@@ -2,6 +2,7 @@
 
 import type { AdvisoryReport } from "@sprintos/schemas/report";
 import { FoxSpinner } from "./FoxLoader";
+import { FoxSculpture } from "./FoxSculpture";
 
 /**
  * The advisory report, rendered as the least authoritative thing on the page.
@@ -50,6 +51,13 @@ export function AdvisoryPanel({
 
       {error && <p className="notice">{error}</p>}
 
+      {loading && (
+        <div className="advisory-fox-loading" aria-live="polite">
+          <FoxSculpture size={92} idPrefix="score-loading" />
+          <span><b>Reading the evidence</b><small>The fox is checking every criterion.</small></span>
+        </div>
+      )}
+
       {!report && !error && !loading && (
         <p style={{ fontSize: "0.9375rem" }}>
           No report yet. This module runs only when you ask it to — it does not watch
@@ -59,7 +67,8 @@ export function AdvisoryPanel({
 
       {report && (
         <>
-          <div className="row" style={{ gap: "1.25rem", alignItems: "baseline" }}>
+          <div className="advisory-score-scene">
+            <FoxSculpture size={104} idPrefix="score-result" />
             <span className="advisory-score">{report.advisory_score}</span>
             <div className="stack-s" style={{ gap: "0.125rem" }}>
               <span className="mono" style={{ fontSize: "0.875rem", color: "var(--chalk-dim)" }}>

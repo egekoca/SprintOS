@@ -10,6 +10,18 @@ SprintOS has three deliberately separated layers.
    report. A repository boundary check prevents it from importing signing or
    Stellar transaction code.
 
+The sponsor setup UI enforces the same order as the domain workflow. A
+repository must be selected before scope can be confirmed; valid milestones
+must exist before roles can be assigned; roles and the sponsor wallet must be
+ready before the create/fund screen is enabled. AI milestone planning only
+creates editable form data. It does not write criteria documents, sign a
+transaction, or skip any of those gates.
+
+GitHub OAuth access tokens are held in authenticated, encrypted HttpOnly
+cookies and are only used server-side to list and read repositories. OAuth
+state is verified on callback. Public URL scans remain available for local
+development and deployments that do not configure OAuth.
+
 ## Document integrity
 
 Acceptance criteria and evidence bundles are canonicalized and hashed with

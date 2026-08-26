@@ -24,6 +24,17 @@ The web app defaults to the checked-in testnet deployment. Add
 `ANTHROPIC_API_KEY` only if advisory report generation is needed; every human
 review and settlement flow works without it.
 
+The sponsor workspace is a gated four-step flow: select a GitHub repository,
+confirm an editable milestone plan, assign roles, then sign and fund. GitHub
+OAuth requires `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, and a long
+`GITHUB_SESSION_SECRET`; register
+`http://localhost:3000/api/github/callback` as the local callback URL. Without
+OAuth configuration, public repositories can still be selected by URL.
+
+`ANTHROPIC_API_KEY` also enables milestone planning from a pasted brief or a
+TXT/Markdown/CSV/JSON document. If it is absent, the workspace produces a
+transparent, editable structured draft instead of pretending an AI ran.
+
 ## Verify
 
 ```bash

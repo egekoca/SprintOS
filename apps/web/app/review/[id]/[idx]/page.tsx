@@ -33,6 +33,8 @@ import { formatUsdc, shortAddress } from "@/lib/stellar/config";
 export default function ReviewDeskPage({ params }: { params: Promise<{ id: string; idx: string }> }) {
   const { id, idx: idxParam } = use(params);
   const idx = Number(idxParam);
+  const validId = /^(0|[1-9]\d*)$/.test(id);
+  const validIdx = /^\d+$/.test(idxParam) && Number.isSafeInteger(idx);
   const { address, connect } = useWallet();
 
   const [engagement, setEngagement] = useState<Engagement | null>(null);
@@ -51,11 +53,25 @@ export default function ReviewDeskPage({ params }: { params: Promise<{ id: strin
   const [lastTx, setLastTx] = useState<{ hash: string; action: string } | null>(null);
 
   const refresh = useCallback(async () => {
+    if (!validId) throw new Error("Engagement ids must be non-negative whole numbers.");
     const e = await getEngagement(BigInt(id));
     setEngagement(e);
-  }, [id]);
+  }, [id, validId]);
 
   useEffect(() => {
+    setLoading(true);
+    setEngagement(null);
+    setCriteria(null);
+    setCriteriaHash(null);
+    setEvidence(null);
+    setEvidenceHash(null);
+    setReport(null);
+    setError(null);
+    if (!validId || !validIdx) {
+      setError(!validId ? "Engagement ids must be non-negative whole numbers." : "Milestone indexes must be non-negative whole numbers.");
+      setLoading(false);
+      return;
+    }
     (async () => {
       try {
         const current = await getEngagement(BigInt(id));
@@ -82,7 +98,7 @@ export default function ReviewDeskPage({ params }: { params: Promise<{ id: strin
         setLoading(false);
       }
     })();
-  }, [id, idx, refresh]);
+  }, [id, idx, refresh, validId, validIdx]);
 
   async function generate() {
     const milestone = engagement?.milestones[idx];
@@ -350,7 +366,13 @@ export default function ReviewDeskPage({ params }: { params: Promise<{ id: strin
 
         {lastTx && (
           <div className="stack-s">
-            <p className="notice notice-ok">Signed and settled: {lastTx.action}.</p>
+            <p className="notice notice-ok">
+              {lastTx.action === "approve"
+                ? "Approval recorded. Payment still needs a separate release signature."
+                : lastTx.action === "hold"
+                  ? "Milestone held for revision."
+                  : "Payment released to the builder."}
+            </p>
             <TxLink hash={lastTx.hash} />
           </div>
         )}
