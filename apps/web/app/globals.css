@@ -102,7 +102,11 @@ body::before {
 main, header, footer { position: relative; z-index: 1; }
 
 /* ---------------------------------------------------------- typography */
-h1, h2, h3 {
+/* Display type is a voice, not a default. h1 and h2 announce a page or a
+   section and earn the stencil; h3 labels a card or a milestone and appears
+   dozens of times per screen, so it stays in the body face. Setting every
+   heading in uppercase Anton made the whole interface shout. */
+h1, h2 {
   font-family: var(--font-display);
   font-weight: 400;
   letter-spacing: 0.005em;
@@ -112,9 +116,19 @@ h1, h2, h3 {
   line-height: 0.94;
 }
 
-h1 { font-size: clamp(2.75rem, 8vw, 6.5rem); }
-h2 { font-size: clamp(1.75rem, 4vw, 2.75rem); }
-h3 { font-size: clamp(1.15rem, 2vw, 1.4rem); }
+h3 {
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 0.005em;
+  text-wrap: balance;
+  margin: 0;
+  line-height: 1.25;
+  color: var(--paper);
+}
+
+h1 { font-size: clamp(2.5rem, 7vw, 5.5rem); }
+h2 { font-size: clamp(1.6rem, 3.4vw, 2.4rem); }
+h3 { font-size: 1.0625rem; }
 
 p { margin: 0; }
 
@@ -1056,7 +1070,7 @@ body:has(.rec-visual) footer { background: #090909 !important; }
   color: #FFFFFF;
   box-shadow: 0 12px 30px rgba(0,0,0,.44), 0 0 0 5px rgba(255,90,18,.09), 0 0 32px rgba(255,90,18,.28);
 }
-.rec-visual .rec-orbit-node-two { color: var(--orange-lo); }
+.rec-visual .rec-orbit-node-three { color: var(--orange-lo); }
 .rec-visual .rec-orbit-ring { border-color: #5A4A40; }
 .rec-visual .rec-solution-step { background: rgba(17,17,17,.88); }
 .rec-visual .rec-solution-section { background: linear-gradient(145deg, rgba(255,90,18,.1), rgba(14,14,14,.94) 48%); }
@@ -1071,14 +1085,6 @@ body:has(.rec-visual) footer { background: #090909 !important; }
   align-items: center;
   text-align: center;
   position: relative;
-}
-.rec-orbit-hero > .rec-simple-kicker {
-  position: relative;
-  z-index: 4;
-  color: #D8D0CA;
-  font-size: .7rem;
-  font-weight: 700;
-  letter-spacing: .2em;
 }
 .rec-orbit-stage {
   width: 100%;
@@ -1156,9 +1162,33 @@ body:has(.rec-visual) footer { background: #090909 !important; }
   animation: orbit-node-ripple 3s ease-out infinite;
 }
 .rec-orbit-node .product-icon { stroke-width: 2.15; filter: drop-shadow(0 0 5px rgba(255,90,18,.24)); }
+
+/* The label rides with its node rather than sitting on the ring, so the three
+   steps stay readable while the marks drift. */
+.rec-orbit-node b {
+  position: absolute;
+  top: calc(100% + .55rem);
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: .58rem;
+  font-weight: 500;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+  white-space: nowrap;
+  pointer-events: none;
+}
+/* The lowest node sits where the headline overlaps the stage, so its label
+   goes above the mark instead of underneath it. */
+.rec-orbit-node-three b {
+  top: auto;
+  bottom: calc(100% + .55rem);
+  color: var(--orange-lo);
+}
 .rec-orbit-node-one { top: 18%; left: 32%; }
-.rec-orbit-node-two { top: 27%; right: 29%; color: var(--orange); }
-.rec-orbit-node-three { bottom: 14%; right: 35%; }
+.rec-orbit-node-two { top: 27%; right: 29%; }
+.rec-orbit-node-three { bottom: 14%; right: 35%; color: var(--orange); }
 .rec-orbit-node-one { animation: orbit-node-one 5.4s ease-in-out infinite; }
 .rec-orbit-node-two { animation: orbit-node-two 4.8s ease-in-out -.8s infinite; }
 .rec-orbit-node-three { animation: orbit-node-three 5.8s ease-in-out -1.7s infinite; }
@@ -1169,8 +1199,25 @@ body:has(.rec-visual) footer { background: #090909 !important; }
 }
 .rec-orbit-message { position: relative; z-index: 5; display: flex; flex-direction: column; align-items: center; margin-top: -2.5rem; }
 .rec-orbit-message h1 { font-size: clamp(3.2rem, 6.5vw, 6.1rem); line-height: .84; }
-.rec-orbit-message > p { margin-top: 1.25rem; color: var(--chalk-dim); font-weight: 500; }
+.rec-orbit-lede {
+  margin-top: 1.25rem;
+  max-width: 34rem;
+  font-size: clamp(1rem, 1.5vw, 1.15rem);
+  color: var(--chalk-dim);
+  font-weight: 500;
+  text-wrap: balance;
+}
 .rec-orbit-message .rec-cta { justify-content: center; margin-top: 1.5rem; }
+/* Where the old top kicker went: a quiet fact under the actions rather than a
+   category label floating above the artwork. */
+.rec-orbit-foot {
+  margin-top: 1.6rem;
+  font-family: var(--font-mono);
+  font-size: .62rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+}
 
 .rec-visual-section { padding-block: clamp(6rem, 10vw, 10rem); border-top: var(--rule); }
 .rec-visual-heading { display: grid; grid-template-columns: 4rem minmax(8rem, .45fr) 1fr; align-items: end; gap: 1.5rem; }
@@ -1208,22 +1255,6 @@ body:has(.rec-visual) footer { background: #090909 !important; }
 }
 
 .rec-simple-copy { position: relative; z-index: 2; }
-.rec-simple-kicker {
-  font-family: var(--font-mono);
-  font-size: .64rem;
-  letter-spacing: .19em;
-  text-transform: uppercase;
-  color: var(--chalk-faint);
-}
-.rec-simple-kicker::before {
-  content: "";
-  display: inline-block;
-  width: 2.4rem;
-  height: 1px;
-  margin-right: .8rem;
-  vertical-align: middle;
-  background: var(--orange);
-}
 .rec-simple-copy h1 {
   margin-top: 1.65rem;
   font-size: clamp(3.8rem, 7.6vw, 7.6rem);
@@ -1313,7 +1344,7 @@ body:has(.rec-visual) footer { background: #090909 !important; }
 }
 .rec-simple-trust .fox-stage { width: 6.5rem; }
 .rec-simple-trust h2 { margin-top: 1.35rem; font-size: clamp(3.2rem, 6.8vw, 6.5rem); line-height: .86; }
-.rec-simple-trust > p:not(.rec-simple-kicker) { margin-top: 1.75rem; color: var(--chalk-dim); }
+.rec-simple-trust > p { margin-top: 1.75rem; color: var(--chalk-dim); }
 .rec-simple-trust > .btn { margin-top: 2rem; }
 .rec-permission-visual { display: flex; align-items: center; justify-content: center; gap: clamp(1.25rem, 4vw, 3.5rem); margin-bottom: 1.5rem; }
 .rec-permission-visual > span { width: 6rem; aspect-ratio: 1; display: grid; place-items: center; border: 1px dashed var(--advisory-edge); border-radius: 50%; color: var(--advisory-ink); }
@@ -1456,7 +1487,10 @@ body:has(.rec-visual) footer { background: #090909 !important; }
 .plan-dates { display: grid; grid-template-columns: 1fr auto 1fr .7fr; align-items: end; gap: .75rem; }
 .plan-dates > span { padding-bottom: .7rem; color: var(--orange); }
 .criteria-list { display: grid; gap: .45rem; }
-.criteria-list > div { display: grid; grid-template-columns: 1.8rem 1fr; align-items: center; border: 1px solid var(--edge); color: var(--orange); }
+/* Third column so a remove control sits on the row rather than wrapping under
+   the input. `auto` keeps it absent when the row does not offer one. */
+.criteria-list > div { display: grid; grid-template-columns: 1.8rem minmax(0, 1fr) auto; align-items: center; border: 1px solid var(--edge); color: var(--orange); }
+.criteria-list > div > .evidence-remove { border: 0; border-left: 1px solid var(--edge); height: 100%; }
 .criteria-list > div > svg { justify-self: center; }
 .criteria-list input { border: 0; background: transparent; }
 .criteria-list > button { justify-self: start; border: 0; padding: .25rem 0; background: none; color: var(--orange); cursor: pointer; }
@@ -1566,12 +1600,14 @@ body:has(.rec-visual) footer { background: #090909 !important; }
   .rec-orbit-ring-one { width: 18rem; }
   .rec-orbit-ring-two { width: 13.5rem; }
   .rec-orbit-node { width: 2.65rem; height: 2.65rem; }
-  .rec-orbit-node-one { top: 17%; left: 6%; }
-  .rec-orbit-node-two { top: 23%; right: 5%; }
-  .rec-orbit-node-three { right: 10%; bottom: 8%; }
+  .rec-orbit-node-one { top: 17%; left: 12%; }
+  .rec-orbit-node-two { top: 23%; right: 11%; }
+  .rec-orbit-node-three { right: 16%; bottom: 8%; }
+  .rec-orbit-node b { font-size: .5rem; letter-spacing: .12em; }
   .rec-orbit-message { margin-top: -1rem; }
   .rec-orbit-message h1 { font-size: clamp(3.1rem, 15vw, 4.8rem); }
-  .rec-orbit-message > p { margin-top: 1rem; }
+  .rec-orbit-lede { margin-top: 1rem; }
+  .rec-orbit-foot { margin-top: 1.1rem; font-size: .55rem; letter-spacing: .1em; }
   .rec-visual-section { padding-block: 5.5rem; }
   .rec-visual-heading { grid-template-columns: 3.5rem 1fr; gap: 1rem; }
   .rec-visual-heading h2 { grid-column: 1 / -1; justify-self: start; margin-top: 1.5rem; font-size: clamp(3rem, 15vw, 4.6rem); text-align: left; }
@@ -1651,4 +1687,829 @@ body:has(.rec-visual) footer { background: #090909 !important; }
   .workspace-card { min-height: 23rem; }
   .workspace-card + .workspace-card { border-left: 0; border-top: 1px solid var(--edge); }
   .app-gateway-foot { flex-direction: column; }
+}
+
+/* ==========================================================================
+   Workspace, milestone flow and setup clarity
+
+   The app used to open on three role cards and leave the model implicit. These
+   styles support the explanatory workspace page, the milestone track that
+   replaces the stacked panels on an engagement, and the two setup controls the
+   flow was missing: a budget that can be entered as one award and split, and a
+   reviewer that can be the sponsor themselves.
+   ========================================================================== */
+
+/* ----------------------------------------------------------- workspace */
+.workspace { padding-block: clamp(2.5rem, 5vw, 4rem) 2rem; }
+
+.workspace-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(1.5rem, 4vw, 4rem);
+  align-items: center;
+}
+.workspace-intro h1 { margin-top: .8rem; font-size: clamp(2.1rem, 4.6vw, 3.9rem); line-height: .98; }
+.workspace-intro .lede { margin-top: 1.4rem; }
+.workspace-mark { display: flex; justify-content: center; }
+
+.workspace-section-head { margin-bottom: 2rem; }
+.workspace-section-head h2 { margin-top: .5rem; }
+.workspace-section-head .muted { margin-top: .75rem; max-width: 46ch; font-size: .92rem; }
+
+/* The worked example. Numbers first, labels under — it is meant to be read in
+   one pass without stopping on any word. */
+.workspace-example { margin-top: clamp(3rem, 6vw, 5rem); }
+.wexample {
+  margin-top: 1rem;
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: .5rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-lg);
+  background: var(--concrete);
+  padding: 1.25rem 1rem;
+}
+.wexample i { align-self: center; color: var(--edge-bright); font-style: normal; }
+.wexample-cell {
+  flex: 1 1 7rem;
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+  padding: .5rem .75rem;
+  border-radius: var(--radius);
+}
+.wexample-cell b {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3vw, 2.1rem);
+  line-height: 1;
+  font-weight: 400;
+  color: var(--paper);
+  font-variant-numeric: tabular-nums;
+}
+.wexample-cell small {
+  font-family: var(--font-mono);
+  font-size: .6rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+}
+/* Same rule as everywhere else: the AI is grey, the human act is orange. */
+.wexample-cell.is-advisory { background: var(--advisory-bg); border: 1px dashed var(--advisory-edge); }
+.wexample-cell.is-advisory b { color: var(--advisory-ink); }
+.wexample-cell.is-human { background: rgba(255,90,18,.09); border: 1px solid rgba(255,90,18,.4); }
+.wexample-cell.is-human b { color: var(--orange); }
+.wexample-note { margin-top: .85rem; font-size: .85rem; color: var(--chalk-faint); }
+
+/* ------------------------------------------------------------- stages */
+.workspace-stages { margin-top: clamp(3.5rem, 7vw, 6rem); }
+.wstage-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--edge); }
+.wstage {
+  display: grid;
+  grid-template-columns: auto 3rem minmax(0, 1fr) auto;
+  gap: 1.25rem;
+  align-items: start;
+  padding: 1.5rem .25rem;
+  border-bottom: 1px solid var(--edge);
+}
+.wstage-icon {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--edge-bright);
+  border-radius: var(--radius);
+  color: var(--chalk-dim);
+}
+.wstage-step {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  line-height: 2.75rem;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--edge-bright);
+}
+.wstage-copy h3 { font-size: 1.1rem; color: var(--paper); }
+.wstage-copy p { margin-top: .5rem; font-size: .92rem; color: var(--chalk-dim); max-width: 58ch; }
+.wstage-actor {
+  align-self: center;
+  padding: .3rem .6rem;
+  border: 1px solid var(--edge);
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: .62rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+  white-space: nowrap;
+}
+.wstage.is-advisory { background: var(--advisory-bg); }
+.wstage.is-advisory .wstage-icon { border-style: dashed; border-color: var(--advisory-edge); color: var(--advisory-ink); }
+.wstage.is-advisory .wstage-actor { border-style: dashed; border-color: var(--advisory-edge); color: var(--advisory-ink); }
+.wstage.is-human .wstage-icon { border-color: rgba(255,90,18,.5); color: var(--orange); }
+.wstage.is-human .wstage-actor { border-color: rgba(255,90,18,.5); color: var(--orange); }
+
+.wstage-rule {
+  margin-top: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: .6rem;
+  padding: .9rem 1rem;
+  border: 1px dashed var(--advisory-edge);
+  border-radius: var(--radius);
+  background: var(--advisory-bg);
+  font-size: .85rem;
+  color: var(--advisory-ink);
+}
+.wstage-rule .product-icon { flex: 0 0 auto; margin-top: .15rem; }
+
+/* -------------------------------------------------------------- desks */
+.workspace-desks { margin-top: clamp(3.5rem, 7vw, 6rem); }
+.wdesk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; }
+.wdesk {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  padding: 1.5rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-lg);
+  background: var(--concrete);
+  color: inherit;
+  text-decoration: none;
+  transition: background .18s ease, border-color .18s ease, transform .18s ease;
+}
+.wdesk:hover { background: var(--concrete-2); border-color: var(--edge-bright); transform: translateY(-3px); }
+.wdesk-icon {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-bottom: .5rem;
+  border-radius: var(--radius);
+  background: var(--concrete-3);
+  color: var(--orange);
+}
+.wdesk h3 { font-size: 1.5rem; color: var(--paper); }
+.wdesk-body { font-size: .9rem; color: var(--chalk-dim); }
+.wdesk-when { margin-top: .25rem; font-size: .78rem; color: var(--chalk-faint); }
+.wdesk-go {
+  margin-top: auto;
+  padding-top: 1rem;
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--paper);
+}
+.wdesk-go b { float: right; color: var(--orange); }
+.workspace-foot { margin-top: 1.5rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; font-size: .78rem; }
+
+/* ------------------------------------------------------ milestone flow */
+.mflow { display: flex; flex-direction: column; gap: .85rem; }
+.mflow-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+.mflow-progress-label { font-family: var(--font-mono); font-size: .72rem; color: var(--chalk-faint); }
+.mflow-progress-label b { color: var(--paper); }
+
+.mflow-track {
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(11rem, 1fr);
+  gap: .5rem;
+  overflow-x: auto;
+  padding-top: 1.6rem;
+  padding-bottom: .25rem;
+}
+/* The rail sits behind the nodes and fills with the share of money settled. */
+.mflow-rail {
+  position: absolute;
+  top: 1.6rem;
+  left: 1.5rem;
+  right: 1.5rem;
+  height: 2px;
+  background: var(--edge);
+}
+.mflow-rail i { display: block; height: 100%; background: var(--spray); transition: width .4s ease; }
+
+.mflow-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  padding: 2.1rem .9rem 1rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-lg);
+  background: var(--concrete);
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  transition: border-color .18s ease, background .18s ease;
+}
+.mflow-stage:hover { background: var(--concrete-2); }
+.mflow-stage.is-active { border-color: var(--edge-bright); background: var(--concrete-2); }
+.mflow-node {
+  position: absolute;
+  top: -.85rem;
+  left: 1rem;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 1px solid var(--edge-bright);
+  background: var(--asphalt);
+  color: var(--chalk-faint);
+}
+.mflow-index { font-family: var(--font-mono); font-size: .62rem; letter-spacing: .12em; color: var(--chalk-faint); }
+.mflow-title { font-size: .95rem; color: var(--paper); line-height: 1.3; }
+.mflow-amount { font-family: var(--font-display); font-size: 1.15rem; color: var(--chalk-dim); font-variant-numeric: tabular-nums; }
+.mflow-amount small { font-family: var(--font-mono); font-size: .58rem; color: var(--chalk-faint); }
+.mflow-stage-label { font-family: var(--font-mono); font-size: .6rem; letter-spacing: .1em; text-transform: uppercase; color: var(--chalk-faint); }
+
+.mflow-stage.is-paid .mflow-node { border-color: var(--st-released); color: var(--st-released); }
+.mflow-stage.is-paid .mflow-amount { color: var(--paper); }
+.mflow-stage.is-refunded .mflow-node { border-style: dashed; }
+.mflow-stage.is-submitted .mflow-node,
+.mflow-stage.is-approved .mflow-node { border-color: var(--paper); color: var(--paper); }
+/* The one stage a person still has to act on. */
+.mflow-stage.needs-you { border-color: rgba(255,90,18,.45); }
+.mflow-stage.needs-you .mflow-stage-label { color: var(--orange); }
+
+/* ---------------------------------------------------- milestone detail */
+.mdetail {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid var(--edge-bright);
+  border-radius: var(--radius-lg);
+  background: var(--concrete);
+}
+.mdetail-head { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; }
+.mdetail-head h3 { margin-top: .35rem; font-size: 1.6rem; color: var(--paper); }
+.mdetail-head-right { display: flex; align-items: center; gap: 1rem; }
+.mdetail-amount { font-size: 1.5rem; }
+.mdetail-amount small { font-family: var(--font-mono); font-size: .65rem; color: var(--chalk-faint); }
+
+.mdetail-timeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 1px; background: var(--edge); border: 1px solid var(--edge); border-radius: var(--radius); overflow: hidden; }
+.mdetail-mark { display: flex; flex-direction: column; gap: .3rem; padding: .85rem 1rem; background: var(--asphalt); }
+.mdetail-mark strong { font-family: var(--font-mono); font-size: .85rem; font-weight: 500; color: var(--chalk-dim); }
+.mdetail-mark.is-done strong { color: var(--paper); }
+.mdetail-mark.is-warn strong { color: var(--orange-lo); }
+
+.mdetail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1.25rem; }
+.mdetail-block { display: flex; flex-direction: column; gap: .6rem; }
+.mdetail-note { font-size: .85rem; color: var(--chalk-faint); }
+.mdetail-evidence {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .6rem .75rem;
+  border: 1px solid var(--edge-bright);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: .75rem;
+  color: var(--chalk-dim);
+  text-decoration: none;
+  word-break: break-all;
+}
+.mdetail-evidence:hover { border-color: var(--orange); color: var(--paper); }
+.mdetail-action { align-self: flex-start; }
+
+/* --------------------------------------------------------- budget bar */
+.budget-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 11rem) auto minmax(0, 1fr);
+  gap: 1rem;
+  align-items: end;
+  padding: 1.25rem;
+  border: 1px solid var(--edge-bright);
+  border-radius: var(--radius-lg);
+  background: var(--concrete-2);
+}
+.budget-total input { font-family: var(--font-mono); }
+.budget-readout { display: flex; justify-content: flex-end; gap: 1.75rem; }
+.budget-readout span { display: flex; flex-direction: column; gap: .15rem; text-align: right; }
+.budget-readout small { font-family: var(--font-mono); font-size: .58rem; letter-spacing: .12em; text-transform: uppercase; color: var(--chalk-faint); }
+.budget-readout b { font-family: var(--font-display); font-size: 1.5rem; font-weight: 400; color: var(--chalk-dim); font-variant-numeric: tabular-nums; }
+/* A balance is a fact about the plan, not something to act on, so it stays out
+   of brand orange like every other status in this interface. */
+.budget-readout .is-balanced b { color: var(--paper); }
+.budget-readout .is-over b { color: var(--paper); }
+.budget-readout .is-over small { color: var(--paper); }
+.budget-hint { grid-column: 1 / -1; font-size: .8rem; color: var(--chalk-faint); }
+
+/* ------------------------------------------------------ reviewer choice */
+.field-hint { font-size: .75rem; color: var(--chalk-faint); }
+.reviewer-choice { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: .75rem; }
+.reviewer-choice button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: .65rem;
+  row-gap: .25rem;
+  padding: .9rem 1rem;
+  border: 1px solid var(--edge-bright);
+  border-radius: var(--radius);
+  background: var(--asphalt);
+  color: var(--chalk-dim);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  transition: border-color .18s ease, background .18s ease;
+}
+.reviewer-choice button .product-icon { grid-row: 1 / span 2; align-self: start; margin-top: .15rem; }
+.reviewer-choice button b { color: var(--paper); font-size: .92rem; }
+.reviewer-choice button small { font-size: .78rem; color: var(--chalk-faint); }
+.reviewer-choice button:hover { background: var(--concrete-2); }
+.reviewer-choice button.is-active { border-color: var(--orange); background: rgba(255,90,18,.08); color: var(--paper); }
+.reviewer-choice button.is-active .product-icon { color: var(--orange); }
+.reviewer-self-note {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .82rem;
+  color: var(--chalk-dim);
+}
+.reviewer-self-note .product-icon { color: var(--st-released); flex: 0 0 auto; }
+
+/* ------------------------------------------------- repository clarity */
+/* The panel spaces its children with explicit margins rather than a flex gap,
+   so each new block sets its own. */
+.repo-why { margin-top: 1.25rem; font-size: .88rem; color: var(--chalk-dim); max-width: 68ch; }
+.repo-mode-tabs { margin-top: 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: .75rem; }
+.repo-mode-tabs button {
+  display: flex;
+  align-items: flex-start;
+  gap: .65rem;
+  padding: .9rem 1rem;
+  border: 1px solid var(--edge-bright);
+  border-radius: var(--radius);
+  background: var(--asphalt);
+  color: var(--chalk-dim);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  transition: border-color .18s ease, background .18s ease;
+}
+.repo-mode-tabs button .product-icon { flex: 0 0 auto; margin-top: .1rem; }
+.repo-mode-tabs button span { display: flex; flex-direction: column; gap: .2rem; }
+.repo-mode-tabs button b { color: var(--paper); font-size: .92rem; }
+.repo-mode-tabs button small { font-size: .78rem; color: var(--chalk-faint); }
+.repo-mode-tabs button:hover { background: var(--concrete-2); }
+.repo-mode-tabs button.is-active { border-color: var(--orange); background: rgba(255,90,18,.08); }
+.repo-mode-tabs button.is-active .product-icon { color: var(--orange); }
+
+.repo-public-entry { margin-top: 1.75rem; }
+.repo-public-entry > label { display: block; }
+.repo-public-entry .repo-connect-row { margin-top: .5rem; }
+
+/* ---------------------------------------------------------- score dial */
+.score-dial { position: relative; display: grid; place-items: center; flex: 0 0 auto; }
+.score-dial svg { width: 100%; height: 100%; }
+.score-dial-track { fill: none; stroke: var(--advisory-edge); stroke-width: 7; }
+.score-dial-fill { fill: none; stroke: var(--advisory-ink); stroke-width: 7; stroke-linecap: round; }
+.score-dial-value {
+  position: absolute;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--advisory-ink);
+  font-variant-numeric: tabular-nums;
+}
+.score-dial-value small { font-family: var(--font-mono); font-size: .5rem; color: var(--chalk-faint); }
+
+@media (max-width: 860px) {
+  .workspace-intro { grid-template-columns: 1fr; }
+  .workspace-mark { order: -1; justify-content: flex-start; }
+  .wstage { grid-template-columns: auto minmax(0, 1fr); row-gap: .5rem; }
+  .wstage-step { display: none; }
+  .wstage-actor { grid-column: 2; justify-self: start; }
+  .budget-bar { grid-template-columns: 1fr; }
+  .budget-readout { justify-content: flex-start; }
+  .mdetail-head-right { width: 100%; justify-content: space-between; }
+}
+
+/* ==========================================================================
+   Criteria, evidence and the builder desk
+
+   The contract carries hashes; these are the documents behind them. Both are
+   rendered as plain lists — a checklist of what was promised, a list of links
+   for what arrived — with the hash reduced to a one-line verification note
+   underneath rather than a block of monospace nobody reads.
+   ========================================================================== */
+.criteria { display: flex; flex-direction: column; gap: .75rem; }
+.criteria-empty { font-size: .85rem; color: var(--chalk-faint); }
+
+.criteria-list-view,
+.evidence-list-view { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: .5rem; }
+
+.criteria-list-view li,
+.evidence-list-view li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: .6rem;
+  font-size: .9rem;
+  color: var(--chalk-dim);
+}
+.criteria-list-view li { grid-template-columns: auto minmax(0, 1fr); }
+.criteria-list-view .product-icon,
+.evidence-list-view .product-icon { color: var(--chalk-faint); align-self: center; }
+
+.evidence-list-view a { color: var(--chalk-dim); text-decoration: none; border-bottom: 1px solid var(--edge-bright); word-break: break-all; }
+.evidence-list-view a:hover { color: var(--paper); border-color: var(--orange); }
+.evidence-list-view small { font-family: var(--font-mono); font-size: .58rem; letter-spacing: .1em; text-transform: uppercase; color: var(--chalk-faint); white-space: nowrap; }
+.evidence-note { padding-left: .9rem; border-left: 2px solid var(--edge); font-size: .85rem; color: var(--chalk-faint); }
+
+/* The hash is what makes the list above evidence rather than a claim, so it is
+   stated once as a result, not dumped as sixty-four characters. */
+.criteria-hash {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  font-family: var(--font-mono);
+  font-size: .62rem;
+  letter-spacing: .06em;
+  color: var(--chalk-faint);
+}
+.criteria-hash::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--chalk-faint); }
+.criteria-hash.is-verified::before { background: var(--st-released); }
+.criteria-hash code { color: var(--edge-bright); word-break: break-all; }
+.criteria-hash a { color: var(--chalk-faint); text-decoration: none; border-bottom: 1px dotted var(--edge-bright); }
+.criteria-hash a:hover { color: var(--paper); }
+
+/* ---------------------------------------------------------------- a desk */
+.desk { display: flex; flex-direction: column; gap: 1.75rem; padding-block: clamp(2rem, 4vw, 3rem); }
+.desk-head { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem; }
+.desk-head h2 { margin-top: .4rem; }
+.desk-switch { display: flex; align-items: center; gap: .6rem; font-size: .8125rem; }
+.desk-switch select { width: auto; min-width: 12rem; }
+.desk-foot { font-size: .8125rem; }
+
+.desk-gate {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  max-width: 40rem;
+  padding-block: clamp(3rem, 8vw, 6rem);
+}
+.desk-gate h2 { margin-top: .25rem; }
+
+/* ------------------------------------------------------- evidence form */
+.evidence-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--edge);
+}
+.evidence-form > .btn-primary { align-self: flex-start; }
+.evidence-row { display: grid; grid-template-columns: minmax(0, 1fr) 10rem auto; gap: .5rem; }
+.evidence-row select { width: 100%; }
+.evidence-remove {
+  width: 2.25rem;
+  border: 1px solid var(--edge-bright);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--chalk-faint);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.evidence-remove:hover { color: var(--paper); border-color: var(--chalk-faint); }
+
+@media (max-width: 640px) {
+  .evidence-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .evidence-row select { grid-column: 1 / -1; }
+}
+
+/* ==========================================================================
+   Awards — the programmes one person runs
+
+   An award is a draft until it is published, so these screens have two modes.
+   Draft is a form; published is a record. The visual difference is deliberate
+   and one-way, matching what the contract allows.
+   ========================================================================== */
+.award-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--edge); }
+.award-list li { border-bottom: 1px solid var(--edge); }
+
+.award-row {
+  display: grid;
+  grid-template-columns: 11rem minmax(0, 1fr) auto auto;
+  gap: 1.5rem;
+  align-items: center;
+  padding: 1.1rem .5rem;
+  color: inherit;
+  text-decoration: none;
+  transition: background .16s ease;
+}
+.award-row:hover { background: rgba(255,255,255,.02); }
+.award-main { display: flex; flex-direction: column; gap: .25rem; min-width: 0; }
+.award-main strong { color: var(--paper); font-size: 1rem; }
+.award-main small { color: var(--chalk-faint); font-size: .8rem; }
+.award-budget { font-family: var(--font-display); font-size: 1.2rem; color: var(--chalk-dim); font-variant-numeric: tabular-nums; }
+.award-budget small { font-family: var(--font-mono); font-size: .58rem; color: var(--chalk-faint); }
+.award-pills { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .15rem; }
+
+.award-role {
+  justify-self: start;
+  padding: .3rem .6rem;
+  border: 1px solid var(--edge-bright);
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: .62rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+  white-space: nowrap;
+}
+/* Only the deciding role wears brand orange — it is the one that can act. */
+.award-role.is-reviewer { border-color: rgba(255,90,18,.5); color: var(--orange); }
+
+@media (max-width: 860px) {
+  .award-row { grid-template-columns: minmax(0, 1fr) auto; row-gap: .5rem; }
+  .award-role { grid-column: 1 / -1; }
+}
+
+/* ==========================================================================
+   The commit gate
+
+   Milestones and requirements are hashed into the contract and can never be
+   edited afterwards. The wizard therefore ends in two deliberate stops — an
+   attestation that the sponsor has read the plan, and a plain question asking
+   whether to lock it — rather than a single button that quietly does something
+   irreversible.
+   ========================================================================== */
+.commit-gate {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid var(--edge-bright);
+  border-radius: var(--radius-lg);
+  background: var(--concrete);
+}
+
+.commit-warning { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .9rem; align-items: start; }
+.commit-warning > .product-icon { margin-top: .2rem; color: var(--orange); }
+.commit-warning h3 { color: var(--paper); }
+.commit-warning p { margin-top: .5rem; font-size: .92rem; color: var(--chalk-dim); max-width: 62ch; }
+
+.commit-facts {
+  margin: 0;
+  padding: 1rem 0 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1rem 1.5rem;
+  border-top: 1px solid var(--edge);
+  font-size: .85rem;
+  color: var(--chalk-faint);
+}
+.commit-facts li { display: flex; flex-direction: column; gap: .2rem; }
+.commit-facts span {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--paper);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The second stop. Framed as a question with a real way back, so declining is
+   as easy as agreeing. */
+.commit-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--orange);
+  border-radius: var(--radius);
+  background: rgba(255,90,18,.07);
+}
+.commit-confirm-question {
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 2.4vw, 1.7rem);
+  line-height: 1.15;
+  text-transform: uppercase;
+  color: var(--paper);
+}
+.commit-confirm-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+
+@media (max-width: 640px) {
+  .commit-confirm-actions .btn { width: 100%; justify-content: center; }
+}
+
+/* ==========================================================================
+   Escrow model, the start band, and wallet help
+
+   Three additions that all answer "what actually happens here": where the
+   money sits while work is in progress, what setting up an award will ask of
+   you, and what to do when a wallet is missing or on the wrong network.
+   ========================================================================== */
+
+/* ------------------------------------------------------- escrow model */
+.escrow-model {
+  margin-top: clamp(2rem, 4vw, 3rem);
+  display: grid;
+  grid-template-columns: 1fr auto minmax(0, 1.35fr) auto 1fr;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.escrow-party {
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+  padding: 1.4rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-lg);
+  background: var(--concrete);
+}
+.escrow-party > .product-icon { color: var(--chalk-dim); }
+.escrow-party b { color: var(--paper); font-size: 1.05rem; }
+.escrow-party small { color: var(--chalk-faint); font-size: .82rem; }
+
+.escrow-arrow { align-self: center; color: var(--edge-bright); font-size: 1.4rem; }
+/* The second arrow is the one a person has to open. */
+.escrow-arrow.is-gated { color: var(--orange); }
+
+/* The vault reads as the heaviest object on the row, because it is. */
+.escrow-vault {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  padding: 1.4rem;
+  border: 1px solid var(--edge-bright);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(150deg, rgba(255,255,255,.03), transparent 60%),
+    var(--concrete-2);
+}
+.escrow-vault-tag {
+  font-family: var(--font-mono);
+  font-size: .58rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+}
+.escrow-vault strong {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3.4vw, 2.6rem);
+  line-height: 1;
+  color: var(--paper);
+  font-variant-numeric: tabular-nums;
+}
+.escrow-vault small { color: var(--chalk-dim); font-size: .84rem; }
+.escrow-vault-keys {
+  margin-top: auto;
+  padding-top: .8rem;
+  border-top: 1px solid var(--edge);
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  font-family: var(--font-mono);
+  font-size: .6rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+}
+
+/* The gate sits under the whole row, since it governs the way out. */
+.escrow-gate {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: .8rem;
+  row-gap: .3rem;
+  margin-top: .5rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid rgba(255,90,18,.4);
+  border-radius: var(--radius-lg);
+  background: rgba(255,90,18,.06);
+}
+.escrow-gate > .product-icon { grid-row: 1 / span 2; align-self: start; margin-top: .15rem; color: var(--orange); }
+.escrow-gate b { color: var(--paper); }
+.escrow-gate small { color: var(--chalk-dim); font-size: .85rem; max-width: 74ch; }
+
+.escrow-example { margin-top: clamp(2rem, 4vw, 3rem); }
+.escrow-example .wexample { margin-top: .75rem; }
+
+/* -------------------------------------------------------- start band */
+.start-band { margin-top: clamp(3rem, 6vw, 5rem); }
+.start-band-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--edge);
+}
+.start-band-head h2 { margin-top: .4rem; }
+.start-band-head .muted { margin-top: .6rem; font-size: .92rem; }
+.start-band-cta { min-height: 3.1rem; padding-inline: 1.5rem; }
+
+.start-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+.start-steps li {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: .85rem;
+  row-gap: .5rem;
+  padding: 1.4rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-lg);
+  background: var(--concrete);
+}
+.start-step-icon {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius);
+  background: var(--concrete-3);
+  color: var(--orange);
+}
+.start-step-index {
+  align-self: center;
+  font-family: var(--font-mono);
+  font-size: .62rem;
+  letter-spacing: .16em;
+  color: var(--chalk-faint);
+}
+.start-steps li > div { grid-column: 1 / -1; }
+.start-steps h3 { color: var(--paper); }
+.start-steps p { margin-top: .45rem; font-size: .88rem; color: var(--chalk-dim); }
+
+/* ------------------------------------------------------- wallet help */
+.wallet-help {
+  display: flex;
+  flex-direction: column;
+  gap: .85rem;
+  width: 100%;
+  max-width: 38rem;
+  padding: 1.4rem;
+  border: 1px solid var(--edge-bright);
+  border-radius: var(--radius-lg);
+  background: var(--concrete);
+}
+.wallet-help.is-network { border-color: rgba(255,90,18,.4); background: rgba(255,90,18,.05); }
+.wallet-help-title {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  font-weight: 600;
+  color: var(--paper);
+}
+.wallet-help.is-network .wallet-help-title .product-icon { color: var(--orange); }
+.wallet-help-note { font-size: .88rem; color: var(--chalk-dim); }
+.wallet-help-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+
+.wallet-options { margin: 0; padding: 0; list-style: none; display: grid; gap: .5rem; }
+.wallet-options a {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .7rem;
+  padding: .7rem .9rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius);
+  background: var(--asphalt);
+  color: var(--chalk-dim);
+  text-decoration: none;
+  transition: border-color .16s ease, color .16s ease;
+}
+.wallet-options a:hover { border-color: var(--orange); color: var(--paper); }
+.wallet-options img { border-radius: 4px; }
+.wallet-options b {
+  font-family: var(--font-mono);
+  font-size: .6rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--orange);
+}
+
+@media (max-width: 860px) {
+  .escrow-model { grid-template-columns: 1fr; }
+  .escrow-arrow { transform: rotate(90deg); justify-self: center; }
+  .start-band-head { flex-direction: column; align-items: stretch; }
+  .start-band-cta { justify-content: center; }
+}
+
+/* A network warning is a fact to act on later, not a blocked action. */
+.network-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
