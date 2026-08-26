@@ -779,10 +779,12 @@ a:hover .brand-lockup .brand-logo { animation: fox-look 0.62s cubic-bezier(.2,.8
 .fox-cast { transform: translateX(calc(var(--fox-shift) * -1.6)); transition: transform .35s cubic-bezier(.2,.8,.2,1); }
 .fox-wall { transform: translateX(calc(var(--fox-shift) * 0.5)); transition: transform .35s cubic-bezier(.2,.8,.2,1); }
 
-.fox-sheen { animation: fox-sheen 7.5s cubic-bezier(.5,0,.5,1) infinite; }
+/* The highlight travelling across the face is most of what sells the surface,
+   so it sweeps often rather than once in a while. */
+.fox-sheen { animation: fox-sheen 2.9s cubic-bezier(.45,0,.5,1) infinite; }
 
 @keyframes fox-sheen {
-  0%, 62% { transform: translateX(0); }
+  0%, 34% { transform: translateX(0); }
   100% { transform: translateX(560px); }
 }
 @keyframes fox-breathe {
@@ -1106,6 +1108,17 @@ body:has(.rec-visual) footer { background: #090909 !important; }
   animation: orbit-halo 5.5s ease-in-out infinite;
   z-index: 0;
 }
+/* Scale set from scroll position by HeroFox; 1 is its resting size. */
+.hero-fox-scaler {
+  --hero-fox-scale: 1.28;
+  display: contents;
+}
+.hero-fox-scaler .fox-stage {
+  transform: scale(var(--hero-fox-scale));
+  transform-origin: center 62%;
+  will-change: transform;
+}
+
 .rec-orbit-stage .fox-stage {
   width: min(24vw, 20rem);
   z-index: 3;
@@ -1220,23 +1233,27 @@ body:has(.rec-visual) footer { background: #090909 !important; }
 }
 
 .rec-visual-section { padding-block: clamp(6rem, 10vw, 10rem); border-top: var(--rule); }
-.rec-visual-heading { display: grid; grid-template-columns: 4rem minmax(8rem, .45fr) 1fr; align-items: end; gap: 1.5rem; }
-.rec-visual-heading > span { width: 3rem; height: 3rem; display: grid; place-items: center; border: 1px solid var(--edge-bright); border-radius: 50%; font-family: var(--font-mono); font-size: .62rem; color: var(--orange); }
-.rec-visual-heading > p { padding-bottom: .5rem; font-family: var(--font-mono); font-size: .69rem; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; color: var(--chalk-faint); }
-.rec-visual-heading h2 { justify-self: end; font-size: clamp(3.1rem, 6.7vw, 6.5rem); line-height: .85; text-align: right; }
+/* Stacked and left-aligned. The old arrangement pinned a numbered badge to the
+   left and threw a very large right-aligned title across the rest, which left a
+   void between them once the number went — and made every section open with the
+   same gesture, so the page read as one layout repeated. */
+/* The markup carries its own line breaks, so no width cap is needed —
+   capping it in `ch` of a condensed face broke two-word lines into four. */
+.rec-visual-heading { display: flex; flex-direction: column; gap: .6rem; }
+.rec-visual-heading > p { font-family: var(--font-mono); font-size: .66rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--orange); }
+.rec-visual-heading h2 { font-size: clamp(2.4rem, 4.6vw, 4rem); line-height: .92; }
 
-.rec-problem-grid { margin-top: 5rem; display: grid; grid-template-columns: repeat(3, 1fr); border-top: var(--rule); border-bottom: var(--rule); }
-.rec-visual-card { min-height: 20rem; padding: 2rem; display: flex; flex-direction: column; }
+.rec-problem-grid { margin-top: 2.5rem; display: grid; grid-template-columns: repeat(3, 1fr); border-top: var(--rule); border-bottom: var(--rule); }
+.rec-visual-card { min-height: 17rem; padding: 2rem; display: flex; flex-direction: column; }
 .rec-visual-card + .rec-visual-card { border-left: var(--rule); }
 .rec-visual-card > span { width: 5rem; height: 5rem; display: grid; place-items: center; border-radius: 50%; border: 1px dashed var(--edge-bright); color: var(--chalk-faint); }
-.rec-visual-card h3 { margin-top: auto; font-size: 2rem; color: var(--paper); }
-.rec-visual-card p { margin-top: .7rem; color: var(--chalk-faint); font-weight: 500; }
+.rec-visual-card h3 { margin-top: auto; font-size: 1.55rem; color: var(--paper); }
+.rec-visual-card p { margin-top: .7rem; font-size: .9rem; line-height: 1.55; color: var(--chalk-dim); font-weight: 400; }
 
 .rec-solution-section { background: linear-gradient(145deg, rgba(255,90,18,.055), transparent 45%); }
-.rec-solution-flow { margin-top: 5rem; display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--edge); }
-.rec-solution-step { min-height: 18rem; padding: 1.6rem; position: relative; display: flex; flex-direction: column; background: var(--concrete); }
+.rec-solution-flow { margin-top: 2.5rem; display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--edge); }
+.rec-solution-step { min-height: 16rem; padding: 1.6rem; position: relative; display: flex; flex-direction: column; background: var(--concrete); }
 .rec-solution-step + .rec-solution-step { border-left: var(--rule); }
-.rec-solution-index { font-family: var(--font-mono); font-size: .64rem; font-weight: 700; letter-spacing: .12em; color: var(--chalk-faint); }
 .rec-solution-icon { margin-top: 2rem; width: 4.25rem; height: 4.25rem; display: grid; place-items: center; border: 1px solid var(--edge-bright); color: var(--paper); }
 .rec-solution-step:nth-child(3) .rec-solution-icon,
 .rec-solution-step:nth-child(4) .rec-solution-icon { color: var(--orange); border-color: rgba(255,90,18,.55); }
@@ -1593,7 +1610,18 @@ body:has(.rec-visual) footer { background: #090909 !important; }
   .rec-docket-gutter { display: flex; align-items: baseline; gap: .8rem; }
   .rec-orbit-hero { min-height: auto; padding-top: 7.5rem; padding-bottom: 4.5rem; }
   .rec-orbit-stage { min-height: 25rem; }
-  .rec-orbit-stage .fox-stage { width: 13rem; }
+  /* Scale set from scroll position by HeroFox; 1 is its resting size. */
+.hero-fox-scaler {
+  --hero-fox-scale: 1.28;
+  display: contents;
+}
+.hero-fox-scaler .fox-stage {
+  transform: scale(var(--hero-fox-scale));
+  transform-origin: center 62%;
+  will-change: transform;
+}
+
+.rec-orbit-stage .fox-stage { width: 13rem; }
   .rec-orbit-word { font-size: clamp(3.8rem, 19vw, 5.5rem); opacity: .46; }
   .rec-orbit-word-left { top: 36%; left: 0; }
   .rec-orbit-word-right { top: 64%; right: 0; }
@@ -1609,8 +1637,7 @@ body:has(.rec-visual) footer { background: #090909 !important; }
   .rec-orbit-lede { margin-top: 1rem; }
   .rec-orbit-foot { margin-top: 1.1rem; font-size: .55rem; letter-spacing: .1em; }
   .rec-visual-section { padding-block: 5.5rem; }
-  .rec-visual-heading { grid-template-columns: 3.5rem 1fr; gap: 1rem; }
-  .rec-visual-heading h2 { grid-column: 1 / -1; justify-self: start; margin-top: 1.5rem; font-size: clamp(3rem, 15vw, 4.6rem); text-align: left; }
+  .rec-visual-heading h2 { font-size: clamp(2.2rem, 11vw, 3.2rem); }
   .rec-problem-grid { grid-template-columns: 1fr; margin-top: 3rem; }
   .rec-visual-card { min-height: 13rem; padding: 1.5rem; }
   .rec-visual-card + .rec-visual-card { border-left: 0; border-top: var(--rule); }
@@ -2512,4 +2539,80 @@ body:has(.rec-visual) footer { background: #090909 !important; }
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 1rem;
+}
+
+/* ==========================================================================
+   The boundary
+
+   The claim that software advises and a person decides used to be two circles
+   with an arrow between them, which said neither who nor what the difference
+   buys anyone. Stated as two lists side by side it is checkable: here is what
+   the software may do, here is what only a person may do, and the styling of
+   each side is the same language used everywhere else — dashed grey for the
+   advisory, solid orange for the human.
+   ========================================================================== */
+.boundary {
+  margin-top: clamp(2.5rem, 5vw, 4rem);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: clamp(1rem, 3vw, 2rem);
+  align-items: stretch;
+  text-align: left;
+}
+
+.boundary-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  padding: clamp(1.4rem, 3vw, 2rem);
+  border-radius: var(--radius-lg);
+}
+.boundary-side.is-advisory {
+  border: 1.5px dashed var(--advisory-edge);
+  background: var(--advisory-bg);
+}
+.boundary-side.is-human {
+  border: 1px solid rgba(255,90,18,.45);
+  background: linear-gradient(150deg, rgba(255,90,18,.1), transparent 60%), var(--concrete);
+}
+
+.boundary-side header { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .85rem; align-items: center; }
+.boundary-mark {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+}
+.is-advisory .boundary-mark { border: 1px dashed var(--advisory-edge); color: var(--advisory-ink); }
+.is-human .boundary-mark { border: 1px solid var(--orange); color: var(--orange); }
+.boundary-side h3 { margin-top: .2rem; color: var(--paper); }
+
+.boundary-side ul { margin: 0; padding: 0; list-style: none; display: grid; gap: .6rem; }
+.boundary-side li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: .55rem;
+  align-items: baseline;
+  font-size: .92rem;
+  color: var(--chalk-dim);
+}
+.is-advisory li .product-icon { color: var(--advisory-ink); }
+.is-human li .product-icon { color: var(--orange); }
+
+/* The line that matters most on each side, set apart from the list above it. */
+.boundary-cannot {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--advisory-edge);
+  font-size: .85rem;
+  color: var(--advisory-ink);
+}
+.boundary-cannot.is-human { border-top-style: solid; border-top-color: rgba(255,90,18,.35); color: var(--chalk-dim); }
+
+.boundary-divider { display: grid; place-items: center; }
+
+@media (max-width: 860px) {
+  .boundary { grid-template-columns: 1fr; }
+  .boundary-divider { order: -1; }
 }

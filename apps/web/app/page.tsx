@@ -1,18 +1,47 @@
 import Link from "next/link";
 import { FoxSculpture } from "@/components/FoxSculpture";
+import { HeroFox } from "@/components/HeroFox";
 import { ProductIcon, type ProductIconName } from "@/components/ProductIcon";
 
 const PROBLEMS = [
-  { icon: "milestone", title: "Scope shifts", body: "The target moves." },
-  { icon: "link", title: "Proof scatters", body: "Evidence gets lost." },
-  { icon: "wallet", title: "Payment waits", body: "Trust slows settlement." },
+  {
+    icon: "milestone",
+    title: "The target moves",
+    body: "What counted as done in week one is not what counts in week six, and nobody wrote the original down.",
+  },
+  {
+    icon: "link",
+    title: "The proof scatters",
+    body: "A pull request here, a deploy link there, a screenshot in a DM. By review time nobody can assemble it.",
+  },
+  {
+    icon: "wallet",
+    title: "The money waits",
+    body: "Payment turns on trust rather than evidence, so it arrives late, in one lump, or after an argument.",
+  },
 ] satisfies Array<VisualItem>;
 
 const SOLUTIONS = [
-  { icon: "milestone", title: "Lock scope", body: "Criteria hashed." },
-  { icon: "github", title: "Connect work", body: "GitHub linked." },
-  { icon: "signature", title: "Human signs", body: "Decision authorized." },
-  { icon: "wallet", title: "Funds settle", body: "On-chain payout." },
+  {
+    icon: "milestone",
+    title: "Scope is fixed",
+    body: "Requirements are hashed into the contract before work starts, so they cannot move afterwards.",
+  },
+  {
+    icon: "github",
+    title: "Work is attached",
+    body: "The engagement points at a repository, so the work being judged is the work being paid for.",
+  },
+  {
+    icon: "signature",
+    title: "A person signs",
+    body: "SprintOS scores the delivery against each requirement. A named human reads it and decides.",
+  },
+  {
+    icon: "wallet",
+    title: "Money moves",
+    body: "The milestone's share leaves escrow on chain, carrying the address of whoever authorised it.",
+  },
 ] satisfies Array<VisualItem>;
 
 interface VisualItem {
@@ -28,8 +57,8 @@ export default function LandingPage() {
         {/* The three orbiting marks were unlabelled, which left the actual
             mechanism unsaid. Naming them is also where the category label that
             used to sit awkwardly above the ring has gone. */}
-        <div className="rec-orbit-stage" aria-label="A milestone is proved, then paid">
-          <span className="rec-orbit-word rec-orbit-word-left">Work</span>
+        <div className="rec-orbit-stage" aria-label="What was promised becomes what is paid">
+          <span className="rec-orbit-word rec-orbit-word-left">Promised</span>
           <span className="rec-orbit-word rec-orbit-word-right">Paid</span>
           <span className="rec-orbit-ring rec-orbit-ring-one" />
           <span className="rec-orbit-ring rec-orbit-ring-two" />
@@ -45,7 +74,7 @@ export default function LandingPage() {
             <ProductIcon name="signature" size={20} />
             <b>Payment</b>
           </span>
-          <FoxSculpture size={350} interactive idPrefix="hero" />
+          <HeroFox />
         </div>
 
         <div className="rec-orbit-message">
@@ -62,18 +91,17 @@ export default function LandingPage() {
       </section>
 
       <section className="rec-visual-section shell" id="problem">
-        <VisualHeading index="01" eyebrow="The problem" title={<>Good work<br /><span className="rec-hot">gets stuck.</span></>} />
+        <VisualHeading eyebrow="The problem" title={<>Good work<br /><span className="rec-hot">gets stuck.</span></>} />
         <div className="rec-problem-grid">
           {PROBLEMS.map((item) => <VisualCard item={item} key={item.title} />)}
         </div>
       </section>
 
       <section className="rec-visual-section rec-solution-section shell" id="solution">
-        <VisualHeading index="02" eyebrow="The SprintOS way" title={<>One clear<br /><span className="rec-hot">flow.</span></>} />
+        <VisualHeading eyebrow="The SprintOS way" title={<>One clear<br /><span className="rec-hot">flow.</span></>} />
         <div className="rec-solution-flow">
           {SOLUTIONS.map((item, index) => (
             <div className="rec-solution-step" key={item.title}>
-              <span className="rec-solution-index">0{index + 1}</span>
               <span className="rec-solution-icon"><ProductIcon name={item.icon} size={30} /></span>
               <h3>{item.title}</h3>
               <p>{item.body}</p>
@@ -88,7 +116,6 @@ export default function LandingPage() {
           award, and the only arrow out of it is one a person signs. */}
       <section className="rec-visual-section shell" id="escrow">
         <VisualHeading
-          index="03"
           eyebrow="Where the money sits"
           title={<>Held by a contract,<br /><span className="rec-hot">not by us.</span></>}
         />
@@ -150,25 +177,64 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Two circles and an arrow said "reads" and "signs" without saying who,
+          or what the difference buys anyone. The boundary is worth stating as
+          two lists side by side: what the software may do, and what only a
+          person may do. */}
       <section className="rec-simple-trust shell" id="trust">
-        <div className="rec-permission-visual" aria-hidden="true">
-          <span><ProductIcon name="eye" size={31} /><b>Reads</b></span>
-          <i>→</i>
-          <FoxSculpture size={108} idPrefix="trust" />
-          <i>→</i>
-          <span className="is-human"><ProductIcon name="signature" size={31} /><b>Signs</b></span>
+        <h2>SprintOS advises.<br /><span className="rec-hot">A person decides.</span></h2>
+
+        <div className="boundary">
+          <article className="boundary-side is-advisory">
+            <header>
+              <span className="boundary-mark"><ProductIcon name="eye" size={22} /></span>
+              <div>
+                <p className="eyebrow">The software</p>
+                <h3>Reads and reports</h3>
+              </div>
+            </header>
+            <ul>
+              <li><ProductIcon name="check" size={15} /> Opens every piece of public evidence</li>
+              <li><ProductIcon name="check" size={15} /> Checks it against each written requirement</li>
+              <li><ProductIcon name="check" size={15} /> Returns a cited score out of 100</li>
+            </ul>
+            <p className="boundary-cannot">
+              No wallet. No signing key. No contract method that can move a balance.
+            </p>
+          </article>
+
+          <span className="boundary-divider" aria-hidden="true">
+            <FoxSculpture size={96} idPrefix="trust" />
+          </span>
+
+          <article className="boundary-side is-human">
+            <header>
+              <span className="boundary-mark"><ProductIcon name="signature" size={22} /></span>
+              <div>
+                <p className="eyebrow">A named person</p>
+                <h3>Reads and decides</h3>
+              </div>
+            </header>
+            <ul>
+              <li><ProductIcon name="check" size={15} /> Reads the same record, and the report</li>
+              <li><ProductIcon name="check" size={15} /> Approves, holds for revision, or refunds</li>
+              <li><ProductIcon name="check" size={15} /> Signs the release with their own wallet</li>
+            </ul>
+            <p className="boundary-cannot is-human">
+              The payment moves because they signed — never because the score was high.
+            </p>
+          </article>
         </div>
-        <h2>AI advises.<br /><span className="rec-hot">Human decides.</span></h2>
+
         <Link href="/app" className="btn btn-primary rec-cta-primary">Enter SprintOS</Link>
       </section>
     </div>
   );
 }
 
-function VisualHeading({ index, eyebrow, title }: { index: string; eyebrow: string; title: React.ReactNode }) {
+function VisualHeading({ eyebrow, title }: { eyebrow: string; title: React.ReactNode }) {
   return (
     <header className="rec-visual-heading">
-      <span>{index}</span>
       <p>{eyebrow}</p>
       <h2>{title}</h2>
     </header>
