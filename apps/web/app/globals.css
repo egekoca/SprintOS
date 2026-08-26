@@ -1054,11 +1054,13 @@ body:has(.rec-visual) .marketing-header {
   background: rgba(9,9,9,.86);
   backdrop-filter: blur(14px);
 }
-body:has(.rec-visual) .marketing-header .brand-lockup { display: inline-flex; padding: .35rem .55rem; border-radius: 3px; background: #11100E; }
+/* The logo used to sit on a small plate here, added to hold it together over
+   the hero. It was compensating for the extracted PNG's soft fringe, which is
+   now stripped, so the mark sits directly on the header as it should. */
 body:has(.rec-visual) .marketing-nav a,
-body:has(.rec-visual) .marketing-enter { color: #E3E3E3; }
+
 body:has(.rec-visual) .marketing-nav a:hover,
-body:has(.rec-visual) .marketing-enter:hover { color: var(--orange-lo); }
+
 body:has(.rec-visual) footer { background: #090909 !important; }
 
 .rec-visual {
@@ -1108,21 +1110,31 @@ body:has(.rec-visual) footer { background: #090909 !important; }
   animation: orbit-halo 5.5s ease-in-out infinite;
   z-index: 0;
 }
-/* Scale set from scroll position by HeroFox; 1 is its resting size. */
-.hero-fox-scaler {
-  --hero-fox-scale: 1.28;
-  display: contents;
+/* Both values are set from scroll position by HeroOrbit and settle together:
+   scale 1 and spin 0 are the resting state the rest of the page sees. */
+.rec-orbit-stage { --hero-fox-scale: 1.28; --orbit-spin: -270deg; --orbit-emerge: .22; --orbit-radius: min(17.5vw, 14rem); }
+
+.rec-orbit-spin {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  transform: rotate(var(--orbit-spin));
+  opacity: var(--orbit-emerge);
+  will-change: transform, opacity;
+  /* The wrapper spans the whole stage, so it would otherwise sit over the fox
+     and swallow the pointer it tracks. The marks are not interactive. */
+  pointer-events: none;
 }
-.hero-fox-scaler .fox-stage {
-  transform: scale(var(--hero-fox-scale));
-  transform-origin: center 62%;
-  will-change: transform;
-}
+/* Each mark travels with the group but keeps its own contents upright. */
+.rec-orbit-spin .rec-orbit-node .product-icon { transform: rotate(calc(-1 * (var(--angle) + var(--orbit-spin)))); }
 
 .rec-orbit-stage .fox-stage {
   width: min(24vw, 20rem);
   z-index: 3;
   filter: drop-shadow(0 18px 22px rgba(74,28,5,.18));
+  transform: scale(var(--hero-fox-scale));
+  transform-origin: center 62%;
+  will-change: transform;
 }
 .rec-orbit-word {
   position: absolute;
@@ -1153,8 +1165,23 @@ body:has(.rec-visual) footer { background: #090909 !important; }
   border-color: rgba(232,74,12,.46) !important;
   animation: orbit 24s linear infinite;
 }
+/* Places a mark on the ring. The slot carries the position, the node inside it
+   keeps its own drift animation, and the contents counter-rotate by the sum of
+   both rotations so a label never reads upside down. */
+.rec-orbit-slot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  transform: rotate(var(--angle)) translateY(calc(-1 * var(--orbit-radius)));
+}
+
 .rec-orbit-node {
   position: absolute;
+  top: 0;
+  left: 0;
+  translate: -50% -50%;
   width: 3.15rem;
   height: 3.15rem;
   display: grid;
@@ -1182,7 +1209,7 @@ body:has(.rec-visual) footer { background: #090909 !important; }
   position: absolute;
   top: calc(100% + .55rem);
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) rotate(calc(-1 * (var(--angle) + var(--orbit-spin))));
   font-family: var(--font-mono);
   font-size: .58rem;
   font-weight: 500;
@@ -1199,9 +1226,7 @@ body:has(.rec-visual) footer { background: #090909 !important; }
   bottom: calc(100% + .55rem);
   color: var(--orange-lo);
 }
-.rec-orbit-node-one { top: 18%; left: 32%; }
-.rec-orbit-node-two { top: 27%; right: 29%; }
-.rec-orbit-node-three { bottom: 14%; right: 35%; color: var(--orange); }
+.rec-orbit-node-three { color: var(--orange); }
 .rec-orbit-node-one { animation: orbit-node-one 5.4s ease-in-out infinite; }
 .rec-orbit-node-two { animation: orbit-node-two 4.8s ease-in-out -.8s infinite; }
 .rec-orbit-node-three { animation: orbit-node-three 5.8s ease-in-out -1.7s infinite; }
@@ -1572,9 +1597,6 @@ body:has(.rec-visual) footer { background: #090909 !important; }
   .rec-docket li { grid-template-columns: minmax(0, 9rem) minmax(0, 1fr); }
   .rec-docket-artifact { grid-column: 2; }
   .rec-orbit-word { font-size: clamp(5rem, 14vw, 8.5rem); }
-  .rec-orbit-node-one { left: 24%; }
-  .rec-orbit-node-two { right: 21%; }
-  .rec-orbit-node-three { right: 28%; }
   .rec-solution-flow { grid-template-columns: repeat(2, 1fr); }
   .rec-solution-step:nth-child(3) { border-left: 0; }
   .rec-solution-step:nth-child(n+3) { border-top: var(--rule); }
@@ -1610,16 +1632,23 @@ body:has(.rec-visual) footer { background: #090909 !important; }
   .rec-docket-gutter { display: flex; align-items: baseline; gap: .8rem; }
   .rec-orbit-hero { min-height: auto; padding-top: 7.5rem; padding-bottom: 4.5rem; }
   .rec-orbit-stage { min-height: 25rem; }
-  /* Scale set from scroll position by HeroFox; 1 is its resting size. */
-.hero-fox-scaler {
-  --hero-fox-scale: 1.28;
-  display: contents;
+  /* Both values are set from scroll position by HeroOrbit and settle together:
+   scale 1 and spin 0 are the resting state the rest of the page sees. */
+.rec-orbit-stage { --hero-fox-scale: 1.28; --orbit-spin: -270deg; --orbit-emerge: .22; --orbit-radius: min(17.5vw, 14rem); }
+
+.rec-orbit-spin {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  transform: rotate(var(--orbit-spin));
+  opacity: var(--orbit-emerge);
+  will-change: transform, opacity;
+  /* The wrapper spans the whole stage, so it would otherwise sit over the fox
+     and swallow the pointer it tracks. The marks are not interactive. */
+  pointer-events: none;
 }
-.hero-fox-scaler .fox-stage {
-  transform: scale(var(--hero-fox-scale));
-  transform-origin: center 62%;
-  will-change: transform;
-}
+/* Each mark travels with the group but keeps its own contents upright. */
+.rec-orbit-spin .rec-orbit-node .product-icon { transform: rotate(calc(-1 * (var(--angle) + var(--orbit-spin)))); }
 
 .rec-orbit-stage .fox-stage { width: 13rem; }
   .rec-orbit-word { font-size: clamp(3.8rem, 19vw, 5.5rem); opacity: .46; }
@@ -1628,9 +1657,7 @@ body:has(.rec-visual) footer { background: #090909 !important; }
   .rec-orbit-ring-one { width: 18rem; }
   .rec-orbit-ring-two { width: 13.5rem; }
   .rec-orbit-node { width: 2.65rem; height: 2.65rem; }
-  .rec-orbit-node-one { top: 17%; left: 12%; }
-  .rec-orbit-node-two { top: 23%; right: 11%; }
-  .rec-orbit-node-three { right: 16%; bottom: 8%; }
+  .rec-orbit-stage { --orbit-radius: 8.5rem; }
   .rec-orbit-node b { font-size: .5rem; letter-spacing: .12em; }
   .rec-orbit-message { margin-top: -1rem; }
   .rec-orbit-message h1 { font-size: clamp(3.1rem, 15vw, 4.8rem); }
@@ -2615,4 +2642,73 @@ body:has(.rec-visual) footer { background: #090909 !important; }
 @media (max-width: 860px) {
   .boundary { grid-template-columns: 1fr; }
   .boundary-divider { order: -1; }
+}
+
+/* ==========================================================================
+   Enter app
+
+   ReactBits was the obvious place to shop for this, but every one of its eight
+   button components is a placeholder — its own tool reports "incomplete
+   implementation, quality 2/10" and says not to use them in production. So
+   this is built here, in the language the rest of the product already speaks:
+   a spray-gradient fill that wipes in from the left, a hairline that stays
+   visible when it is idle, and an arrow that leaves before the label does.
+   ========================================================================== */
+.enter-app {
+  position: relative;
+  isolation: isolate;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  padding: .6rem 1.15rem;
+  border: 1px solid var(--edge-bright);
+  border-radius: var(--radius);
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: .67rem;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--paper);
+  text-decoration: none;
+  transition: border-color .22s ease, color .22s ease, transform .22s ease;
+}
+
+/* The fill lives behind the label and wipes across rather than fading, so the
+   button reads as being switched on. */
+.enter-app::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--spray);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform .34s cubic-bezier(.2,.8,.2,1);
+}
+
+.enter-app:hover,
+.enter-app:focus-visible {
+  border-color: transparent;
+  color: #FFFFFF;
+  transform: translateY(-1px);
+}
+.enter-app:hover::before,
+.enter-app:focus-visible::before { transform: scaleX(1); }
+.enter-app:active { transform: translateY(0); }
+
+.enter-app-arrow {
+  color: var(--orange);
+  transition: transform .28s cubic-bezier(.2,.8,.2,1), color .22s ease;
+}
+.enter-app:hover .enter-app-arrow,
+.enter-app:focus-visible .enter-app-arrow {
+  color: #FFFFFF;
+  transform: translate(3px, -3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .enter-app::before { transition: none; }
+  .enter-app:hover, .enter-app:focus-visible { transform: none; }
 }

@@ -31,7 +31,10 @@ export function SiteHeader() {
             <a href="#solution">Solution</a>
             <a href="#trust">Trust</a>
           </nav>
-          <Link href="/app" className="marketing-enter">Enter app <span>↗</span></Link>
+          <Link href="/app" className="enter-app">
+            <span className="enter-app-label">Enter app</span>
+            <span className="enter-app-arrow" aria-hidden="true">↗</span>
+          </Link>
         </div>
       </header>
     );

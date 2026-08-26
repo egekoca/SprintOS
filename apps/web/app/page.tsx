@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { FoxSculpture } from "@/components/FoxSculpture";
-import { HeroFox } from "@/components/HeroFox";
+import { HeroOrbit } from "@/components/HeroOrbit";
 import { ProductIcon, type ProductIconName } from "@/components/ProductIcon";
 
 const PROBLEMS = [
@@ -54,28 +54,7 @@ export default function LandingPage() {
   return (
     <div className="rec rec-visual">
       <section className="rec-orbit-hero shell">
-        {/* The three orbiting marks were unlabelled, which left the actual
-            mechanism unsaid. Naming them is also where the category label that
-            used to sit awkwardly above the ring has gone. */}
-        <div className="rec-orbit-stage" aria-label="What was promised becomes what is paid">
-          <span className="rec-orbit-word rec-orbit-word-left">Promised</span>
-          <span className="rec-orbit-word rec-orbit-word-right">Paid</span>
-          <span className="rec-orbit-ring rec-orbit-ring-one" />
-          <span className="rec-orbit-ring rec-orbit-ring-two" />
-          <span className="rec-orbit-node rec-orbit-node-one">
-            <ProductIcon name="milestone" size={20} />
-            <b>Milestone</b>
-          </span>
-          <span className="rec-orbit-node rec-orbit-node-two">
-            <ProductIcon name="github" size={20} />
-            <b>Proof</b>
-          </span>
-          <span className="rec-orbit-node rec-orbit-node-three">
-            <ProductIcon name="signature" size={20} />
-            <b>Payment</b>
-          </span>
-          <HeroFox />
-        </div>
+        <HeroOrbit />
 
         <div className="rec-orbit-message">
           <h1>Built. Proven.<br /><span className="rec-hot">Paid.</span></h1>
