@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Account,
   Address,
   BASE_FEE,
   Contract,
@@ -10,6 +11,13 @@ import {
   TransactionBuilder,
   xdr,
 } from "@stellar/stellar-sdk";
+import {
+  ENGAGEMENT_STATUSES,
+  MILESTONE_STATUSES,
+  decodeStatus,
+  type EngagementStatus,
+  type MilestoneStatus,
+} from "./status.ts";
 import { NETWORK, SETTLEMENT_CONTRACT_ID } from "./config.ts";
 import { signTransaction } from "./wallet.ts";
 
@@ -24,9 +32,7 @@ import { signTransaction } from "./wallet.ts";
 
 const server = new rpc.Server(NETWORK.rpcUrl, { allowHttp: NETWORK.rpcUrl.startsWith("http://") });
 
-export type MilestoneStatus =
-  | "Pending" | "EvidenceSubmitted" | "Approved" | "Held" | "Released" | "Refunded";
-export type EngagementStatus = "Draft" | "Funded" | "Closed";
+export type { MilestoneStatus, EngagementStatus } from "./status.ts";
 
 export interface Milestone {
   title: string;
@@ -87,7 +93,7 @@ function toEngagement(raw: any): Engagement {
     reviewer: String(raw.reviewer),
     token: String(raw.token),
     total_amount: BigInt(raw.total_amount),
-    status: raw.status?.tag ?? raw.status,
+    status: decodeStatus(raw.status, ENGAGEMENT_STATUSES),
     created_at: BigInt(raw.created_at),
     milestones: (raw.milestones ?? []).map(toMilestone),
   };
@@ -99,7 +105,7 @@ function toMilestone(raw: any): Milestone {
     criteria_hash: bytesToHex(raw.criteria_hash),
     amount: BigInt(raw.amount),
     deadline: BigInt(raw.deadline),
-    status: raw.status?.tag ?? raw.status,
+    status: decodeStatus(raw.status, MILESTONE_STATUSES),
     evidence_hash: raw.evidence_hash ? bytesToHex(raw.evidence_hash) : null,
     evidence_uri: raw.evidence_uri ? String(raw.evidence_uri) : null,
     submitted_at: BigInt(raw.submitted_at),
@@ -113,11 +119,37 @@ function toMilestone(raw: any): Milestone {
  * A dummy source account is used because simulation never submits anything and
  * never asks anyone to sign.
  */
-const READ_SOURCE = "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF";
+/* The all-zero ed25519 account. A strkey is exactly 56 characters; this one
+   was written with twelve extra padding characters, so `new Account()`
+   rejected it and every contract read in the app failed with "accountId is
+   invalid" — surfacing as an empty ledger rather than as an error. */
+const READ_SOURCE = "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF";
+
+/**
+ * How long to wait on the RPC before giving up.
+ *
+ * Without this a slow or unreachable node leaves every read screen on its
+ * loading state forever, with nothing to retry and nothing to report. A
+ * rejected promise at least reaches the error path the screens already have.
+ */
+const READ_TIMEOUT_MS = 15_000;
+
+function withTimeout<T>(work: Promise<T>, ms: number, message: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(message)), ms);
+    work.then(
+      (value) => { clearTimeout(timer); resolve(value); },
+      (error) => { clearTimeout(timer); reject(error); },
+    );
+  });
+}
 
 async function simulateRead<T>(method: string, args: xdr.ScVal[]): Promise<T> {
-  const account = await server.getAccount(READ_SOURCE).catch(() => null);
-  const source = account ?? new (await import("@stellar/stellar-sdk")).Account(READ_SOURCE, "0");
+  /* No account lookup. Simulation never submits, so the sequence number is
+     never checked — and this placeholder account has never been funded, so
+     fetching it was a guaranteed 404 in front of every single read. Listing
+     engagements paid that round-trip once per engagement plus once more. */
+  const source = new Account(READ_SOURCE, "0");
 
   const tx = new TransactionBuilder(source, {
     fee: BASE_FEE,
@@ -127,7 +159,11 @@ async function simulateRead<T>(method: string, args: xdr.ScVal[]): Promise<T> {
     .setTimeout(30)
     .build();
 
-  const sim = await server.simulateTransaction(tx);
+  const sim = await withTimeout(
+    server.simulateTransaction(tx),
+    READ_TIMEOUT_MS,
+    `The Stellar RPC did not answer within ${READ_TIMEOUT_MS / 1000} seconds.`,
+  );
   if (rpc.Api.isSimulationError(sim)) {
     throw new Error(decodeContractError(sim.error));
   }

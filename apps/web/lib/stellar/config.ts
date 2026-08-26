@@ -49,6 +49,21 @@ export function formatUsdc(stroops: bigint | string | number): string {
   return fracStr ? `${wholeStr}.${fracStr}` : wholeStr;
 }
 
+/**
+ * Stroops to a bare decimal string, with no thousands separators.
+ *
+ * `formatUsdc` groups digits for display, which `parseUsdc` deliberately
+ * rejects. Anything written back into an amount input has to round-trip, so it
+ * uses this form instead.
+ */
+export function usdcInputValue(stroops: bigint): string {
+  const unit = 10n ** BigInt(USDC_DECIMALS);
+  const whole = stroops / unit;
+  const frac = (stroops < 0n ? -stroops : stroops) % unit;
+  const fracStr = frac.toString().padStart(USDC_DECIMALS, "0").replace(/0+$/, "");
+  return fracStr ? `${whole}.${fracStr}` : String(whole);
+}
+
 /** Display string to stroops. Throws rather than silently rounding. */
 export function parseUsdc(input: string): bigint {
   const trimmed = input.trim();
