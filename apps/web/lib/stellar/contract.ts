@@ -286,6 +286,38 @@ async function invoke(
   throw new Error("The transaction did not confirm in time. Check the explorer before retrying.");
 }
 
+/**
+ * Index a confirmed settlement transaction.
+ *
+ * The contract stores milestone state but not the transaction that produced it,
+ * so without this the hash exists only in the tab that signed it and the public
+ * engagement page has nothing to link. The server re-reads the transaction from
+ * the network before storing anything, so this call is a notification rather
+ * than a claim.
+ *
+ * Deliberately not awaited and deliberately silent: the money has already
+ * moved. Failing to index it is not a reason to show the user an error.
+ */
+function record(engagementId: bigint | number | string, hash: string): void {
+  void fetch("/api/activity", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ tx_hash: hash, engagement_id: String(engagementId) }),
+  }).catch(() => undefined);
+}
+
+/** `invoke`, plus the index entry for the engagement it belongs to. */
+async function invokeFor(
+  engagementId: bigint | number,
+  address: string,
+  method: string,
+  args: xdr.ScVal[],
+): Promise<SubmittedTx> {
+  const tx = await invoke(address, method, args);
+  record(engagementId, tx.hash);
+  return tx;
+}
+
 const u64 = (v: bigint | number) => nativeToScVal(BigInt(v), { type: "u64" });
 const u32 = (v: number) => nativeToScVal(v, { type: "u32" });
 const addr = (v: string) => new Address(v).toScVal();
@@ -330,14 +362,15 @@ export async function createEngagement(
       "The engagement was created, but its id could not be decoded. Use the transaction link to recover it.",
     );
   }
+  record(tx.result, tx.hash);
   return { ...tx, engagementId: tx.result };
 }
 
 export const fundEngagement = (sponsor: string, id: bigint | number) =>
-  invoke(sponsor, "fund", [u64(id)]);
+  invokeFor(id, sponsor, "fund", [u64(id)]);
 
 export const refundMilestone = (sponsor: string, id: bigint | number, idx: number) =>
-  invoke(sponsor, "refund", [u64(id), u32(idx)]);
+  invokeFor(id, sponsor, "refund", [u64(id), u32(idx)]);
 
 // ------------------------------------------------------------ builder
 
@@ -347,18 +380,18 @@ export const submitEvidence = (
   idx: number,
   evidenceHash: string,
   evidenceUri: string,
-) => invoke(builder, "submit_evidence", [u64(id), u32(idx), hashToScVal(evidenceHash), nativeToScVal(evidenceUri, { type: "string" })]);
+) => invokeFor(id, builder, "submit_evidence", [u64(id), u32(idx), hashToScVal(evidenceHash), nativeToScVal(evidenceUri, { type: "string" })]);
 
 export const claimApprovedMilestone = (builder: string, id: bigint | number, idx: number) =>
-  invoke(builder, "claim", [u64(id), u32(idx)]);
+  invokeFor(id, builder, "claim", [u64(id), u32(idx)]);
 
 // ----------------------------------------------------------- reviewer
 
 export const approveMilestone = (reviewer: string, id: bigint | number, idx: number) =>
-  invoke(reviewer, "approve", [u64(id), u32(idx)]);
+  invokeFor(id, reviewer, "approve", [u64(id), u32(idx)]);
 
 export const holdMilestone = (reviewer: string, id: bigint | number, idx: number) =>
-  invoke(reviewer, "hold", [u64(id), u32(idx)]);
+  invokeFor(id, reviewer, "hold", [u64(id), u32(idx)]);
 
 export const releaseMilestone = (reviewer: string, id: bigint | number, idx: number) =>
-  invoke(reviewer, "release", [u64(id), u32(idx)]);
+  invokeFor(id, reviewer, "release", [u64(id), u32(idx)]);

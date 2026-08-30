@@ -8,7 +8,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./milestone": "./src/milestone.ts",
-    "./report": "./src/report.ts"
+    "./report": "./src/report.ts",
+    "./activity": "./src/activity.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",

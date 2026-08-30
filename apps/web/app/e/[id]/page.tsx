@@ -15,6 +15,7 @@ import { FoxLoader } from "@/components/FoxLoader";
 import { MilestoneFlow } from "@/components/MilestoneFlow";
 import { ProductIcon } from "@/components/ProductIcon";
 import { MilestoneCriteria, MilestoneEvidence } from "@/components/MilestoneDocuments";
+import { SettlementLog } from "@/components/SettlementLog";
 
 /**
  * The public engagement page.
@@ -92,8 +93,9 @@ export default function EngagementPage({ params }: { params: Promise<{ id: strin
         </div>
         <h2>Engagement #{String(engagement.id)}</h2>
         <p className="lede">
-          Everything below is read from Stellar testnet. Nothing here is reported by the
-          application — it is the ledger's own account of what happened.
+          Every milestone, amount and status below is read from Stellar testnet rather than
+          reported by the application. The transaction index further down is the one thing the
+          application keeps, and each of its rows links to the explorer so it can be checked.
         </p>
       </div>
 
@@ -120,6 +122,8 @@ export default function EngagementPage({ params }: { params: Promise<{ id: strin
         index={selected}
         milestone={engagement.milestones[selected]}
       />
+
+      <SettlementLog engagementId={engagement.id} />
 
       <div className="panel stack-s">
         <p className="eyebrow">Verify it yourself</p>
