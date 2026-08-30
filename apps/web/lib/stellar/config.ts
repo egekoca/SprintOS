@@ -28,6 +28,28 @@ export const USDC_DECIMALS = 7;
 
 export const EXPLORER_BASE = "https://stellar.expert/explorer/testnet";
 
+/**
+ * The origin this deployment is reachable at from outside.
+ *
+ * The evidence bundle's URI is written into contract storage and stays there,
+ * so it has to be an address a reviewer — or an Ambassador reading the ledger
+ * a month later — can actually open. Deriving it from `window.location.origin`
+ * silently anchored `http://localhost:3000/...` whenever the flow was run
+ * locally. Set `NEXT_PUBLIC_APP_URL` on every deployment.
+ */
+export const PUBLIC_APP_URL = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/+$/, "");
+
+/** Whether an origin is one a third party could resolve. */
+export function isPublicOrigin(origin: string): boolean {
+  try {
+    const { protocol, hostname } = new URL(origin);
+    if (protocol !== "https:" && protocol !== "http:") return false;
+    return !/^(localhost|127\.|0\.0\.0\.0|\[::1\]|.*\.local)$/i.test(hostname);
+  } catch {
+    return false;
+  }
+}
+
 export const explorerTx = (hash: string) => `${EXPLORER_BASE}/tx/${hash}`;
 export const explorerAccount = (address: string) => `${EXPLORER_BASE}/account/${address}`;
 export const explorerContract = (id: string) => `${EXPLORER_BASE}/contract/${id}`;

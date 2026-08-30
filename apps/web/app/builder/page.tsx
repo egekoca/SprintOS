@@ -9,7 +9,7 @@ import {
   submitEvidence,
   type Engagement,
 } from "@/lib/stellar/contract";
-import { BUILDER_CLAIM_ENABLED, formatUsdc } from "@/lib/stellar/config";
+import { BUILDER_CLAIM_ENABLED, PUBLIC_APP_URL, formatUsdc, isPublicOrigin } from "@/lib/stellar/config";
 import { StatusPill } from "@/components/StatusPill";
 import { TxLink } from "@/components/TxLink";
 import { FoxLoader, FoxSpinner } from "@/components/FoxLoader";
@@ -123,7 +123,10 @@ export default function BuilderPage() {
       const body = (await response.json()) as { hash?: string; error?: string };
       if (!response.ok || !body.hash) throw new Error(body.error ?? "The evidence bundle was rejected.");
 
-      const bundleUri = new URL(`/api/evidence?hash=${encodeURIComponent(body.hash)}`, window.location.origin).toString();
+      /* Anchored on chain for good, so it must be the deployment's public
+         address rather than whatever host this tab happens to be on. */
+      const base = PUBLIC_APP_URL || window.location.origin;
+      const bundleUri = new URL(`/api/evidence?hash=${encodeURIComponent(body.hash)}`, base).toString();
       const tx = await submitEvidence(address, engagement.id, milestoneIndex, body.hash, bundleUri);
       setDone({ hash: tx.hash, action: "submit" });
       setLinks(emptyLinks());
@@ -326,6 +329,8 @@ export default function BuilderPage() {
                   />
                 </div>
 
+                <EvidenceUriNotice />
+
                 <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={busy}>
                   {busy ? <><FoxSpinner /> Waiting for signature…</> : <><ProductIcon name="signature" size={18} /> Sign: submit evidence</>}
                 </button>
@@ -353,5 +358,27 @@ export default function BuilderPage() {
         </>
       )}
     </section>
+  );
+}
+
+/**
+ * Warn when the link about to be written into contract storage would not
+ * resolve for anyone else.
+ *
+ * Not a block: submitting evidence has to work on a laptop during development
+ * and in a demo. But the URI is permanent, so the builder should know when the
+ * one they are signing is private to their own machine.
+ */
+function EvidenceUriNotice() {
+  const [origin, setOrigin] = useState<string | null>(null);
+  useEffect(() => setOrigin(PUBLIC_APP_URL || window.location.origin), []);
+  if (origin === null || isPublicOrigin(origin)) return null;
+  return (
+    <p className="notice">
+      This deployment has no public address configured, so the evidence link
+      anchored on chain will point at <code>{origin}</code> and nobody else will
+      be able to open it. Set <code>NEXT_PUBLIC_APP_URL</code> before submitting
+      evidence you intend to hand to a reviewer.
+    </p>
   );
 }
