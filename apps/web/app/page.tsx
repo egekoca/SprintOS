@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { FoxSculpture } from "@/components/FoxSculpture";
 import { HeroOrbit } from "@/components/HeroOrbit";
+import { MilestoneTree } from "@/components/MilestoneTree";
 import { ProductIcon, type ProductIconName } from "@/components/ProductIcon";
+import { Reveal } from "@/components/Reveal";
 
 const PROBLEMS = [
   {
@@ -53,32 +55,34 @@ interface VisualItem {
 export default function LandingPage() {
   return (
     <div className="rec rec-visual">
+      {/* Taller than the screen on purpose: the extra height is the scroll the
+          opening sequence runs on, while the stage inside stays pinned. */}
       <section className="rec-orbit-hero shell">
-        <HeroOrbit />
+        <div className="rec-orbit-viewport">
+          <HeroOrbit />
 
-        <div className="rec-orbit-message">
-          <h1>Built. Proven.<br /><span className="rec-hot">Paid.</span></h1>
-          <p className="rec-orbit-lede">
-            Fund a milestone. Prove the work. <span className="rec-hot">A person releases the payment.</span>
-          </p>
-          <div className="rec-cta">
-            <Link href="/app" className="btn btn-primary rec-cta-primary">Open SprintOS</Link>
-            <a href="#problem" className="rec-cta-ghost">See why ↓</a>
+          <div className="rec-orbit-message">
+            <h1>Built. Proven.<br /><span className="rec-hot">Paid.</span></h1>
+            <p className="rec-orbit-lede">
+              Fund a milestone. Prove the work. <span className="rec-hot">A person releases the payment.</span>
+            </p>
+            <div className="rec-cta">
+              <Link href="/app" className="btn btn-primary rec-cta-primary">Open SprintOS</Link>
+            </div>
           </div>
-          <p className="rec-orbit-foot">Escrowed on Stellar · testnet · no AI holds a key</p>
         </div>
       </section>
 
       <section className="rec-visual-section shell" id="problem">
         <VisualHeading eyebrow="The problem" title={<>Good work<br /><span className="rec-hot">gets stuck.</span></>} />
-        <div className="rec-problem-grid">
+        <Reveal className="rec-problem-grid" motion="drop" stagger={170}>
           {PROBLEMS.map((item) => <VisualCard item={item} key={item.title} />)}
-        </div>
+        </Reveal>
       </section>
 
       <section className="rec-visual-section rec-solution-section shell" id="solution">
         <VisualHeading eyebrow="The SprintOS way" title={<>One clear<br /><span className="rec-hot">flow.</span></>} />
-        <div className="rec-solution-flow">
+        <Reveal className="rec-solution-flow" motion="wipe" stagger={90}>
           {SOLUTIONS.map((item, index) => (
             <div className="rec-solution-step" key={item.title}>
               <span className="rec-solution-icon"><ProductIcon name={item.icon} size={30} /></span>
@@ -87,73 +91,17 @@ export default function LandingPage() {
               {index < SOLUTIONS.length - 1 && <i aria-hidden="true">→</i>}
             </div>
           ))}
-        </div>
+        </Reveal>
       </section>
 
-      {/* Where the money actually sits. The claim "your funds are safe in the
-          middle" is worth drawing rather than asserting: the contract holds the
-          award, and the only arrow out of it is one a person signs. */}
+      {/* Where the money actually sits. The claim is better shown than argued:
+          one budget in at the top, four proved pieces out at the bottom. */}
       <section className="rec-visual-section shell" id="escrow">
         <VisualHeading
           eyebrow="Where the money sits"
-          title={<>Held by a contract,<br /><span className="rec-hot">not by us.</span></>}
+          title={<>One budget,<br /><span className="rec-hot">three proofs.</span></>}
         />
-
-        <div className="escrow-model">
-          <div className="escrow-party">
-            <ProductIcon name="wallet" size={26} />
-            <b>Sponsor</b>
-            <small>Commits the whole award up front</small>
-          </div>
-
-          <span className="escrow-arrow" aria-hidden="true">→</span>
-
-          <div className="escrow-vault">
-            <span className="escrow-vault-tag">Soroban contract</span>
-            <strong>5,000 USDC</strong>
-            <small>Locked. Nobody can spend it early — not the sponsor, not us, not the AI.</small>
-            <span className="escrow-vault-keys">
-              <ProductIcon name="shield" size={15} /> Keys held here: none
-            </span>
-          </div>
-
-          <span className="escrow-arrow is-gated" aria-hidden="true">→</span>
-
-          <div className="escrow-party">
-            <ProductIcon name="github" size={26} />
-            <b>Builder</b>
-            <small>Paid one milestone at a time</small>
-          </div>
-
-          {/* The gate on the second arrow: the human signature. */}
-          <div className="escrow-gate">
-            <ProductIcon name="signature" size={20} />
-            <b>A person signs each release</b>
-            <small>
-              The advisory AI can read the evidence and score it. It has no wallet and no contract
-              method that moves a balance, so it cannot open this gate.
-            </small>
-          </div>
-        </div>
-
-        <div className="escrow-example">
-          <p className="eyebrow">One milestone, end to end</p>
-          <div className="wexample">
-            <span className="wexample-cell"><b>5,000</b><small>USDC awarded</small></span>
-            <i aria-hidden="true">→</i>
-            <span className="wexample-cell"><b>4</b><small>milestones of 1,250</small></span>
-            <i aria-hidden="true">→</i>
-            <span className="wexample-cell"><b>1</b><small>delivered &amp; proved</small></span>
-            <i aria-hidden="true">→</i>
-            <span className="wexample-cell is-advisory"><b>87</b><small>advisory score /100</small></span>
-            <i aria-hidden="true">→</i>
-            <span className="wexample-cell is-human"><b>1,250</b><small>released by you</small></span>
-          </div>
-          <p className="wexample-note">
-            The remaining 3,750 stays locked. If a milestone is never delivered, the sponsor
-            reclaims it after the deadline.
-          </p>
-        </div>
+        <MilestoneTree />
       </section>
 
       {/* Two circles and an arrow said "reads" and "signs" without saying who,

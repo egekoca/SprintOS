@@ -20,6 +20,8 @@
 
 /* -------------------------------------------------------------- tokens */
 :root {
+  /* Height of the fixed marketing bar, so layouts can reserve it. */
+  --header-h: 4.5rem;
   /* The logo is the palette: fox orange, paper white and true ink. */
   --orange:        #FF5A12;
   --orange-lo:     #FF7A1E;
@@ -73,6 +75,13 @@
 html { -webkit-text-size-adjust: 100%; }
 
 body {
+  /* The opening sequence's finished state. HeroOrbit overrides these inline
+     while the landing page is mounted; anywhere else, and with no JavaScript,
+     the page is simply already assembled. */
+  --reveal: 1;
+  --hero-fox-scale: 1;
+  --orbit-spin: 0deg;
+  --orbit-emerge: 1;
   margin: 0;
   background-color: var(--asphalt);
   background-image:
@@ -611,15 +620,17 @@ a:hover .brand-lockup .brand-logo { animation: fox-look 0.62s cubic-bezier(.2,.8
 
 /* ------------------------------------------------------ marketing chrome */
 .marketing-header {
-  position: absolute;
+  position: fixed;
   inset: 0 0 auto;
   z-index: 30;
   border-bottom: 1px solid rgba(255,255,255,0.1);
-  background: linear-gradient(180deg, rgba(9,9,9,0.72), transparent);
+  background: rgba(9,9,9,.86);
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
 }
 
 .marketing-header-inner {
-  min-height: 6.25rem;
+  min-height: 4.5rem;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
@@ -718,19 +729,6 @@ a:hover .brand-lockup .brand-logo { animation: fox-look 0.62s cubic-bezier(.2,.8
 
 .rec-cta { margin-top: 2.1rem; display: flex; align-items: center; flex-wrap: wrap; gap: 1.5rem; }
 .rec-cta-primary { min-height: 3.1rem; padding-inline: 1.6rem; }
-.rec-cta-ghost {
-  font-family: var(--font-mono);
-  font-size: .72rem;
-  font-weight: 700;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--chalk-dim);
-  text-decoration: none;
-  padding-bottom: .35rem;
-  border-bottom: 1px solid var(--edge-bright);
-  transition: color .18s ease, border-color .18s ease;
-}
-.rec-cta-ghost:hover { color: var(--paper); border-color: var(--orange); }
 
 /* ----------------------------------------------------- the fox sculpture */
 /* A plinth rather than a halo: one light source above left, one shadow on the
@@ -1051,8 +1049,11 @@ body:has(.rec-visual) {
 body:has(.rec-visual)::before { opacity: .5; }
 body:has(.rec-visual) .marketing-header {
   border-bottom-color: rgba(255,255,255,.1);
-  background: rgba(9,9,9,.86);
-  backdrop-filter: blur(14px);
+  /* Near-opaque on purpose: at .86 the headline scrolling underneath was still
+     legible through the navigation. */
+  background: rgba(9,9,9,.97);
+  backdrop-filter: blur(18px) saturate(1.1);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
 }
 /* The logo used to sit on a small plate here, added to hold it together over
    the hero. It was compensating for the extracted PNG's soft fringe, which is
@@ -1080,19 +1081,36 @@ body:has(.rec-visual) footer { background: #090909 !important; }
 .rec-visual .rec-solution-section { background: linear-gradient(145deg, rgba(255,90,18,.1), rgba(14,14,14,.94) 48%); }
 .rec-visual .btn-primary { color: #090909; }
 
+/* The section is a runway; the stage inside is what you actually look at. Its
+   extra height is the scroll the opening sequence consumes. */
 .rec-orbit-hero {
-  min-height: min(980px, 100svh);
-  padding-top: clamp(7.5rem, 13vh, 9rem);
-  padding-bottom: 3rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  min-height: 190svh;
+  padding: 0;
   text-align: center;
   position: relative;
 }
+.rec-orbit-viewport {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* Symmetric on purpose. Any difference between the two offsets the centred
+     group by half of it, which is what left the mark a few pixels above the
+     middle of the screen during the intro. */
+  padding-block: 2rem;
+}
+body:has(.rec-visual) .rec-orbit-viewport {
+  /* The bar plus the height of a mark's label, which sits above its node and
+     was the part getting clipped. */
+  padding-top: calc(2rem + var(--reveal) * (var(--header-h, 4.5rem) + 1.5rem));
+  padding-bottom: 2rem;
+}
 .rec-orbit-stage {
   width: 100%;
-  min-height: clamp(21rem, 49vh, 31rem);
+  min-height: clamp(16rem, 34vh, 23rem);
   flex: 1;
   position: relative;
   display: grid;
@@ -1112,46 +1130,114 @@ body:has(.rec-visual) footer { background: #090909 !important; }
 }
 /* Both values are set from scroll position by HeroOrbit and settle together:
    scale 1 and spin 0 are the resting state the rest of the page sees. */
-.rec-orbit-stage { --hero-fox-scale: 1.28; --orbit-spin: -270deg; --orbit-emerge: .22; --orbit-radius: min(17.5vw, 14rem); }
+/* Layout only. The animated values are inherited from body, where HeroOrbit
+   writes them — declaring them here would shadow the inherited value and the
+   sequence would never move. */
+.rec-orbit-stage { --orbit-radius: min(17.5vw, 14rem); }
 
 .rec-orbit-spin {
   position: absolute;
   inset: 0;
   z-index: 4;
-  transform: rotate(var(--orbit-spin));
+  /* Scaled with the mark. Held at a fixed radius, the marks ended up inside
+     the enlarged fox during the intro and read as missing. */
+  transform: rotate(var(--orbit-spin)) scale(var(--hero-fox-scale));
+  /* Damping. The angle is recomputed every frame straight from scroll
+     position, so a hard flick of the wheel was being tracked one to one and
+     the ring snapped round with it. Easing toward each new angle instead lets
+     the group trail the scroll slightly and arrive under its own weight. */
+  transition: transform .42s cubic-bezier(.2, .8, .2, 1);
   opacity: var(--orbit-emerge);
   will-change: transform, opacity;
   /* The wrapper spans the whole stage, so it would otherwise sit over the fox
      and swallow the pointer it tracks. The marks are not interactive. */
   pointer-events: none;
 }
-/* Each mark travels with the group but keeps its own contents upright. */
-.rec-orbit-spin .rec-orbit-node .product-icon { transform: rotate(calc(-1 * (var(--angle) + var(--orbit-spin)))); }
+/* Each mark travels with the group but keeps its own contents upright. The
+   counter-rotation is driven by the raw scroll value, so it has to be damped
+   on the same curve as the wrapper or the icons twist inside their nodes
+   while the ring is still catching up. */
+.rec-orbit-spin .rec-orbit-node .product-icon {
+  transform: rotate(calc(-1 * (var(--angle) + var(--orbit-spin))));
+  transition: transform .42s cubic-bezier(.2, .8, .2, 1);
+}
 
 .rec-orbit-stage .fox-stage {
   width: min(24vw, 20rem);
   z-index: 3;
   filter: drop-shadow(0 18px 22px rgba(74,28,5,.18));
   transform: scale(var(--hero-fox-scale));
-  transform-origin: center 62%;
+  transform-origin: center center;
+  transition: transform .42s cubic-bezier(.2, .8, .2, 1);
   will-change: transform;
 }
+/* Framing, not competition. At full width these ran straight under the fox and
+   read as a collision rather than as depth, so they are smaller, quieter and
+   pinned to the edges with the centre left to the mark. */
 .rec-orbit-word {
   position: absolute;
-  top: 48%;
+  top: 46%;
   transform: translateY(-50%);
   font-family: var(--font-display);
-  font-size: clamp(5rem, 13vw, 11rem);
+  font-size: clamp(2.6rem, 5.6vw, 5rem);
   line-height: 1;
+  letter-spacing: .02em;
   text-transform: uppercase;
   color: transparent;
-  -webkit-text-stroke: 1.4px #62564D;
-  opacity: .9;
+  -webkit-text-stroke: 1.2px #4E443C;
+  opacity: .75;
   z-index: 0;
+  pointer-events: none;
 }
-.rec-orbit-word-left { left: 1%; }
-.rec-orbit-word-right { right: 1%; }
-.rec-orbit-ring { position: absolute; border-radius: 50%; border: 1.5px solid var(--edge); z-index: 1; }
+.rec-orbit-brand {
+  position: absolute;
+  top: 46%;
+  transform: translateY(-50%);
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 5.6vw, 5rem);
+  line-height: 1;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  color: transparent;
+  -webkit-text-stroke: 1.2px #6A5C51;
+  z-index: 0;
+  pointer-events: none;
+  /* The same light that crosses the fox crosses the name. The letters are
+     hollow, so the glint is painted as the glyphs' fill — a band clipped to
+     the text that travels through the word and leaves it empty again. The
+     outline itself never moves. */
+  background-image: linear-gradient(
+    100deg,
+    transparent 45%,
+    rgba(255,122,30,.14) 48%,
+    rgba(255,158,90,.72) 50%,
+    rgba(255,122,30,.14) 52%,
+    transparent 55%
+  );
+  background-repeat: no-repeat;
+  background-size: 320% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: brand-sheen 2.9s cubic-bezier(.45,0,.5,1) infinite;
+}
+/* The name's own two syllables: the product is the OS, so that half carries
+   the brand colour while the rest stays concrete grey. */
+.rec-orbit-brand-os { -webkit-text-stroke-color: rgba(255,110,26,.82); }
+/* Offset either side of the fox's own sweep, so one light crosses the whole
+   composition left to right rather than three flashing at once. */
+.rec-orbit-brand.rec-orbit-word-left { animation-delay: -.34s; }
+.rec-orbit-brand.rec-orbit-word-right { animation-delay: .34s; }
+
+/* A background wider than its box moves left as the position percentage
+   grows, so the sweep counts down — that is what sends the glint left to
+   right, the same way the fox's highlight travels. */
+@keyframes brand-sheen {
+  0%, 34% { background-position: 210% 0; }
+  100% { background-position: -110% 0; }
+}
+.rec-orbit-word-left { left: 0; }
+.rec-orbit-word-right { right: 0; }
+.rec-orbit-ring { position: absolute; border-radius: 50%; border: 1.5px solid var(--edge); z-index: 1; transform: scale(var(--hero-fox-scale)); }
 .rec-orbit-ring-one {
   width: min(35vw, 28rem);
   aspect-ratio: 1;
@@ -1204,10 +1290,13 @@ body:has(.rec-visual) footer { background: #090909 !important; }
 .rec-orbit-node .product-icon { stroke-width: 2.15; filter: drop-shadow(0 0 5px rgba(255,90,18,.24)); }
 
 /* The label rides with its node rather than sitting on the ring, so the three
-   steps stay readable while the marks drift. */
+   steps stay readable while the marks drift. Anchored on the far side of the
+   mark: inside the slot's rotated frame "up" always points away from the
+   centre, so no label can swing across the fox however far the group has
+   turned — which is what put MILESTONE over the ear. */
 .rec-orbit-node b {
   position: absolute;
-  top: calc(100% + .55rem);
+  bottom: calc(100% + .5rem);
   left: 50%;
   transform: translateX(-50%) rotate(calc(-1 * (var(--angle) + var(--orbit-spin))));
   font-family: var(--font-mono);
@@ -1217,15 +1306,10 @@ body:has(.rec-visual) footer { background: #090909 !important; }
   text-transform: uppercase;
   color: var(--chalk-faint);
   white-space: nowrap;
+  text-shadow: 0 1px 6px rgba(9,9,9,.9);
   pointer-events: none;
 }
-/* The lowest node sits where the headline overlaps the stage, so its label
-   goes above the mark instead of underneath it. */
-.rec-orbit-node-three b {
-  top: auto;
-  bottom: calc(100% + .55rem);
-  color: var(--orange-lo);
-}
+.rec-orbit-node-three b { color: var(--orange-lo); }
 .rec-orbit-node-three { color: var(--orange); }
 .rec-orbit-node-one { animation: orbit-node-one 5.4s ease-in-out infinite; }
 .rec-orbit-node-two { animation: orbit-node-two 4.8s ease-in-out -.8s infinite; }
@@ -1235,27 +1319,17 @@ body:has(.rec-visual) footer { background: #090909 !important; }
 .rec-orbit-stage:hover .rec-orbit-node {
   box-shadow: 0 14px 34px rgba(0,0,0,.5), 0 0 0 6px rgba(255,90,18,.12), 0 0 42px rgba(255,90,18,.36);
 }
-.rec-orbit-message { position: relative; z-index: 5; display: flex; flex-direction: column; align-items: center; margin-top: -2.5rem; }
-.rec-orbit-message h1 { font-size: clamp(3.2rem, 6.5vw, 6.1rem); line-height: .84; }
+.rec-orbit-message { position: relative; z-index: 5; display: flex; flex-direction: column; align-items: center; margin-top: 0; }
+.rec-orbit-message h1 { font-size: clamp(3rem, 5.6vw, 5.2rem); line-height: .95; }
 .rec-orbit-lede {
-  margin-top: 1.25rem;
+  margin-top: 1rem;
   max-width: 34rem;
   font-size: clamp(1rem, 1.5vw, 1.15rem);
   color: var(--chalk-dim);
   font-weight: 500;
   text-wrap: balance;
 }
-.rec-orbit-message .rec-cta { justify-content: center; margin-top: 1.5rem; }
-/* Where the old top kicker went: a quiet fact under the actions rather than a
-   category label floating above the artwork. */
-.rec-orbit-foot {
-  margin-top: 1.6rem;
-  font-family: var(--font-mono);
-  font-size: .62rem;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--chalk-faint);
-}
+.rec-orbit-message .rec-cta { justify-content: center; margin-top: 1.25rem; }
 
 .rec-visual-section { padding-block: clamp(6rem, 10vw, 10rem); border-top: var(--rule); }
 /* Stacked and left-aligned. The old arrangement pinned a numbered badge to the
@@ -1268,23 +1342,123 @@ body:has(.rec-visual) footer { background: #090909 !important; }
 .rec-visual-heading > p { font-family: var(--font-mono); font-size: .66rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--orange); }
 .rec-visual-heading h2 { font-size: clamp(2.4rem, 4.6vw, 4rem); line-height: .92; }
 
-.rec-problem-grid { margin-top: 2.5rem; display: grid; grid-template-columns: repeat(3, 1fr); border-top: var(--rule); border-bottom: var(--rule); }
-.rec-visual-card { min-height: 17rem; padding: 2rem; display: flex; flex-direction: column; }
-.rec-visual-card + .rec-visual-card { border-left: var(--rule); }
-.rec-visual-card > span { width: 5rem; height: 5rem; display: grid; place-items: center; border-radius: 50%; border: 1px dashed var(--edge-bright); color: var(--chalk-faint); }
-.rec-visual-card h3 { margin-top: auto; font-size: 1.55rem; color: var(--paper); }
-.rec-visual-card p { margin-top: .7rem; font-size: .9rem; line-height: 1.55; color: var(--chalk-dim); font-weight: 400; }
+/* Real cards. These were three cells divided by hairlines, with the icon
+   pinned top and the title pushed to the bottom by `margin-top: auto` — which
+   opened a hand-span of dead space in the middle of every one and left the
+   whole row reading as unfinished. Icon, title and body now sit together in a
+   surface that reacts to the cursor. */
+.rec-problem-grid {
+  margin-top: 2.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: 1rem;
+}
+.rec-visual-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: .85rem;
+  padding: 1.75rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(160deg, rgba(255,255,255,.022), transparent 55%), var(--concrete);
+  transition: border-color .2s ease, transform .2s ease, background .2s ease;
+}
+/* A hairline that lights along the top edge on approach. */
+.rec-visual-card::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: var(--spray);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform .34s cubic-bezier(.2,.8,.2,1);
+}
+.rec-visual-card:hover { border-color: var(--edge-bright); transform: translateY(-3px); }
+.rec-visual-card:hover::after { transform: scaleX(1); }
+
+.rec-visual-card > span {
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius);
+  border: 1px dashed var(--advisory-edge);
+  background: var(--advisory-bg);
+  color: var(--advisory-ink);
+}
+.rec-visual-card h3 { font-size: 1.3rem; color: var(--paper); }
+.rec-visual-card p { font-size: .9rem; line-height: 1.6; color: var(--chalk-dim); font-weight: 400; }
 
 .rec-solution-section { background: linear-gradient(145deg, rgba(255,90,18,.055), transparent 45%); }
 .rec-solution-flow { margin-top: 2.5rem; display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--edge); }
-.rec-solution-step { min-height: 16rem; padding: 1.6rem; position: relative; display: flex; flex-direction: column; background: var(--concrete); }
+.rec-solution-step { padding: 1.6rem; position: relative; display: flex; flex-direction: column; gap: .8rem; background: var(--concrete); transition: background .2s ease; }
+.rec-solution-step:hover { background: var(--concrete-2); }
 .rec-solution-step + .rec-solution-step { border-left: var(--rule); }
-.rec-solution-icon { margin-top: 2rem; width: 4.25rem; height: 4.25rem; display: grid; place-items: center; border: 1px solid var(--edge-bright); color: var(--paper); }
+.rec-solution-icon { width: 3rem; height: 3rem; display: grid; place-items: center; border: 1px solid var(--edge-bright); border-radius: var(--radius); color: var(--paper); }
 .rec-solution-step:nth-child(3) .rec-solution-icon,
 .rec-solution-step:nth-child(4) .rec-solution-icon { color: var(--orange); border-color: rgba(255,90,18,.55); }
-.rec-solution-step h3 { margin-top: auto; font-size: 1.45rem; }
-.rec-solution-step p { margin-top: .55rem; color: var(--chalk-faint); font-size: .88rem; font-weight: 500; }
+.rec-solution-step h3 { font-size: 1.25rem; }
+.rec-solution-step p { color: var(--chalk-dim); font-size: .88rem; line-height: 1.6; font-weight: 400; }
 .rec-solution-step > i { position: absolute; top: 50%; right: -1rem; width: 2rem; height: 2rem; display: grid; place-items: center; border-radius: 50%; background: var(--orange); color: var(--ink); font-family: var(--font-mono); font-style: normal; z-index: 2; }
+
+/* ---------------------------------------------------- scrolled-in reveals */
+/* Rows that assemble themselves as the reader arrives. `Reveal` adds
+   `.is-revealed` when the container enters the viewport and numbers each child
+   in `--i`; everything below is only the choreography.
+
+   The entrance is an animation rather than a transition, and it fills
+   `backwards`. That matters: once a child has landed it is left in its own
+   ordinary state, so hover transforms and the arrow that hangs outside a step
+   still behave exactly as they do without any of this. */
+.rec-reveal > * { opacity: 0; }
+.rec-reveal.is-revealed > * {
+  opacity: 1;
+  animation-duration: var(--reveal-duration, .5s);
+  animation-timing-function: cubic-bezier(.2, .8, .25, 1);
+  animation-fill-mode: backwards;
+  animation-delay: calc(var(--reveal-step, 120ms) * var(--i, 0));
+}
+
+/* The problem cards fall in from above, one after the other, and settle. The
+   drop is deliberately a long way and the bounce is deliberately double: a
+   short slide reads as a fade, and the row has to read as three separate
+   things arriving rather than one block appearing. */
+.rec-reveal.is-drop.is-revealed > * {
+  animation-name: rec-reveal-drop;
+  --reveal-duration: .64s;
+}
+@keyframes rec-reveal-drop {
+  0%   { opacity: 0; transform: translateY(-4.6rem); }
+  55%  { opacity: 1; transform: translateY(.5rem); }
+  76%  { opacity: 1; transform: translateY(-.16rem); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* The flow steps open left to right, quickly — the wipe reads as the row
+   being drawn in the order the work actually happens. */
+.rec-reveal.is-wipe.is-revealed > * {
+  animation-name: rec-reveal-wipe;
+  --reveal-duration: .42s;
+}
+@keyframes rec-reveal-wipe {
+  from { opacity: 0; clip-path: inset(0 100% 0 0); transform: translateX(-.9rem); }
+  to   { opacity: 1; clip-path: inset(0 0 0 0);    transform: translateX(0); }
+}
+
+/* Motion off: the rows are simply there. */
+@media (prefers-reduced-motion: reduce) {
+  .rec-reveal > * { opacity: 1; }
+  .rec-reveal.is-revealed > * { animation: none; }
+}
+/* And with no script to add the class, the same — the rest of this page is
+   readable without JavaScript, so these rows must be too. */
+@media (scripting: none) {
+  .rec-reveal > * { opacity: 1; }
+}
+
 
 .rec-simple-hero {
   min-height: min(920px, 100svh);
@@ -1528,6 +1702,90 @@ body:has(.rec-visual) footer { background: #090909 !important; }
 .plan-remove { all: unset; color: var(--chalk-faint); font-size: .7rem; cursor: pointer; }
 .plan-dates { display: grid; grid-template-columns: 1fr auto 1fr .7fr; align-items: end; gap: .75rem; }
 .plan-dates > span { padding-bottom: .7rem; color: var(--orange); }
+/* A date and, when the sponsor asks for one, the time beside it. */
+.picker-row { display: flex; align-items: stretch; gap: .5rem; }
+.picker { position: relative; display: block; flex: 1 1 auto; min-width: 0; }
+.picker-time { flex: 0 0 7.5rem; }
+.picker input { width: 100%; padding-right: 2.9rem; }
+/* The browser's own indicator is a few grey pixels inside the field. It is
+   replaced, not hidden: the button below covers the same ground at a size a
+   person can actually aim at. */
+.picker input::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 2.9rem;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.picker-open {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  bottom: 1px;
+  width: 2.75rem;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-left: 1px solid var(--edge);
+  background: transparent;
+  color: var(--chalk-faint);
+  cursor: pointer;
+  transition: color .18s ease, background .18s ease;
+}
+.picker-open:hover { color: var(--orange); background: rgba(255,90,18,.08); }
+.picker:focus-within .picker-open { color: var(--orange); }
+
+/* Times are a deliberate extra, so the control that adds them is quiet. */
+.plan-precise {
+  all: unset;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  margin-top: -.35rem;
+  font-family: var(--font-mono);
+  font-size: .66rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+  cursor: pointer;
+  transition: color .18s ease;
+}
+.plan-precise:hover { color: var(--orange); }
+.plan-dates-note { margin-top: -.5rem; font-size: .72rem; color: var(--chalk-faint); }
+
+/* Work that survived a closed tab. Grey, not orange: nothing has been
+   authorised here, the form has simply been kept. */
+.draft-banner {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  margin-bottom: 1.5rem;
+  padding: .85rem 1.1rem;
+  border: 1px dashed var(--edge-bright);
+  background: var(--concrete);
+  color: var(--chalk-dim);
+}
+.draft-banner > svg { flex: none; color: var(--chalk-faint); }
+.draft-banner p { flex: 1; margin: 0; font-size: .84rem; }
+.draft-banner b { color: var(--paper); font-weight: 600; }
+.draft-banner button {
+  all: unset;
+  flex: none;
+  padding: .4rem .8rem;
+  border: 1px solid var(--edge-bright);
+  font-family: var(--font-mono);
+  font-size: .66rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--chalk-dim);
+  cursor: pointer;
+  transition: color .18s ease, border-color .18s ease;
+}
+.draft-banner button:hover { color: var(--paper); border-color: var(--paper); }
 .criteria-list { display: grid; gap: .45rem; }
 /* Third column so a remove control sits on the row rather than wrapping under
    the input. `auto` keeps it absent when the row does not offer one. */
@@ -1596,7 +1854,7 @@ body:has(.rec-visual) footer { background: #090909 !important; }
   .rec-clause-head > p:last-child { grid-column: 2; }
   .rec-docket li { grid-template-columns: minmax(0, 9rem) minmax(0, 1fr); }
   .rec-docket-artifact { grid-column: 2; }
-  .rec-orbit-word { font-size: clamp(5rem, 14vw, 8.5rem); }
+  .rec-orbit-word, .rec-orbit-brand { font-size: clamp(5rem, 14vw, 8.5rem); }
   .rec-solution-flow { grid-template-columns: repeat(2, 1fr); }
   .rec-solution-step:nth-child(3) { border-left: 0; }
   .rec-solution-step:nth-child(n+3) { border-top: var(--rule); }
@@ -1605,6 +1863,34 @@ body:has(.rec-visual) footer { background: #090909 !important; }
   .brief-composer { grid-template-columns: 13rem minmax(0, 1fr); }
   .plan-dates { grid-template-columns: 1fr auto 1fr; }
   .plan-amount { grid-column: 1 / -1; }
+}
+
+/* Between the phone breakpoint and a wide desktop the fox keeps most of the
+   width while the framing words keep their own, so they end up underneath it.
+   Shrink and quieten them through that range rather than letting them collide. */
+/* Laptop-height screens. The assembled group — mark, ring, headline, actions —
+   only just fits at full size there, leaving the last line pressed against the
+   bottom edge. Trimming the stage and the ring gives it margin without
+   changing the composition. */
+@media (max-height: 900px) {
+  .rec-orbit-stage { min-height: clamp(15rem, 30vh, 20rem); --orbit-radius: min(15vw, 11.5rem); }
+  .rec-orbit-stage .fox-stage { width: min(20vw, 16rem); }
+  .rec-orbit-ring-one { width: min(29vw, 23rem); }
+  .rec-orbit-ring-two { width: min(22vw, 17rem); }
+  .rec-orbit-message h1 { font-size: clamp(2.6rem, 5.2vw, 4.4rem); }
+  .rec-orbit-lede { margin-top: .9rem; }
+  .rec-orbit-message .rec-cta { margin-top: 1.1rem; }
+}
+
+@media (max-width: 1180px) {
+  .rec-orbit-word, .rec-orbit-brand { font-size: clamp(2.2rem, 4.4vw, 3.4rem); }
+  .rec-orbit-word { opacity: .5; }
+}
+@media (max-width: 900px) {
+  .rec-orbit-word, .rec-orbit-brand { font-size: clamp(1.9rem, 4vw, 2.6rem); }
+  .rec-orbit-word { opacity: .38; }
+  .rec-orbit-word-left { top: 30%; }
+  .rec-orbit-word-right { top: 68%; }
 }
 
 @media (max-width: 640px) {
@@ -1616,8 +1902,11 @@ body:has(.rec-visual) footer { background: #090909 !important; }
   .hero-fox::after { width: 12rem; height: 12rem; }
   .hero-fox .fox-mark { width: 11rem; }
   .site-header-inner { justify-content: center; }
-  .site-nav { order: 3; width: 100%; justify-content: center; }
-  .site-nav a { flex: 1; text-align: center; }
+  /* Wrapping is fine; stretching is not. With `flex: 1` the row that held the
+     leftover link gave it the full width, so whichever tab happened to wrap
+     last read as a banner rather than as one of five. */
+  .site-nav { order: 3; width: 100%; flex-wrap: wrap; justify-content: center; }
+  .site-nav a { flex: 0 0 auto; text-align: center; }
   .wallet-actions { margin-left: auto; }
   .marketing-header-inner { min-height: 5rem; grid-template-columns: 1fr auto; }
   .marketing-nav { display: none; }
@@ -1632,26 +1921,9 @@ body:has(.rec-visual) footer { background: #090909 !important; }
   .rec-docket-gutter { display: flex; align-items: baseline; gap: .8rem; }
   .rec-orbit-hero { min-height: auto; padding-top: 7.5rem; padding-bottom: 4.5rem; }
   .rec-orbit-stage { min-height: 25rem; }
-  /* Both values are set from scroll position by HeroOrbit and settle together:
-   scale 1 and spin 0 are the resting state the rest of the page sees. */
-.rec-orbit-stage { --hero-fox-scale: 1.28; --orbit-spin: -270deg; --orbit-emerge: .22; --orbit-radius: min(17.5vw, 14rem); }
-
-.rec-orbit-spin {
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  transform: rotate(var(--orbit-spin));
-  opacity: var(--orbit-emerge);
-  will-change: transform, opacity;
-  /* The wrapper spans the whole stage, so it would otherwise sit over the fox
-     and swallow the pointer it tracks. The marks are not interactive. */
-  pointer-events: none;
-}
-/* Each mark travels with the group but keeps its own contents upright. */
-.rec-orbit-spin .rec-orbit-node .product-icon { transform: rotate(calc(-1 * (var(--angle) + var(--orbit-spin)))); }
-
-.rec-orbit-stage .fox-stage { width: 13rem; }
-  .rec-orbit-word { font-size: clamp(3.8rem, 19vw, 5.5rem); opacity: .46; }
+  .rec-orbit-stage .fox-stage { width: 13rem; }
+  .rec-orbit-word, .rec-orbit-brand { font-size: clamp(3.2rem, 15vw, 4.6rem); }
+  .rec-orbit-word { opacity: .46; }
   .rec-orbit-word-left { top: 36%; left: 0; }
   .rec-orbit-word-right { top: 64%; right: 0; }
   .rec-orbit-ring-one { width: 18rem; }
@@ -1662,18 +1934,12 @@ body:has(.rec-visual) footer { background: #090909 !important; }
   .rec-orbit-message { margin-top: -1rem; }
   .rec-orbit-message h1 { font-size: clamp(3.1rem, 15vw, 4.8rem); }
   .rec-orbit-lede { margin-top: 1rem; }
-  .rec-orbit-foot { margin-top: 1.1rem; font-size: .55rem; letter-spacing: .1em; }
   .rec-visual-section { padding-block: 5.5rem; }
   .rec-visual-heading h2 { font-size: clamp(2.2rem, 11vw, 3.2rem); }
-  .rec-problem-grid { grid-template-columns: 1fr; margin-top: 3rem; }
-  .rec-visual-card { min-height: 13rem; padding: 1.5rem; }
-  .rec-visual-card + .rec-visual-card { border-left: 0; border-top: var(--rule); }
-  .rec-visual-card > span { width: 4.25rem; height: 4.25rem; }
-  .rec-visual-card h3 { font-size: 1.65rem; }
+  .rec-problem-grid { grid-template-columns: 1fr; margin-top: 2rem; }
+  .rec-visual-card { padding: 1.5rem; }
   .rec-solution-flow { grid-template-columns: 1fr; margin-top: 3rem; }
-  .rec-solution-step { min-height: 13rem; }
   .rec-solution-step + .rec-solution-step { border-left: 0; border-top: var(--rule); }
-  .rec-solution-icon { margin-top: 1.25rem; }
   .rec-simple-hero { min-height: auto; padding-top: 7.5rem; grid-template-columns: 1fr; }
   .rec-simple-copy h1 { font-size: clamp(3.4rem, 17vw, 5.2rem); }
   .rec-simple-fox { order: -1; min-height: 20rem; }
@@ -1773,47 +2039,6 @@ body:has(.rec-visual) footer { background: #090909 !important; }
 /* The worked example. Numbers first, labels under — it is meant to be read in
    one pass without stopping on any word. */
 .workspace-example { margin-top: clamp(3rem, 6vw, 5rem); }
-.wexample {
-  margin-top: 1rem;
-  display: flex;
-  align-items: stretch;
-  flex-wrap: wrap;
-  gap: .5rem;
-  border: 1px solid var(--edge);
-  border-radius: var(--radius-lg);
-  background: var(--concrete);
-  padding: 1.25rem 1rem;
-}
-.wexample i { align-self: center; color: var(--edge-bright); font-style: normal; }
-.wexample-cell {
-  flex: 1 1 7rem;
-  display: flex;
-  flex-direction: column;
-  gap: .2rem;
-  padding: .5rem .75rem;
-  border-radius: var(--radius);
-}
-.wexample-cell b {
-  font-family: var(--font-display);
-  font-size: clamp(1.5rem, 3vw, 2.1rem);
-  line-height: 1;
-  font-weight: 400;
-  color: var(--paper);
-  font-variant-numeric: tabular-nums;
-}
-.wexample-cell small {
-  font-family: var(--font-mono);
-  font-size: .6rem;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--chalk-faint);
-}
-/* Same rule as everywhere else: the AI is grey, the human act is orange. */
-.wexample-cell.is-advisory { background: var(--advisory-bg); border: 1px dashed var(--advisory-edge); }
-.wexample-cell.is-advisory b { color: var(--advisory-ink); }
-.wexample-cell.is-human { background: rgba(255,90,18,.09); border: 1px solid rgba(255,90,18,.4); }
-.wexample-cell.is-human b { color: var(--orange); }
-.wexample-note { margin-top: .85rem; font-size: .85rem; color: var(--chalk-faint); }
 
 /* ------------------------------------------------------------- stages */
 .workspace-stages { margin-top: clamp(3.5rem, 7vw, 6rem); }
@@ -2362,93 +2587,6 @@ body:has(.rec-visual) footer { background: #090909 !important; }
    you, and what to do when a wallet is missing or on the wrong network.
    ========================================================================== */
 
-/* ------------------------------------------------------- escrow model */
-.escrow-model {
-  margin-top: clamp(2rem, 4vw, 3rem);
-  display: grid;
-  grid-template-columns: 1fr auto minmax(0, 1.35fr) auto 1fr;
-  gap: 1rem;
-  align-items: stretch;
-}
-
-.escrow-party {
-  display: flex;
-  flex-direction: column;
-  gap: .45rem;
-  padding: 1.4rem;
-  border: 1px solid var(--edge);
-  border-radius: var(--radius-lg);
-  background: var(--concrete);
-}
-.escrow-party > .product-icon { color: var(--chalk-dim); }
-.escrow-party b { color: var(--paper); font-size: 1.05rem; }
-.escrow-party small { color: var(--chalk-faint); font-size: .82rem; }
-
-.escrow-arrow { align-self: center; color: var(--edge-bright); font-size: 1.4rem; }
-/* The second arrow is the one a person has to open. */
-.escrow-arrow.is-gated { color: var(--orange); }
-
-/* The vault reads as the heaviest object on the row, because it is. */
-.escrow-vault {
-  display: flex;
-  flex-direction: column;
-  gap: .5rem;
-  padding: 1.4rem;
-  border: 1px solid var(--edge-bright);
-  border-radius: var(--radius-lg);
-  background:
-    linear-gradient(150deg, rgba(255,255,255,.03), transparent 60%),
-    var(--concrete-2);
-}
-.escrow-vault-tag {
-  font-family: var(--font-mono);
-  font-size: .58rem;
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  color: var(--chalk-faint);
-}
-.escrow-vault strong {
-  font-family: var(--font-display);
-  font-size: clamp(1.8rem, 3.4vw, 2.6rem);
-  line-height: 1;
-  color: var(--paper);
-  font-variant-numeric: tabular-nums;
-}
-.escrow-vault small { color: var(--chalk-dim); font-size: .84rem; }
-.escrow-vault-keys {
-  margin-top: auto;
-  padding-top: .8rem;
-  border-top: 1px solid var(--edge);
-  display: flex;
-  align-items: center;
-  gap: .45rem;
-  font-family: var(--font-mono);
-  font-size: .6rem;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--chalk-faint);
-}
-
-/* The gate sits under the whole row, since it governs the way out. */
-.escrow-gate {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  column-gap: .8rem;
-  row-gap: .3rem;
-  margin-top: .5rem;
-  padding: 1.1rem 1.25rem;
-  border: 1px solid rgba(255,90,18,.4);
-  border-radius: var(--radius-lg);
-  background: rgba(255,90,18,.06);
-}
-.escrow-gate > .product-icon { grid-row: 1 / span 2; align-self: start; margin-top: .15rem; color: var(--orange); }
-.escrow-gate b { color: var(--paper); }
-.escrow-gate small { color: var(--chalk-dim); font-size: .85rem; max-width: 74ch; }
-
-.escrow-example { margin-top: clamp(2rem, 4vw, 3rem); }
-.escrow-example .wexample { margin-top: .75rem; }
-
 /* -------------------------------------------------------- start band */
 .start-band { margin-top: clamp(3rem, 6vw, 5rem); }
 .start-band-head {
@@ -2475,10 +2613,9 @@ body:has(.rec-visual) footer { background: #090909 !important; }
 }
 .start-steps li {
   position: relative;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  column-gap: .85rem;
-  row-gap: .5rem;
+  display: flex;
+  flex-direction: column;
+  gap: .85rem;
   padding: 1.4rem;
   border: 1px solid var(--edge);
   border-radius: var(--radius-lg);
@@ -2493,14 +2630,6 @@ body:has(.rec-visual) footer { background: #090909 !important; }
   background: var(--concrete-3);
   color: var(--orange);
 }
-.start-step-index {
-  align-self: center;
-  font-family: var(--font-mono);
-  font-size: .62rem;
-  letter-spacing: .16em;
-  color: var(--chalk-faint);
-}
-.start-steps li > div { grid-column: 1 / -1; }
 .start-steps h3 { color: var(--paper); }
 .start-steps p { margin-top: .45rem; font-size: .88rem; color: var(--chalk-dim); }
 
@@ -2553,8 +2682,6 @@ body:has(.rec-visual) footer { background: #090909 !important; }
 }
 
 @media (max-width: 860px) {
-  .escrow-model { grid-template-columns: 1fr; }
-  .escrow-arrow { transform: rotate(90deg); justify-self: center; }
   .start-band-head { flex-direction: column; align-items: stretch; }
   .start-band-cta { justify-content: center; }
 }
@@ -2712,3 +2839,305 @@ body:has(.rec-visual) footer { background: #090909 !important; }
   .enter-app::before { transition: none; }
   .enter-app:hover, .enter-app:focus-visible { transform: none; }
 }
+
+/* ==========================================================================
+   The milestone tree
+
+   One budget at the top, four proved pieces at the bottom. Scrolling advances
+   the trunk's light, walks the fox down it, and lights each milestone as it is
+   passed — so reading down the section is the same motion as a project being
+   delivered. Everything keyed off --tree-progress, which MilestoneTree sets
+   from the section's position in the viewport.
+   ========================================================================== */
+.tree { --tree-progress: 0; margin-top: clamp(2rem, 4vw, 3rem); }
+
+.tree-root {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  max-width: 26rem;
+  padding: 1.5rem 1.75rem;
+  border: 1px solid var(--edge-bright);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(150deg, rgba(255,90,18,.09), transparent 62%), var(--concrete-2);
+}
+.tree-root strong {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 4.4vw, 3.2rem);
+  line-height: 1;
+  color: var(--paper);
+  font-variant-numeric: tabular-nums;
+}
+.tree-root strong small { font-family: var(--font-mono); font-size: .62rem; letter-spacing: .12em; color: var(--chalk-faint); }
+.tree-root-note { font-size: .86rem; color: var(--chalk-dim); }
+
+.tree-body { position: relative; padding-left: 3.5rem; padding-top: 1.25rem; }
+
+/* The trunk, and the light travelling down it. */
+.tree-trunk {
+  position: absolute;
+  top: 0;
+  bottom: 2.5rem;
+  left: 1.55rem;
+  width: 2px;
+  background: var(--edge);
+  border-radius: 2px;
+}
+.tree-trunk i {
+  display: block;
+  width: 100%;
+  height: calc(var(--tree-progress) * 100%);
+  background: linear-gradient(180deg, var(--orange-lo), var(--orange));
+  border-radius: 2px;
+  box-shadow: 0 0 14px rgba(255,90,18,.55);
+}
+
+/* The fox rides the fill down. */
+.tree-fox {
+  position: absolute;
+  left: 1.55rem;
+  top: calc(var(--tree-progress) * (100% - 2.5rem));
+  translate: -50% -50%;
+  z-index: 2;
+  filter: drop-shadow(0 0 16px rgba(255,90,18,calc(.25 + var(--tree-progress) * .5)));
+}
+
+.tree-branches { margin: 0; padding: 0; list-style: none; display: grid; gap: 1rem; }
+.tree-branches li { position: relative; }
+
+/* The elbow from trunk to card. */
+.tree-branch {
+  position: absolute;
+  top: 2.15rem;
+  left: -1.95rem;
+  width: 1.95rem;
+  height: 2px;
+  background: var(--edge);
+  transition: background .35s ease;
+}
+.tree-dot {
+  position: absolute;
+  top: 2.15rem;
+  left: -2.35rem;
+  width: .8rem;
+  height: .8rem;
+  translate: 0 -50%;
+  border-radius: 50%;
+  border: 2px solid var(--edge-bright);
+  background: var(--asphalt);
+  transition: border-color .35s ease, background .35s ease, box-shadow .35s ease;
+}
+
+.tree-card {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  padding: 1.25rem 1.4rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-lg);
+  background: var(--concrete);
+  transition: border-color .35s ease, background .35s ease, transform .35s ease;
+}
+.tree-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.tree-card-amount {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--chalk-dim);
+  font-variant-numeric: tabular-nums;
+  transition: color .35s ease;
+}
+.tree-card-amount small { font-family: var(--font-mono); font-size: .55rem; letter-spacing: .12em; color: var(--chalk-faint); }
+.tree-card-state {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  font-family: var(--font-mono);
+  font-size: .6rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+  transition: color .35s ease;
+}
+.tree-card h3 { font-size: 1.1rem; color: var(--paper); }
+.tree-card p { font-size: .86rem; color: var(--chalk-faint); }
+
+/* Reached: the milestone is proved and its share has moved. */
+.is-paid .tree-branch { background: var(--orange); }
+.is-paid .tree-dot { border-color: var(--orange); background: var(--orange); box-shadow: 0 0 12px rgba(255,90,18,.7); }
+.is-paid .tree-card { border-color: rgba(255,90,18,.42); background: linear-gradient(150deg, rgba(255,90,18,.08), transparent 58%), var(--concrete); transform: translateX(3px); }
+.is-paid .tree-card-amount { color: var(--paper); }
+.is-paid .tree-card-state { color: var(--orange); }
+
+.tree-foot { margin-top: 1.5rem; padding-left: 3.5rem; font-size: .85rem; color: var(--chalk-faint); }
+.tree-foot b { color: var(--paper); font-variant-numeric: tabular-nums; }
+
+@media (max-width: 640px) {
+  .tree-body { padding-left: 2.6rem; }
+  .tree-trunk, .tree-fox { left: 1.1rem; }
+  .tree-branch { left: -1.5rem; width: 1.5rem; }
+  .tree-dot { left: -1.9rem; }
+  .tree-foot { padding-left: 2.6rem; }
+}
+
+/* ==========================================================================
+   The opening sequence
+
+   The landing page arrives as the mark alone and assembles as you scroll.
+   Everything held back keys off --reveal, which HeroOrbit writes to body from
+   scroll position: 0 is locked, 1 is the page as it normally looks.
+   ========================================================================== */
+
+/* The header is outside the landing page's tree, which is why the variable
+   lives on body rather than on the page root. */
+body:has(.rec-visual) .marketing-header {
+  opacity: var(--reveal);
+  transform: translateY(calc((1 - var(--reveal)) * -1.5rem));
+  transition: opacity .12s linear;
+}
+body[data-hero-locked="true"] .marketing-header,
+body[data-hero-locked="true"] .rec-orbit-message { pointer-events: none; }
+body:has(.rec-visual) .rec-orbit-word,
+body:has(.rec-visual) .rec-orbit-message {
+  opacity: var(--reveal);
+}
+/* The name is the inverse: present at rest, gone once the page has arrived. */
+body:has(.rec-visual) .rec-orbit-brand { opacity: calc(1 - var(--reveal)); }
+body:has(.rec-visual) .rec-orbit-brand.rec-orbit-word-left { translate: calc((1 - var(--reveal)) * -3rem) 0; }
+body:has(.rec-visual) .rec-orbit-brand.rec-orbit-word-right { translate: calc((1 - var(--reveal)) * 3rem) 0; }
+
+/* The copy keeps its space while hidden, which pushes the stage above centre
+   and clips the enlarged fox against the top of the screen. Sliding the stage
+   down by half that block re-centres the mark while it is alone, and returns
+   it to its real place exactly as the copy arrives. */
+body:has(.rec-visual) .rec-orbit-stage {
+  transform: translateY(calc((1 - var(--reveal)) * var(--hero-shift, 0px)));
+}
+/* The copy rises the last stretch rather than simply appearing. */
+body:has(.rec-visual) .rec-orbit-message {
+  transform: translateY(calc((1 - var(--reveal)) * 2.5rem));
+}
+body:has(.rec-visual) .rec-orbit-word-left { translate: calc((1 - var(--reveal)) * -3rem) 0; }
+body:has(.rec-visual) .rec-orbit-word-right { translate: calc((1 - var(--reveal)) * 3rem) 0; }
+
+/* Nothing below the fold should be reachable by tab while it is still hidden. */
+body:has(.rec-visual) .rec-orbit-message { visibility: visible; }
+
+/* The cue is the only thing visible at rest, so it has to say what to do. */
+.rec-orbit-cue {
+  position: absolute;
+  /* Clear of the outer ring. The stage is shorter than the circle drawn on it,
+     so a small offset puts the word inside the artwork. */
+  bottom: -5.5rem;
+  left: 50%;
+  translate: -50% 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .5rem;
+  opacity: calc(1 - var(--reveal));
+  pointer-events: none;
+}
+.rec-orbit-cue b {
+  font-family: var(--font-mono);
+  font-size: .6rem;
+  font-weight: 500;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+}
+.rec-orbit-cue i {
+  width: 1px;
+  height: 2.5rem;
+  background: linear-gradient(180deg, var(--orange), transparent);
+  animation: cue-fall 1.9s ease-in-out infinite;
+}
+@keyframes cue-fall {
+  0%, 100% { opacity: .25; transform: scaleY(.55); transform-origin: top; }
+  50% { opacity: 1; transform: scaleY(1); transform-origin: top; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rec-orbit-cue { display: none; }
+}
+
+/* ------------------------------------------------------------- evidence pack */
+/* Read by an Ambassador rather than a developer, so it is a document first: one
+   column, generous measure, and status stated in words as well as colour. */
+.evidence-page { padding-block: clamp(4rem, 9vw, 7rem); display: flex; flex-direction: column; gap: clamp(2.5rem, 5vw, 4rem); }
+
+.evidence-head h1 { margin-top: .6rem; font-size: clamp(2.6rem, 6vw, 4.4rem); line-height: .95; }
+.evidence-lede { margin-top: 1rem; max-width: 46rem; font-size: 1.02rem; line-height: 1.65; color: var(--chalk-dim); }
+.evidence-lede strong { color: var(--orange); font-variant-numeric: tabular-nums; }
+
+.evidence-facts {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1px;
+  border: 1px solid var(--edge);
+  background: var(--edge);
+}
+.evidence-facts > div { padding: 1rem 1.1rem; background: var(--concrete); display: grid; gap: .35rem; min-width: 0; }
+.evidence-facts dt { font-family: var(--font-mono); font-size: .58rem; letter-spacing: .16em; text-transform: uppercase; color: var(--chalk-faint); }
+.evidence-facts dd { margin: 0; font-family: var(--font-mono); font-size: .74rem; color: var(--chalk-dim); overflow-wrap: anywhere; }
+.evidence-facts dd em { color: var(--orange); font-style: normal; }
+/* The public address is what an Ambassador is actually looking for, so it gets
+   its own line rather than a stub cell at the end of a row. */
+.evidence-facts > div:last-child { grid-column: 1 / -1; }
+
+.evidence-section > header { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; padding-bottom: .8rem; border-bottom: var(--rule); }
+.evidence-section h2 { font-size: clamp(1.5rem, 3vw, 2.1rem); line-height: 1.1; }
+.evidence-budget { font-family: var(--font-mono); font-size: .7rem; letter-spacing: .1em; color: var(--orange); white-space: nowrap; }
+.evidence-asked { margin-top: 1rem; max-width: 52rem; font-size: .9rem; line-height: 1.65; color: var(--chalk-faint); }
+.evidence-asked b { color: var(--chalk-dim); }
+
+.evidence-items { margin: 1.5rem 0 0; padding: 0; list-style: none; display: grid; gap: 1px; border: 1px solid var(--edge); background: var(--edge); }
+.evidence-items li { padding: 1.25rem 1.35rem; background: var(--concrete); display: grid; gap: .5rem; }
+.evidence-items h3 { font-size: 1.02rem; line-height: 1.4; color: var(--paper); font-weight: 600; }
+.evidence-items p { max-width: 54rem; font-size: .88rem; line-height: 1.65; color: var(--chalk-dim); font-weight: 400; }
+
+.evidence-status {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  font-family: var(--font-mono);
+  font-size: .58rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  padding: .2rem .5rem;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+}
+/* Orange marks the rows a person still has to act on — the same rule the rest
+   of the product follows, and the only thing an Ambassador needs to scan for. */
+.evidence-items li.is-done .evidence-status { color: var(--chalk-faint); }
+.evidence-items li.is-partial .evidence-status { color: var(--chalk); border-style: dashed; }
+.evidence-items li.is-todo .evidence-status { color: var(--orange); }
+.evidence-items li.is-todo { background: linear-gradient(100deg, rgba(255,90,18,.06), transparent 60%), var(--concrete); }
+
+.evidence-refs { display: flex; flex-wrap: wrap; gap: .9rem; }
+.evidence-refs a { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .04em; color: var(--chalk); text-decoration: none; border-bottom: 1px solid var(--edge-bright); padding-bottom: .1rem; }
+.evidence-refs a:hover { color: var(--orange); border-color: var(--orange); }
+
+.evidence-commands { margin: 1.5rem 0 0; padding: 0; list-style: none; display: grid; gap: .6rem; }
+.evidence-commands li { display: grid; grid-template-columns: minmax(0, auto) minmax(0, 1fr); gap: .5rem 1rem; align-items: baseline; }
+.evidence-commands code { padding: .35rem .6rem; border: 1px solid var(--edge); background: var(--asphalt); font-size: .76rem; color: var(--paper); white-space: nowrap; }
+.evidence-commands span { font-size: .86rem; color: var(--chalk-dim); }
+
+.mono-cell { font-family: var(--font-mono); font-size: .7rem; overflow-wrap: anywhere; }
+
+@media (max-width: 640px) {
+  .evidence-section > header { flex-direction: column; align-items: flex-start; gap: .4rem; }
+  .evidence-items li { padding: 1.1rem; }
+  .evidence-commands li { grid-template-columns: 1fr; }
+  .evidence-commands code { white-space: pre-wrap; }
+}
+
+/* Rows where value actually moved, so a reader scanning the settlement log
+   finds the payments before the paperwork. */
+.log-settling td:first-child { color: var(--paper); font-weight: 600; }
+.log-settling td:first-child .product-icon { color: var(--orange); vertical-align: -.15em; }

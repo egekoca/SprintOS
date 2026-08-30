@@ -1,6 +1,8 @@
 export type ProductIconName =
   | "branch"
+  | "calendar"
   | "check"
+  | "clock"
   | "eye"
   | "github"
   | "link"
@@ -26,7 +28,9 @@ export function ProductIcon({ name, size = 24, className = "" }: { name: Product
 
   const paths: Record<ProductIconName, React.ReactNode> = {
     branch: <><circle cx="6" cy="5" r="2" /><circle cx="18" cy="6" r="2" /><circle cx="6" cy="19" r="2" /><path d="M6 7v10M8 9c5 0 8-1 8-3" /></>,
+    calendar: <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M8 3v4M16 3v4M3 10h18" /></>,
     check: <path d="m5 12 4 4L19 6" />,
+    clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5.2l3.4 2" /></>,
     eye: <><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" /><circle cx="12" cy="12" r="2.5" /></>,
     github: <><path d="M9 19c-4.5 1.4-4.5-2.4-6.3-3M15.2 21v-3.5c0-1 .1-1.5-.5-2.1 3.1-.3 6.3-1.5 6.3-6.8A5.3 5.3 0 0 0 19.6 5c.1-.3.6-1.7-.1-3.5 0 0-1.2-.4-3.7 1.4a13 13 0 0 0-6.8 0C6.5 1.1 5.3 1.5 5.3 1.5 4.6 3.3 5.1 4.7 5.2 5a5.3 5.3 0 0 0-1.4 3.6c0 5.3 3.2 6.5 6.3 6.8-.5.5-.7 1.1-.7 2.1V21" /></>,
     link: <><path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1.1 1" /><path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1.1-1" /></>,
