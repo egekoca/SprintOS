@@ -16,7 +16,7 @@
       "verdict": "met",
       "confidence": "high",
       "supporting_links": [
-        "https://stellar.expert/explorer/testnet/contract/CA7N7EPNGY2OSYAIA2HDYJTHACJR7M7P65VWA6I7PLBHTJ6W3HFUKHNK"
+        "https://stellar.expert/explorer/testnet/contract/CAJUEUOEP6UUNLQ65XOINCUNVBXYPOGNWZC2XZQE7HRV66KTLERPHLND"
       ],
       "rationale": "The contract id resolves on the testnet explorer."
     },
@@ -73,7 +73,7 @@
       "summary": "Pull request #1: Settlement contract · open · +860 / -0 across 6 files"
     },
     {
-      "url": "https://stellar.expert/explorer/testnet/contract/CA7N7EPNGY2OSYAIA2HDYJTHACJR7M7P65VWA6I7PLBHTJ6W3HFUKHNK",
+      "url": "https://stellar.expert/explorer/testnet/contract/CAJUEUOEP6UUNLQ65XOINCUNVBXYPOGNWZC2XZQE7HRV66KTLERPHLND",
       "type": "demo",
       "fetched": true,
       "public": true,
@@ -86,5 +86,5 @@
     "A test covering refund before the deadline.",
     "The test named in criterion 5, or its run output."
   ],
-  "report_hash": "sha256:c09b1a7ab219fb85186a12e1d2d1d2d7de5b19ba17bf64a2e91a5b72ca57de29"
+  "report_hash": "sha256:583cbd4b641d4d1150c01e73fd7e1203c47a4f248e65efd6f93a48abd3d7b319"
 }

@@ -16,7 +16,7 @@
       "verdict": "met",
       "confidence": "high",
       "supporting_links": [
-        "https://stellar.expert/explorer/testnet/contract/CA7N7EPNGY2OSYAIA2HDYJTHACJR7M7P65VWA6I7PLBHTJ6W3HFUKHNK",
+        "https://stellar.expert/explorer/testnet/contract/CAJUEUOEP6UUNLQ65XOINCUNVBXYPOGNWZC2XZQE7HRV66KTLERPHLND",
         "https://github.com/egekoca/SprintOS"
       ],
       "rationale": "The contract id resolves on the testnet explorer and matches the id recorded in the repository's deployment file."
@@ -94,7 +94,7 @@
       "summary": "Architecture: roles, milestone state machine, authorization rules"
     },
     {
-      "url": "https://stellar.expert/explorer/testnet/contract/CA7N7EPNGY2OSYAIA2HDYJTHACJR7M7P65VWA6I7PLBHTJ6W3HFUKHNK",
+      "url": "https://stellar.expert/explorer/testnet/contract/CAJUEUOEP6UUNLQ65XOINCUNVBXYPOGNWZC2XZQE7HRV66KTLERPHLND",
       "type": "demo",
       "fetched": true,
       "public": true,
@@ -102,5 +102,5 @@
     }
   ],
   "missing_information": [],
-  "report_hash": "sha256:7d4ae04fa8be843b16bb80e76d6d572a60059796b31b659d47e074092f28d11f"
+  "report_hash": "sha256:cce8f793ffb6cfde7bcbb7fef876cac080bb5c7ef71c434a7da0e2b0cb91e0ce"
 }

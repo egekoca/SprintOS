@@ -24,7 +24,7 @@ const PR = "https://github.com/egekoca/SprintOS/pull/1";
 const TESTS = "https://github.com/egekoca/SprintOS/actions/runs/1";
 const DOCS = "https://github.com/egekoca/SprintOS/blob/main/docs/ARCHITECTURE.md";
 const EXPLORER =
-  "https://stellar.expert/explorer/testnet/contract/CA7N7EPNGY2OSYAIA2HDYJTHACJR7M7P65VWA6I7PLBHTJ6W3HFUKHNK";
+  "https://stellar.expert/explorer/testnet/contract/CAJUEUOEP6UUNLQ65XOINCUNVBXYPOGNWZC2XZQE7HRV66KTLERPHLND";
 
 const criteria: CriteriaDocument = {
   schema_version: "1.0.0",

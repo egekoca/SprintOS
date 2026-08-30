@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import "./globals.css";
 import { WalletProvider } from "@/components/WalletProvider";
@@ -38,6 +39,11 @@ function SiteFooter() {
       <div className="spread">
         <p className="faint" style={{ fontSize: "0.8125rem" }}>
           SprintOS · Stellar testnet · Instawards with Stellar Türkiye
+        </p>
+        {/* The evidence pack is the link an Ambassador is given, so it has to be
+            findable from any page rather than only from a message. */}
+        <p className="faint" style={{ fontSize: "0.8125rem" }}>
+          <Link href="/evidence" style={{ color: "inherit" }}>Evidence pack</Link>
         </p>
         <p className="faint mono" style={{ fontSize: "0.75rem" }}>
           Testnet only. No real funds move here.

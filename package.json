@@ -17,7 +17,8 @@
     "lint:boundaries": "node scripts/check-boundaries.mjs",
     "contract:test": "cargo test --package sprintos-settlement",
     "contract:build": "stellar contract build",
-    "format:check": "cargo fmt --all -- --check"
+    "format:check": "cargo fmt --all -- --check",
+    "evidence:doc": "node --experimental-strip-types scripts/write-evidence-doc.mts"
   },
   "pnpm": {
     "overrides": {

@@ -3,13 +3,13 @@
     "name": "01-complete-delivery",
     "score": 94,
     "recommendation": "ReadyForReview",
-    "report_hash": "sha256:7d4ae04fa8be843b16bb80e76d6d572a60059796b31b659d47e074092f28d11f"
+    "report_hash": "sha256:cce8f793ffb6cfde7bcbb7fef876cac080bb5c7ef71c434a7da0e2b0cb91e0ce"
   },
   {
     "name": "02-partial-delivery",
     "score": 58,
     "recommendation": "RevisionSuggested",
-    "report_hash": "sha256:c09b1a7ab219fb85186a12e1d2d1d2d7de5b19ba17bf64a2e91a5b72ca57de29"
+    "report_hash": "sha256:583cbd4b641d4d1150c01e73fd7e1203c47a4f248e65efd6f93a48abd3d7b319"
   },
   {
     "name": "03-insufficient-evidence",

@@ -47,10 +47,24 @@ cargo test --package sprintos-settlement
 stellar contract build
 ```
 
-See [architecture](docs/ARCHITECTURE.md) and [security](docs/SECURITY.md) for
+See [setup and usage](docs/SETUP.md) for environment variables, a walkthrough of
+all three roles and the reviewer checklist; [evidence](docs/EVIDENCE.md) for the
+deliverable-by-deliverable pack, also served at `/evidence` on any deployment;
+and [architecture](docs/ARCHITECTURE.md) with [security](docs/SECURITY.md) for
 trust boundaries, document hashing, deployment assumptions, and known limits.
 
+`pnpm evidence:doc` regenerates `docs/EVIDENCE.md` from the same data the
+`/evidence` page renders, so the two cannot drift apart.
+
 ## Deployment
+
+Two settings are not optional on a hosted deployment. `NEXT_PUBLIC_APP_URL` is
+written into contract storage as the evidence bundle's URI and cannot be
+corrected afterwards. `BLOB_READ_WRITE_TOKEN` — from a Vercel Blob store, or any
+other host with a persistent volume via `SPRINTOS_DATA_DIR` — makes criteria and
+evidence durable; without one of them a reviewer cannot re-hash either document
+and the decision buttons never enable. [docs/SETUP.md](docs/SETUP.md) covers
+both.
 
 `scripts/setup-testnet.sh` creates the demo identities and asset.
 `scripts/deploy.sh` tests and deploys the contract, then synchronizes both
