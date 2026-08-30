@@ -97,10 +97,9 @@ export default function AppGatewayPage() {
         </div>
 
         <ol className="start-steps">
-          {SETUP_STEPS.map((step, index) => (
+          {SETUP_STEPS.map((step) => (
             <li key={step.title}>
               <span className="start-step-icon"><ProductIcon name={step.icon} size={20} /></span>
-              <span className="start-step-index">{String(index + 1).padStart(2, "0")}</span>
               <div>
                 <h3>{step.title}</h3>
                 <p>{step.body}</p>

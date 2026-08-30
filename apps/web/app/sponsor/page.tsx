@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useWallet } from "@/components/WalletProvider";
 import { createEngagement, fundEngagement, type MilestoneDraft } from "@/lib/stellar/contract";
@@ -12,18 +12,18 @@ import { GitHubRepositoryPanel, type ImportedMilestone } from "@/components/GitH
 import { ProductIcon, type ProductIconName } from "@/components/ProductIcon";
 import { SponsorEngagements } from "@/components/SponsorEngagements";
 import type { GitHubRepositorySnapshot } from "@/lib/github";
+import {
+  clearDraft,
+  deadlineSeconds,
+  formatMoment,
+  loadDraft,
+  saveDraft,
+  startSeconds,
+  type MilestoneForm,
+} from "@/lib/sponsor-draft";
 import type { MilestonePlan } from "@sprintos/advisory";
 import { MAX_CRITERIA, MAX_MILESTONES } from "@sprintos/schemas/milestone";
 import { StrKey } from "@stellar/stellar-sdk";
-
-interface MilestoneForm {
-  title: string;
-  summary: string;
-  criteria: string[];
-  amount: string;
-  startDate: string;
-  deadline: string;
-}
 
 const STEPS: Array<{ label: string; icon: ProductIconName }> = [
   { label: "Repository", icon: "github" },
@@ -38,24 +38,44 @@ function dateAfter(offsetDays: number): string {
   return date.toISOString().slice(0, 10);
 }
 
+/* Numbered on creation rather than only hinted at through a placeholder: an
+   untitled milestone is never what anyone wants, and "Milestone 3" is both a
+   working answer and an obvious thing to type over. */
+function autoTitle(index: number): string {
+  return `Milestone ${index + 1}`;
+}
+
 function emptyMilestone(index = 0): MilestoneForm {
   return {
-    title: "",
+    title: autoTitle(index),
     summary: "",
     criteria: [""],
     amount: "",
     startDate: dateAfter(index * 14),
     deadline: dateAfter(index * 14 + 13),
+    startTime: "",
+    deadlineTime: "",
   };
+}
+
+/* Keep the automatic names in step with the list after a removal, while leaving
+   any title the sponsor actually wrote exactly as they wrote it. Deleting the
+   second of four should not leave "Milestone 1, 3, 4" behind, and must not
+   rename "Escrow and settlement" either. */
+function renumber(milestones: MilestoneForm[]): MilestoneForm[] {
+  return milestones.map((milestone, index) => (
+    /^Milestone \d+$/.test(milestone.title) ? { ...milestone, title: autoTitle(index) } : milestone
+  ));
 }
 
 function milestoneProblem(milestone: MilestoneForm): string | null {
   if (!milestone.title.trim()) return "Give every milestone a title.";
   if (new TextEncoder().encode(milestone.title.trim()).length > 200) return "Keep milestone titles under 200 bytes.";
   if (!milestone.startDate || !milestone.deadline) return "Add a start date and due date to every milestone.";
-  if (milestone.deadline < milestone.startDate) return "A milestone due date cannot be before its start date.";
-  const deadline = new Date(`${milestone.deadline}T23:59:59Z`).getTime();
-  if (!Number.isFinite(deadline) || deadline <= Date.now()) return "Every milestone due date must still be in the future.";
+  const deadline = deadlineSeconds(milestone);
+  if (!Number.isFinite(deadline)) return "Check the dates on every milestone.";
+  if (deadline <= startSeconds(milestone)) return "A milestone cannot be due before it starts.";
+  if (deadline * 1000 <= Date.now()) return "Every milestone due date must still be in the future.";
 
   const criteria = milestone.criteria.map((criterion) => criterion.trim()).filter(Boolean);
   if (criteria.length === 0) return "Add at least one checkable criterion to every milestone.";
@@ -103,6 +123,57 @@ export default function SponsorPage() {
      knows that and has actually read what they are fixing. */
   const [readEverything, setReadEverything] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  /* Whether this session started from work that was already on the machine. */
+  const [restored, setRestored] = useState<number | null>(null);
+  /* Nothing may be written before the saved draft has been read back, or the
+     first render's empty form would overwrite it. */
+  const loaded = useRef(false);
+
+  useEffect(() => {
+    const draft = loadDraft();
+    if (draft) {
+      setStep(draft.step);
+      setScopeMode(draft.scopeMode);
+      setBrief(draft.brief);
+      setPlanSummary(draft.planSummary);
+      setGrantTotal(draft.grantTotal);
+      setBuilder(draft.builder);
+      setReviewer(draft.reviewer);
+      setSelfReview(draft.selfReview);
+      setRepository(draft.repository);
+      setMilestones(draft.milestones);
+      setRestored(draft.savedAt);
+    }
+    loaded.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!loaded.current) return;
+    /* Once it is signed the engagement lives on the ledger and is listed below,
+       so a local copy of the form is no longer the source of anything. */
+    if (created) {
+      clearDraft();
+      return;
+    }
+    saveDraft({ step, scopeMode, brief, planSummary, grantTotal, builder, reviewer, selfReview, repository, milestones });
+  }, [step, scopeMode, brief, planSummary, grantTotal, builder, reviewer, selfReview, repository, milestones, created]);
+
+  function discardDraft() {
+    clearDraft();
+    setStep(1);
+    setScopeMode("ai");
+    setBrief("");
+    setPlanSummary("");
+    setPlanNotice(null);
+    setGrantTotal("");
+    setBuilder("");
+    setReviewer("");
+    setSelfReview(false);
+    setRepository(null);
+    setMilestones([]);
+    setError(null);
+    setRestored(null);
+  }
 
   const sourceReady = Boolean(repository);
   const planProblem = milestones.length === 0 ? "Add at least one milestone." : milestones.map(milestoneProblem).find(Boolean) ?? null;
@@ -175,7 +246,7 @@ export default function SponsorPage() {
     setFunded(null);
     setReadEverything(false);
     setConfirming(false);
-    setMilestones((current) => current.filter((_, currentIndex) => currentIndex !== index));
+    setMilestones((current) => renumber(current.filter((_, currentIndex) => currentIndex !== index)));
   }
 
   function addMilestone() {
@@ -196,6 +267,8 @@ export default function SponsorPage() {
       amount: "",
       startDate: dateAfter(index * 14),
       deadline: milestone.deadline ?? dateAfter(index * 14 + 13),
+      startTime: "",
+      deadlineTime: "",
     })));
     setStep(2);
   }
@@ -214,13 +287,15 @@ export default function SponsorPage() {
       if (!response.ok || !body.plan) throw new Error(body.error ?? "A milestone plan could not be created.");
       setPlanSummary(body.plan.project_summary);
       setPlanNotice(body.notice ?? (body.mode === "ai" ? "AI draft ready. Review every date and criterion before continuing." : null));
-      setMilestones(body.plan.milestones.map((milestone) => ({
-        title: milestone.title,
+      setMilestones(body.plan.milestones.map((milestone, index) => ({
+        title: milestone.title || autoTitle(index),
         summary: milestone.summary,
         criteria: milestone.criteria,
         amount: "",
         startDate: milestone.start_date,
         deadline: milestone.due_date,
+        startTime: "",
+        deadlineTime: "",
       })));
     } catch (planError) {
       setError(planError instanceof Error ? planError.message : "A milestone plan could not be created.");
@@ -258,7 +333,7 @@ export default function SponsorPage() {
         const response = await fetch("/api/criteria", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(document) });
         const body = await response.json() as { hash?: string; error?: string };
         if (!response.ok || !body.hash) throw new Error(body.error ?? "The acceptance criteria were rejected.");
-        return { title: milestone.title.trim(), criteriaHash: body.hash, amount: parseUsdc(milestone.amount), deadline: Math.floor(new Date(`${milestone.deadline}T23:59:59Z`).getTime() / 1000) };
+        return { title: milestone.title.trim(), criteriaHash: body.hash, amount: parseUsdc(milestone.amount), deadline: deadlineSeconds(milestone) };
       }));
       const transaction = await createEngagement(address, builder.trim(), effectiveReviewer, drafts);
       setCreated(transaction);
@@ -294,6 +369,17 @@ export default function SponsorPage() {
           return <button type="button" key={item.label} className={`${step === number ? "is-current" : ""}${number <= completedThrough ? " is-complete" : ""}`} disabled={!enabled || Boolean(created && number < 4)} onClick={() => setStep(number)}><span><ProductIcon name={number <= completedThrough ? "check" : item.icon} size={19} /></span><b>0{number}</b><small>{item.label}</small></button>;
         })}
       </nav>
+
+      {restored !== null && !created && (
+        <div className="draft-banner">
+          <ProductIcon name="milestone" size={18} />
+          <p>
+            <b>Picked up where you left off.</b> This setup was saved on this device{" "}
+            {sinceWhen(restored)} and nothing has been signed or sent.
+          </p>
+          <button type="button" onClick={discardDraft}>Start over</button>
+        </div>
+      )}
 
       {error && <p className="notice">{error}</p>}
 
@@ -408,7 +494,7 @@ export default function SponsorPage() {
       {step === 4 && (
         <div className="wizard-stage">
           <div className="wizard-stage-heading"><div><p className="eyebrow">04 · Final review</p><h3>Everything in one view</h3></div><span className="amount">{formatUsdc(total)} <small>USDC</small></span></div>
-          <div className="review-receipt"><ReceiptRow icon="github" label="Repository" value={repository?.repository.full_name ?? "—"} /><ReceiptRow icon="wallet" label="Builder" value={short(builder)} /><ReceiptRow icon="signature" label="Reviewer" value={selfReview ? `${short(address ?? "")} · you` : short(reviewer)} />{milestones.map((milestone, index) => <div className="receipt-milestone" key={`${milestone.title}-${index}`}><span>0{index + 1}</span><div><strong>{milestone.title}</strong><small>{milestone.startDate} → {milestone.deadline}</small><ul>{milestone.criteria.filter(Boolean).map((criterion, criterionIndex) => <li key={`${criterionIndex}-${criterion}`}>{criterion}</li>)}</ul></div><b>{milestone.amount} USDC</b></div>)}</div>
+          <div className="review-receipt"><ReceiptRow icon="github" label="Repository" value={repository?.repository.full_name ?? "—"} /><ReceiptRow icon="wallet" label="Builder" value={short(builder)} /><ReceiptRow icon="signature" label="Reviewer" value={selfReview ? `${short(address ?? "")} · you` : short(reviewer)} />{milestones.map((milestone, index) => <div className="receipt-milestone" key={`${milestone.title}-${index}`}><span>0{index + 1}</span><div><strong>{milestone.title}</strong><small>{formatMoment(milestone.startDate, milestone.startTime)} → {formatMoment(milestone.deadline, milestone.deadlineTime)}</small><ul>{milestone.criteria.filter(Boolean).map((criterion, criterionIndex) => <li key={`${criterionIndex}-${criterion}`}>{criterion}</li>)}</ul></div><b>{milestone.amount} USDC</b></div>)}</div>
           {!created ? (
             <div className="commit-gate">
               <div className="commit-warning">
@@ -486,7 +572,108 @@ export default function SponsorPage() {
 }
 
 function MilestoneEditor({ milestones, update, remove, add }: { milestones: MilestoneForm[]; update: (index: number, patch: Partial<MilestoneForm>) => void; remove: (index: number) => void; add: () => void }) {
-  return <section className="plan-timeline"><header><div><p className="eyebrow">Editable plan</p><h3>Milestone timeline</h3></div><span>{milestones.length}/{MAX_MILESTONES}</span></header><div className="plan-line">{milestones.map((milestone, index) => <article className="plan-milestone" key={index}><span className="plan-node">0{index + 1}</span><div className="plan-card"><div className="spread"><div className="field plan-title"><label htmlFor={`title-${index}`}>Milestone</label><input id={`title-${index}`} type="text" value={milestone.title} onChange={(event) => update(index, { title: event.target.value })} placeholder={`Milestone ${index + 1}`} /></div>{milestones.length > 1 && <button type="button" className="plan-remove" onClick={() => remove(index)}>Remove</button>}</div><div className="field"><label htmlFor={`summary-${index}`}>Outcome</label><textarea id={`summary-${index}`} rows={2} value={milestone.summary} onChange={(event) => update(index, { summary: event.target.value })} placeholder="What will be delivered?" /></div><div className="plan-dates"><div className="field"><label htmlFor={`start-${index}`}>Starts</label><input id={`start-${index}`} type="date" value={milestone.startDate} onChange={(event) => update(index, { startDate: event.target.value })} /></div><span>→</span><div className="field"><label htmlFor={`due-${index}`}>Due</label><input id={`due-${index}`} type="date" min={milestone.startDate} value={milestone.deadline} onChange={(event) => update(index, { deadline: event.target.value })} /></div><div className="field plan-amount"><label htmlFor={`amount-${index}`}>USDC</label><input id={`amount-${index}`} type="text" inputMode="decimal" value={milestone.amount} onChange={(event) => update(index, { amount: event.target.value })} placeholder="500" /></div></div><div className="field"><label>Must be true at delivery</label><div className="criteria-list">{milestone.criteria.map((criterion, criterionIndex) => <div key={criterionIndex}><ProductIcon name="check" size={15} /><input type="text" value={criterion} onChange={(event) => update(index, { criteria: milestone.criteria.map((value, currentIndex) => currentIndex === criterionIndex ? event.target.value : value) })} placeholder={`Checkable requirement ${criterionIndex + 1}`} /></div>)}{milestone.criteria.length < MAX_CRITERIA && <button type="button" onClick={() => update(index, { criteria: [...milestone.criteria, ""] })}>+ Add criterion</button>}</div></div></div></article>)}</div>{milestones.length < MAX_MILESTONES && <button type="button" className="btn btn-ghost" onClick={add}>+ Add milestone</button>}</section>;
+  return <section className="plan-timeline"><header><div><p className="eyebrow">Editable plan</p><h3>Milestone timeline</h3></div><span>{milestones.length}/{MAX_MILESTONES}</span></header><div className="plan-line">{milestones.map((milestone, index) => <article className="plan-milestone" key={index}><span className="plan-node">0{index + 1}</span><div className="plan-card"><div className="spread"><div className="field plan-title"><label htmlFor={`title-${index}`}>Milestone</label><input id={`title-${index}`} type="text" value={milestone.title} onChange={(event) => update(index, { title: event.target.value })} placeholder={`Milestone ${index + 1}`} /></div>{milestones.length > 1 && <button type="button" className="plan-remove" onClick={() => remove(index)}>Remove</button>}</div><div className="field"><label htmlFor={`summary-${index}`}>Outcome</label><textarea id={`summary-${index}`} rows={2} value={milestone.summary} onChange={(event) => update(index, { summary: event.target.value })} placeholder="What will be delivered?" /></div><MilestoneDates index={index} milestone={milestone} update={update} /><div className="field"><label>Must be true at delivery</label><div className="criteria-list">{milestone.criteria.map((criterion, criterionIndex) => <div key={criterionIndex}><ProductIcon name="check" size={15} /><input type="text" value={criterion} onChange={(event) => update(index, { criteria: milestone.criteria.map((value, currentIndex) => currentIndex === criterionIndex ? event.target.value : value) })} placeholder={`Checkable requirement ${criterionIndex + 1}`} /></div>)}{milestone.criteria.length < MAX_CRITERIA && <button type="button" onClick={() => update(index, { criteria: [...milestone.criteria, ""] })}>+ Add criterion</button>}</div></div></div></article>)}</div>{milestones.length < MAX_MILESTONES && <button type="button" className="btn btn-ghost" onClick={add}>+ Add milestone</button>}</section>;
+}
+
+/**
+ * When a milestone starts and falls due, and what it is worth.
+ *
+ * The dates carry their own calendar button rather than relying on the browser's
+ * own indicator, which is a few grey pixels wedged inside the field and easy to
+ * miss. Times are opt-in: most milestones are agreed in whole days, and a form
+ * that demands an hour for every one of them is asking for a decision nobody
+ * has made.
+ */
+function MilestoneDates({ index, milestone, update }: { index: number; milestone: MilestoneForm; update: (index: number, patch: Partial<MilestoneForm>) => void }) {
+  const exact = Boolean(milestone.startTime || milestone.deadlineTime);
+
+  return (
+    <>
+      <div className="plan-dates">
+        <div className="field">
+          <label htmlFor={`start-${index}`}>Starts</label>
+          <div className="picker-row">
+            <PickerInput id={`start-${index}`} type="date" icon="calendar" hint="Pick a start date" value={milestone.startDate} onChange={(value) => update(index, { startDate: value })} />
+            {exact && <PickerInput id={`start-time-${index}`} type="time" icon="clock" hint="Pick a start time" value={milestone.startTime} onChange={(value) => update(index, { startTime: value })} />}
+          </div>
+        </div>
+
+        <span aria-hidden="true">&rarr;</span>
+
+        <div className="field">
+          <label htmlFor={`due-${index}`}>Due</label>
+          <div className="picker-row">
+            <PickerInput id={`due-${index}`} type="date" icon="calendar" hint="Pick a due date" min={milestone.startDate} value={milestone.deadline} onChange={(value) => update(index, { deadline: value })} />
+            {exact && <PickerInput id={`due-time-${index}`} type="time" icon="clock" hint="Pick a due time" value={milestone.deadlineTime} onChange={(value) => update(index, { deadlineTime: value })} />}
+          </div>
+        </div>
+
+        <div className="field plan-amount">
+          <label htmlFor={`amount-${index}`}>USDC</label>
+          <input id={`amount-${index}`} type="text" inputMode="decimal" value={milestone.amount} onChange={(event) => update(index, { amount: event.target.value })} placeholder="500" />
+        </div>
+      </div>
+
+      <button
+        type="button"
+        className="plan-precise"
+        onClick={() => update(index, exact ? { startTime: "", deadlineTime: "" } : { startTime: "09:00", deadlineTime: "18:00" })}
+      >
+        <ProductIcon name="clock" size={14} />
+        {exact ? "Use whole days" : "Set exact times"}
+      </button>
+
+      <p className="plan-dates-note">
+        {exact
+          ? "Times are read in your own timezone and stored on chain as one exact moment."
+          : "Due at the end of the day, in your own timezone."}
+      </p>
+    </>
+  );
+}
+
+/**
+ * A native date or time field with a legible button to open its picker.
+ *
+ * The button duplicates what the input already offers a keyboard, so it stays
+ * out of the tab order and out of the accessibility tree; it exists so that the
+ * calendar is something you can see and hit with a mouse.
+ */
+function PickerInput({ id, type, icon, hint, value, min, onChange }: { id: string; type: "date" | "time"; icon: ProductIconName; hint: string; value: string; min?: string; onChange: (value: string) => void }) {
+  const field = useRef<HTMLInputElement>(null);
+
+  function openPicker() {
+    const input = field.current;
+    if (!input) return;
+    /* showPicker throws when the browser has no picker to show, or when it does
+       not consider this a user gesture. Focusing the field is a working answer
+       in both cases. */
+    try {
+      input.showPicker();
+    } catch {
+      input.focus();
+    }
+  }
+
+  return (
+    <span className={`picker picker-${type}`}>
+      <input ref={field} id={id} type={type} value={value} min={min} onChange={(event) => onChange(event.target.value)} />
+      <button type="button" className="picker-open" onClick={openPicker} tabIndex={-1} aria-hidden="true" title={hint}>
+        <ProductIcon name={icon} size={16} />
+      </button>
+    </span>
+  );
+}
+
+/** Plain-language age of a restored draft — "a moment ago", "yesterday". */
+function sinceWhen(savedAt: number): string {
+  const minutes = Math.round((Date.now() - savedAt) / 60_000);
+  if (minutes < 2) return "a moment ago";
+  if (minutes < 60) return `${minutes} minutes ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+  const days = Math.round(hours / 24);
+  return days === 1 ? "yesterday" : `${days} days ago`;
 }
 
 function WizardActions({ back = false, onBack, onNext, nextLabel, nextDisabled = false, nextHint }: { back?: boolean; onBack?: () => void; onNext?: () => void; nextLabel?: string; nextDisabled?: boolean; nextHint?: string }) {
