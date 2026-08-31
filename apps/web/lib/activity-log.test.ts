@@ -49,3 +49,20 @@ test("an engagement id that is not a number cannot become a key", async () => {
      guard has to hold whichever way the backend reports it. */
   await assert.rejects(async () => store.getActivity("../../etc/passwd"));
 });
+
+test("activity entries are returned in ledger time order", async () => {
+  await appendActivity({
+    ...base,
+    engagement_id: "8",
+    tx_hash: "c".repeat(64),
+    at: "2026-08-29T12:00:00.000Z",
+  });
+  const log = await appendActivity({
+    ...base,
+    engagement_id: "8",
+    tx_hash: "d".repeat(64),
+    at: "2026-08-29T11:00:00.000Z",
+  });
+
+  assert.deepEqual(log.entries.map((entry) => entry.tx_hash), ["d".repeat(64), "c".repeat(64)]);
+});

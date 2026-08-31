@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { AdvisoryUnavailableError, generateReport, verifyReportHash } from "@sprintos/advisory";
 import { ReportValidationError } from "@sprintos/advisory";
-import { store } from "@/lib/store";
+import { StoreUnavailableError, store } from "@/lib/store";
 import { takeRateLimit } from "@/lib/rate-limit";
 import { isSameOrigin, requestBodyIsTooLarge, requestClientKey } from "@/lib/request-security";
 
@@ -81,14 +81,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "The evidence hash belongs to another engagement or milestone." }, { status: 409 });
   }
 
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!process.env.OPENAI_API_KEY?.trim()) {
     // Answered as a normal condition rather than a 500: a reviewer with no
     // advisory service still has a working review screen, and the message says
     // so plainly instead of looking like a crash.
     return NextResponse.json(
       {
         error:
-          "The advisory service is not configured on this deployment. You can still review the evidence and decide — the report is advisory only.",
+          "The OpenAI advisory service is not configured on this deployment. You can still review the evidence and decide — the report is advisory only.",
         advisory_available: false,
       },
       { status: 503 },
@@ -115,6 +115,9 @@ export async function POST(request: Request) {
         { error: err.message, advisory_available: false },
         { status: 503 },
       );
+    }
+    if (err instanceof StoreUnavailableError) {
+      return NextResponse.json({ error: err.message }, { status: 503 });
     }
     return NextResponse.json(
       { error: "The advisory report could not be produced. You can still decide without it." },

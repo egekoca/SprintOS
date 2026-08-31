@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { Address, Transaction, TransactionBuilder, rpc, scValToNative, xdr } from "@stellar/stellar-sdk";
 import { ActivityAction, ActivityEntry } from "@sprintos/schemas";
 import { NETWORK, SETTLEMENT_CONTRACT_ID } from "@/lib/stellar/config";
-import { appendActivity, store, validateEngagementId } from "@/lib/store";
+import { StoreUnavailableError, appendActivity, store, validateEngagementId } from "@/lib/store";
 import { takeRateLimit } from "@/lib/rate-limit";
 import { isSameOrigin, requestBodyIsTooLarge, requestClientKey } from "@/lib/request-security";
 
@@ -89,8 +89,18 @@ export async function GET(request: Request) {
   } catch {
     return NextResponse.json({ error: "Invalid engagement id." }, { status: 400 });
   }
-  const log = await store.getActivity(engagementId);
-  return NextResponse.json({ entries: log?.entries ?? [] });
+  try {
+    const log = await store.getActivity(engagementId);
+    return NextResponse.json({ entries: log?.entries ?? [] });
+  } catch (error) {
+    if (error instanceof StoreUnavailableError) {
+      return NextResponse.json({ error: error.message }, { status: 503 });
+    }
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "The transaction could not be recorded." },
+      { status: 400 },
+    );
+  }
 }
 
 export async function POST(request: Request) {
@@ -179,6 +189,9 @@ export async function POST(request: Request) {
     const log = await appendActivity(entry);
     return NextResponse.json({ entries: log.entries });
   } catch (error) {
+    if (error instanceof StoreUnavailableError) {
+      return NextResponse.json({ error: error.message }, { status: 503 });
+    }
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "The transaction could not be recorded." },
       { status: 500 },

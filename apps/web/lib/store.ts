@@ -8,7 +8,7 @@ import {
   CriteriaDocument,
   EvidenceBundle,
   documentHash,
-  type ActivityEntry,
+  ActivityEntry,
 } from "@sprintos/schemas";
 import type { z } from "zod";
 
@@ -33,6 +33,16 @@ import type { z } from "zod";
 const ROOT = process.env.SPRINTOS_DATA_DIR ?? join(process.cwd(), ".data");
 const HASH_RE = /^[0-9a-f]{64}$/;
 const ENGAGEMENT_ID_RE = /^(0|[1-9]\d*)$/;
+
+export class StoreUnavailableError extends Error {
+  override readonly cause?: unknown;
+
+  constructor(message: string, cause?: unknown) {
+    super(message);
+    this.name = "StoreUnavailableError";
+    this.cause = cause;
+  }
+}
 
 export function normalizeDocumentHash(value: string): string {
   const hash = value.replace(/^sha256:/, "").toLowerCase();
@@ -64,12 +74,22 @@ function reportKey(engagementId: string, idx: number, evidenceHash: string): str
   return `reports/${engagementId}-${idx}-${normalizeDocumentHash(evidenceHash)}.json`;
 }
 
-/* The one mutable key in the store. Criteria, evidence and reports are named by
-   their own content; a settlement log grows as the engagement does, so it is
-   named by the engagement instead. */
+/* Criteria, evidence and reports are named by their own content. Activity
+   entries are named by their transaction hash, so concurrent serverless writes
+   cannot overwrite one another. */
 function activityKey(engagementId: string): string {
   validateEngagementId(engagementId);
   return `activity/${engagementId}.json`;
+}
+
+function activityEntryKey(engagementId: string, txHash: string): string {
+  validateEngagementId(engagementId);
+  if (!/^[0-9a-f]{64}$/.test(txHash)) throw new Error("Invalid activity transaction hash.");
+  return `activity/${engagementId}/${txHash}.json`;
+}
+
+function sortActivityEntries(entries: readonly ActivityEntry[]): ActivityEntry[] {
+  return [...entries].sort((a, b) => a.at.localeCompare(b.at) || a.tx_hash.localeCompare(b.tx_hash));
 }
 
 export interface DocumentStore {
@@ -96,8 +116,18 @@ function parse<T>(raw: string, schema: z.ZodType<T>): T | null {
 
 async function writeFileDoc(key: string, value: unknown): Promise<void> {
   const file = join(ROOT, key);
-  await mkdir(dirname(file), { recursive: true });
-  await writeFile(file, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+  try {
+    await mkdir(dirname(file), { recursive: true });
+    await writeFile(file, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+  } catch (error) {
+    if (process.env.VERCEL && !process.env.BLOB_READ_WRITE_TOKEN && !process.env.SPRINTOS_DATA_DIR) {
+      throw new StoreUnavailableError(
+        "SprintOS needs Vercel Blob on this deployment. Connect a Blob store in Vercel Storage, or set SPRINTOS_DATA_DIR to a persistent volume.",
+        error,
+      );
+    }
+    throw error;
+  }
 }
 
 async function readFileDoc<T>(key: string, schema: z.ZodType<T>): Promise<T | null> {
@@ -192,10 +222,50 @@ export const blobStore: DocumentStore = {
     readBlobDoc(reportKey(engagementId, idx, evidenceHash), AdvisoryReport),
 
   async putActivity(log) {
-    await writeBlobDoc(activityKey(log.engagement_id), log);
+    /* Each transaction gets its own immutable pathname. Rewriting known entries
+       is harmless, while a concurrent append can only add another object. */
+    await Promise.all(
+      log.entries.map((entry) => writeBlobDoc(activityEntryKey(log.engagement_id, entry.tx_hash), entry)),
+    );
   },
-  getActivity: (engagementId) => readBlobDoc(activityKey(engagementId), ActivityLog),
+  getActivity: (engagementId) => readBlobActivity(engagementId),
 };
+
+async function readBlobActivity(engagementId: string): Promise<ActivityLog | null> {
+  validateEngagementId(engagementId);
+  const { list } = await blob();
+  const entries = new Map<string, ActivityEntry>();
+  let cursor: string | undefined;
+
+  do {
+    const page = await list({
+      prefix: `activity/${engagementId}/`,
+      limit: 1_000,
+      ...(cursor ? { cursor } : {}),
+    });
+    await Promise.all(
+      page.blobs.map(async (item) => {
+        const response = await fetch(item.url, { cache: "no-store" });
+        if (!response.ok) return;
+        const entry = parse(await response.text(), ActivityEntry);
+        if (entry?.engagement_id === engagementId) entries.set(entry.tx_hash, entry);
+      }),
+    );
+    cursor = page.hasMore ? page.cursor : undefined;
+  } while (cursor);
+
+  /* Read the pre-append-only format too, so existing deployments migrate on
+     their next activity write instead of losing their history. */
+  const legacy = await readBlobDoc(activityKey(engagementId), ActivityLog);
+  for (const entry of legacy?.entries ?? []) entries.set(entry.tx_hash, entry);
+
+  if (entries.size === 0) return null;
+  return ActivityLog.parse({
+    schema_version: ACTIVITY_SCHEMA_VERSION,
+    engagement_id: engagementId,
+    entries: sortActivityEntries([...entries.values()]).slice(-60),
+  });
+}
 
 /** Which backend this deployment is running on, for the health surface. */
 export const storeBackend = process.env.BLOB_READ_WRITE_TOKEN ? "blob" : "file";
@@ -206,10 +276,9 @@ export const store: DocumentStore = storeBackend === "blob" ? blobStore : fileSt
  * Add one settlement transaction to an engagement's log.
  *
  * Idempotent on the transaction hash: the client posts after the ledger has
- * confirmed, and a retry or a second tab must not double the entry. Read,
- * modify and write is not atomic, so a genuinely concurrent pair of writes can
- * lose one — acceptable for an index whose authority is the explorer link it
- * carries, and recoverable by resubmitting.
+ * confirmed, and a retry or a second tab must not double the entry. Each new
+ * entry is written under its own transaction hash, so concurrent serverless
+ * requests cannot overwrite a different entry.
  */
 export async function appendActivity(entry: ActivityEntry): Promise<ActivityLog> {
   const existing = await store.getActivity(entry.engagement_id);
@@ -217,10 +286,12 @@ export async function appendActivity(entry: ActivityEntry): Promise<ActivityLog>
   if (entries.some((known) => known.tx_hash === entry.tx_hash)) {
     return existing ?? { schema_version: ACTIVITY_SCHEMA_VERSION, engagement_id: entry.engagement_id, entries };
   }
+  const merged = new Map(entries.map((known) => [known.tx_hash, known]));
+  merged.set(entry.tx_hash, entry);
   const log = ActivityLog.parse({
     schema_version: ACTIVITY_SCHEMA_VERSION,
     engagement_id: entry.engagement_id,
-    entries: [...entries, entry].slice(-60),
+    entries: sortActivityEntries([...merged.values()]).slice(-60),
   });
   await store.putActivity(log);
   return log;

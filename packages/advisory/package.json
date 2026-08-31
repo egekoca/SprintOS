@@ -15,7 +15,6 @@
     "fixtures": "node --experimental-strip-types src/make-fixtures.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.120.0",
     "@sprintos/schemas": "workspace:*",
     "zod": "^4.1.5"
   },

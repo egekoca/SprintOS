@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { EvidenceBundle, documentHash } from "@sprintos/schemas";
-import { store } from "@/lib/store";
+import { StoreUnavailableError, store } from "@/lib/store";
 import { takeRateLimit } from "@/lib/rate-limit";
 import { isSameOrigin, requestBodyIsTooLarge, requestClientKey } from "@/lib/request-security";
 
@@ -22,15 +22,18 @@ export async function POST(request: Request) {
   if (!takeRateLimit(`documents:${requestClientKey(request)}`, 30).allowed) {
     return NextResponse.json({ error: "Too many document writes. Try again later." }, { status: 429 });
   }
+  const parsed = EvidenceBundle.safeParse(await request.json().catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid evidence bundle." }, { status: 400 });
+  }
   try {
-    const doc = EvidenceBundle.parse(await request.json());
-    const hash = await store.putEvidence(doc);
+    const hash = await store.putEvidence(parsed.data);
     return NextResponse.json({ hash });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Invalid evidence bundle." },
-      { status: 400 },
-    );
+    if (err instanceof StoreUnavailableError) {
+      return NextResponse.json({ error: err.message }, { status: 503 });
+    }
+    return NextResponse.json({ error: "The evidence bundle could not be stored." }, { status: 500 });
   }
 }
 
@@ -44,6 +47,9 @@ export async function GET(request: Request) {
     const evidence = await store.getEvidence(hash);
     return NextResponse.json({ evidence, hash: evidence ? documentHash(evidence) : null });
   } catch (err) {
+    if (err instanceof StoreUnavailableError) {
+      return NextResponse.json({ error: err.message }, { status: 503 });
+    }
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Invalid evidence hash." },
       { status: 400 },

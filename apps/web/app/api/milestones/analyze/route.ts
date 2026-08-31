@@ -23,11 +23,11 @@ export async function POST(request: Request) {
   if (!parsed.success) return NextResponse.json({ error: "Add at least a short project brief before generating milestones." }, { status: 400 });
 
   const today = new Date().toISOString().slice(0, 10);
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!process.env.OPENAI_API_KEY?.trim()) {
     return NextResponse.json({
       plan: fallbackMilestonePlan(parsed.data.brief, today),
       mode: "structured",
-      notice: "AI is not configured locally, so SprintOS created an editable structured draft.",
+      notice: "OpenAI is not configured locally, so SprintOS created an editable structured draft.",
     });
   }
 

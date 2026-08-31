@@ -1,5 +1,3 @@
-import Anthropic from "@anthropic-ai/sdk";
-import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import {
@@ -13,8 +11,9 @@ import {
 import { fetchAllEvidence, type FetchedEvidence } from "./fetch.ts";
 import { buildUserPrompt, SYSTEM_PROMPT } from "./prompt.ts";
 import { type Draft, parseReport, validateDraft } from "./validate.ts";
+import { requestStructuredJson } from "./openai.ts";
 
-export const DEFAULT_MODEL = "claude-opus-5";
+export const DEFAULT_MODEL = process.env.OPENAI_MODEL?.trim() || "gpt-5.6";
 
 /**
  * What the model is asked to return.
@@ -43,11 +42,39 @@ const ModelOutput = z.object({
   missing_information: z.array(z.string()).max(20),
 });
 
+const MODEL_OUTPUT_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["advisory_score", "recommendation", "criteria", "missing_information"],
+  properties: {
+    advisory_score: { type: "integer", minimum: 0, maximum: 100 },
+    recommendation: { type: "string", enum: ["ReadyForReview", "RevisionSuggested"] },
+    criteria: {
+      type: "array",
+      minItems: 1,
+      maxItems: 5,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["id", "text", "verdict", "confidence", "supporting_links", "rationale"],
+        properties: {
+          id: { type: "string" },
+          text: { type: "string" },
+          verdict: { type: "string", enum: ["met", "partially_met", "not_met", "cannot_verify"] },
+          confidence: { type: "string", enum: ["high", "medium", "low"] },
+          supporting_links: { type: "array", items: { type: "string" } },
+          rationale: { type: "string" },
+        },
+      },
+    },
+    missing_information: { type: "array", maxItems: 20, items: { type: "string" } },
+  },
+} as const;
+
 export interface GenerateOptions {
   criteria: CriteriaDocument;
   evidence: EvidenceBundle;
   model?: string;
-  client?: Anthropic;
   /** Injected in tests and fixtures so no network call is made. */
   fetcher?: (bundle: EvidenceBundle) => Promise<FetchedEvidence[]>;
 }
@@ -93,37 +120,24 @@ export async function generateReport(options: GenerateOptions): Promise<Advisory
     ? await options.fetcher(evidence)
     : await fetchAllEvidence(evidence.links);
 
-  const client = options.client ?? new Anthropic();
-
   let draft: Draft;
   try {
-    const response = await client.messages.parse({
+    const response = await requestStructuredJson({
       model,
-      max_tokens: 16000,
-      thinking: { type: "adaptive" },
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: buildUserPrompt(criteria, fetched) }],
-      output_config: { format: zodOutputFormat(ModelOutput) },
+      maxOutputTokens: 16000,
+      reasoningEffort: "medium",
+      instructions: SYSTEM_PROMPT,
+      input: buildUserPrompt(criteria, fetched),
+      name: "advisory_report",
+      schema: MODEL_OUTPUT_SCHEMA,
     });
-
-    if (response.stop_reason === "refusal") {
-      throw new AdvisoryUnavailableError(
-        `The model declined to assess this evidence (${response.stop_details?.category ?? "unspecified"}).`,
-      );
-    }
-    if (!response.parsed_output) {
-      throw new AdvisoryUnavailableError("The model returned no parseable report.");
-    }
-    draft = response.parsed_output as Draft;
+    draft = ModelOutput.parse(response) as Draft;
   } catch (err) {
     if (err instanceof AdvisoryUnavailableError) throw err;
-    if (err instanceof Anthropic.APIError) {
-      throw new AdvisoryUnavailableError(
-        `The advisory service is unavailable (HTTP ${err.status}). The reviewer can still decide without a report.`,
-        err,
-      );
-    }
-    throw new AdvisoryUnavailableError("The advisory service could not be reached.", err);
+    throw new AdvisoryUnavailableError(
+      err instanceof Error ? err.message : "The advisory service could not be reached.",
+      err,
+    );
   }
 
   validateDraft(draft, criteria, evidence.links);

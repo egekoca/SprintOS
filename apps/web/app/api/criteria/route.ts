@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { CriteriaDocument, documentHash } from "@sprintos/schemas";
-import { store } from "@/lib/store";
+import { StoreUnavailableError, store } from "@/lib/store";
 import { takeRateLimit } from "@/lib/rate-limit";
 import { isSameOrigin, requestBodyIsTooLarge, requestClientKey } from "@/lib/request-security";
 
@@ -23,15 +23,18 @@ export async function POST(request: Request) {
   if (!takeRateLimit(`documents:${requestClientKey(request)}`, 30).allowed) {
     return NextResponse.json({ error: "Too many document writes. Try again later." }, { status: 429 });
   }
+  const parsed = CriteriaDocument.safeParse(await request.json().catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid criteria document." }, { status: 400 });
+  }
   try {
-    const doc = CriteriaDocument.parse(await request.json());
-    const hash = await store.putCriteria(doc);
+    const hash = await store.putCriteria(parsed.data);
     return NextResponse.json({ hash });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Invalid criteria document." },
-      { status: 400 },
-    );
+    if (err instanceof StoreUnavailableError) {
+      return NextResponse.json({ error: err.message }, { status: 503 });
+    }
+    return NextResponse.json({ error: "The criteria document could not be stored." }, { status: 500 });
   }
 }
 
@@ -48,6 +51,9 @@ export async function GET(request: Request) {
       hash: criteria ? documentHash(criteria) : null,
     });
   } catch (err) {
+    if (err instanceof StoreUnavailableError) {
+      return NextResponse.json({ error: err.message }, { status: 503 });
+    }
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Invalid criteria hash." },
       { status: 400 },

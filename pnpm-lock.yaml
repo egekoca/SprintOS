@@ -59,9 +59,6 @@ importers:
 
   packages/advisory:
     dependencies:
-      '@anthropic-ai/sdk':
-        specifier: ^0.120.0
-        version: 0.120.0(zod@4.4.3)
       '@sprintos/schemas':
         specifier: workspace:*
         version: link:../schemas
@@ -96,15 +93,6 @@ packages:
 
   '@albedo-link/intent@0.12.0':
     resolution: {integrity: sha512-UlGBhi0qASDYOjLrOL4484vQ26Ee3zTK2oAgvPMClOs+1XNk3zbs3dECKZv+wqeSI8SkHow8mXLTa16eVh+dQA==}
-
-  '@anthropic-ai/sdk@0.120.0':
-    resolution: {integrity: sha512-ZlvmNFT/iIF6JD13rxbbMWD8nvGR0RaUp6yMQnoc+4Af0YjVVe/bIdW1XSQQsoxXAtg1NaT6Vak0LKFlJ4d37Q==}
-    hasBin: true
-    peerDependencies:
-      zod: ^3.25.0 || ^4.0.0
-    peerDependenciesMeta:
-      zod:
-        optional: true
 
   '@babel/runtime@7.29.7':
     resolution: {integrity: sha512-Nq8OhGWiZIZGV6hLHoyAKLLcJihP/xFeBMGJoUrxTX2psI8dCifzLhZISFb+VWS3wFMRDmCGw5R+dOySCqPLhw==}
@@ -1233,9 +1221,6 @@ packages:
   '@solana/web3.js@1.98.4':
     resolution: {integrity: sha512-vv9lfnvjUsRiq//+j5pBdXig0IQdtzA0BRZ3bXEP4KaIyF1CcaydWqgyzQgfZMNIsWNWmG+AUHwPy4AHOD6gpw==}
 
-  '@stablelib/base64@1.0.1':
-    resolution: {integrity: sha512-1bnPQqSxSuc3Ii6MhBysoWCg58j97aUjuCSZrGSmDxNqtytIi0k8utUenAwTZN4V5mXXYGsVUI9zeBqy+jBOSQ==}
-
   '@stellar/freighter-api@6.0.0':
     resolution: {integrity: sha512-8CTQcKQmTq/wL715ZUzn1x1POpR0eYhYPKEiaeA7AT0WYBOauOGTxfWPFtSidX3ohAlJZP5HFXy1kG29cVjqxw==}
 
@@ -2042,9 +2027,6 @@ packages:
   fast-json-stable-stringify@2.1.0:
     resolution: {integrity: sha512-lhd/wF+Lk98HZoTCtlVraHtfh5XYijIjalXck7saUtuanSDyLMxnHhSXEDJqHxD7msR8D0uCmqlkwjCV8xvwHw==}
 
-  fast-sha256@1.3.0:
-    resolution: {integrity: sha512-n11RGP/lrWEFI/bWdygLxhI+pVeo1ZYIVwvvPkW7azl/rOy+F3HYRZ2K5zeE9mmkhQppyv9sQFx0JM9UabnpPQ==}
-
   fast-stable-stringify@1.0.0:
     resolution: {integrity: sha512-wpYMUmFu5f00Sm0cj2pfivpmawLZ0NKdviQ4w9zJeR8JVtOpOxHmLaJuj0vxvGqMJQWyP/COUkF75/57OKyRag==}
 
@@ -2259,10 +2241,6 @@ packages:
 
   js-sha256@0.9.0:
     resolution: {integrity: sha512-sga3MHh9sgQN2+pJ9VYZ+1LPwXOxuBJBA5nrR5/ofPfuiJBE2hnjsaN8se8JznOmGLN2p49Pe5U/ttafcs/apA==}
-
-  json-schema-to-ts@3.1.1:
-    resolution: {integrity: sha512-+DWg8jCJG2TEnpy7kOm/7/AxaYoaRbjVB4LFZLySZlWn8exGs3A4OLJR966cVvU26N7X9TWxl+Jsw7dzAqKT6g==}
-    engines: {node: '>=16'}
 
   json-stringify-safe@5.0.1:
     resolution: {integrity: sha512-ZClg6AaYvamvYEE82d3Iyd3vSSIjQ+odgjaTzRuO3s7toCdFKczob2i0zCh7JE8kWn17yvAWhUVxvqGwUalsRA==}
@@ -2721,9 +2699,6 @@ packages:
     resolution: {integrity: sha512-UcjcJOWknrNkF6PLX83qcHM6KHgVKNkV62Y8a5uYDVv9ydGQVwAHMKqHdJje1VTWpljG0WYpCDhrCdAOYH4TWg==}
     engines: {node: '>= 10.x'}
 
-  standardwebhooks@1.0.0:
-    resolution: {integrity: sha512-BbHGOQK9olHPMvQNHWul6MYlrRTAOKn03rOe4A8O3CLWhNf4YHBqq2HJKKC+sfqpxiBY52pNeesD6jIiLDz8jg==}
-
   statuses@1.5.0:
     resolution: {integrity: sha512-OpZ3zP+jT1PI7I8nemJX4AKmAX070ZkYPVWV/AaKTJl+tXCTGyVdC1a4SL8RUQYEwk/f34ZX8UTykN68FwrqAA==}
     engines: {node: '>= 0.6'}
@@ -2802,9 +2777,6 @@ packages:
 
   tr46@0.0.3:
     resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
-
-  ts-algebra@2.0.0:
-    resolution: {integrity: sha512-FPAhNPFMrkwz76P7cdjdmiShwMynZYN6SgOujD1urY4oNm80Ou9oMdmbR45LotcKOXoy7wSmHkRFE6Mxbrhefw==}
 
   ts-mixer@6.0.4:
     resolution: {integrity: sha512-ufKpbmrugz5Aou4wcr5Wc1UUFWOLhq+Fm6qa6P0w0K5Qw2yhaUoiWszhCVuNQyNwrlGiscHOmqYoAox1PtvgjA==}
@@ -3106,13 +3078,6 @@ snapshots:
   '@adraffy/ens-normalize@1.11.1': {}
 
   '@albedo-link/intent@0.12.0': {}
-
-  '@anthropic-ai/sdk@0.120.0(zod@4.4.3)':
-    dependencies:
-      json-schema-to-ts: 3.1.1
-      standardwebhooks: 1.0.0
-    optionalDependencies:
-      zod: 4.4.3
 
   '@babel/runtime@7.29.7': {}
 
@@ -4891,8 +4856,6 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@stablelib/base64@1.0.1': {}
-
   '@stellar/freighter-api@6.0.0':
     dependencies:
       buffer: 6.0.3
@@ -6257,8 +6220,6 @@ snapshots:
 
   fast-json-stable-stringify@2.1.0: {}
 
-  fast-sha256@1.3.0: {}
-
   fast-stable-stringify@1.0.0: {}
 
   fastestsmallesttextencoderdecoder@1.0.22: {}
@@ -6482,11 +6443,6 @@ snapshots:
   js-sha256@0.11.1: {}
 
   js-sha256@0.9.0: {}
-
-  json-schema-to-ts@3.1.1:
-    dependencies:
-      '@babel/runtime': 7.29.7
-      ts-algebra: 2.0.0
 
   json-stringify-safe@5.0.1: {}
 
@@ -7039,11 +6995,6 @@ snapshots:
 
   split2@4.2.0: {}
 
-  standardwebhooks@1.0.0:
-    dependencies:
-      '@stablelib/base64': 1.0.1
-      fast-sha256: 1.3.0
-
   statuses@1.5.0: {}
 
   stream-browserify@3.0.0:
@@ -7113,8 +7064,6 @@ snapshots:
   toml@3.0.0: {}
 
   tr46@0.0.3: {}
-
-  ts-algebra@2.0.0: {}
 
   ts-mixer@6.0.4: {}
 

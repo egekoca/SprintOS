@@ -24,7 +24,7 @@ Nothing here is required to read the chain. Each variable buys one capability.
 | `NEXT_PUBLIC_APP_URL` | The address written into contract storage as the evidence bundle's URI | **Every deployment.** Without it the URI points at whatever host the builder's browser was on, and nobody else can open it. |
 | `BLOB_READ_WRITE_TOKEN` | Durable storage for criteria, evidence and reports | Any serverless host. See below. |
 | `SPRINTOS_DATA_DIR` | Filesystem storage instead of Blob | Only for a single instance with a persistent volume. Use an absolute path. |
-| `ANTHROPIC_API_KEY` | Advisory report generation, and milestone planning from a brief | Optional. Human review and settlement work fully without it. |
+| `OPENAI_API_KEY` | Advisory report generation, and milestone planning from a brief | Optional. Human review and settlement work fully without it. |
 | `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` / `GITHUB_SESSION_SECRET` | Signing in to GitHub to list private-to-you repositories | Optional. Public repositories can always be selected by URL. |
 | `GITHUB_TOKEN` | A higher rate limit on public repository scans | Optional. |
 | `NEXT_PUBLIC_STELLAR_RPC_URL` | A different testnet RPC | Optional. |
@@ -35,9 +35,10 @@ The application itself deploys with no configuration. Two settings are not
 optional, and skipping either produces a site that looks fine and fails at the
 moment it matters:
 
-1. **Create a Blob store** (Storage → Create → Blob) and connect it to the
-   project. That sets `BLOB_READ_WRITE_TOKEN`, and the document store switches
-   backends on its own — same content-addressed keys, same hashes.
+1. **Create a Blob store** from the project's Storage tab (`Create Database`
+   → `Blob`), continue, and connect it to the project. That sets
+   `BLOB_READ_WRITE_TOKEN`, and the document store switches backends on its
+   own — same content-addressed keys, same hashes.
 
    Without it, acceptance criteria and evidence bundles are written to a
    filesystem that does not survive the request. The reviewer screen then cannot
@@ -48,7 +49,7 @@ moment it matters:
    trailing slash. The evidence URI is stored on chain permanently; there is no
    second chance to correct it.
 
-`ANTHROPIC_API_KEY` is worth adding too — without it the advisory panel reports
+`OPENAI_API_KEY` is worth adding too — without it the advisory panel reports
 that the service is not configured, which is honest but makes for a thin demo.
 
 ## Walking the whole flow

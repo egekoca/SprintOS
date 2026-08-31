@@ -10,6 +10,7 @@ import { writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  APP_URL,
   DEPLOYMENT,
   SAMPLE_REPORTS,
   SECTIONS,
@@ -23,6 +24,7 @@ const MARK: Record<EvidenceStatus, string> = {
   partial: "**Partial**",
   todo: "**Outstanding**",
 };
+const APP = APP_URL || "https://sprintos-ai.vercel.app";
 
 const out: string[] = [];
 const w = (line = "") => out.push(line);
@@ -71,7 +73,7 @@ for (const section of SECTIONS) {
       w();
       w(
         item.refs
-          .map((ref) => `[${ref.label}](${ref.href.startsWith("/") ? `${DEPLOYMENT.repository}${ref.href}` : ref.href})`)
+          .map((ref) => `[${ref.label}](${ref.href.startsWith("/") ? `${APP}${ref.href}` : ref.href})`)
           .join(" · "),
       );
     }

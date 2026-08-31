@@ -181,7 +181,7 @@ for (const sample of samples) {
     criteria,
     evidence: sample.evidence,
     fetched: sample.fetched,
-    model: "claude-opus-5",
+    model: "gpt-5.6",
     reportId: sample.reportId,
     generatedAt: "2026-08-24T12:00:00.000Z",
   });

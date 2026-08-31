@@ -113,10 +113,24 @@ export const SECTIONS: EvidenceSection[] = [
       {
         requirement:
           "Evidence showing engagement creation, funding, evidence submission, human approval, Hold, release, and refund on testnet, with transaction hashes and explorer links.",
-        status: "todo",
+        status: "done",
         detail:
-          "The contract is deployed and the demo scripts run the whole lifecycle, but no transaction hashes have been recorded yet. Run scripts/demo-release.sh and scripts/demo-refund.sh against testnet and list the resulting hashes here.",
-        refs: [{ label: "demo scripts", href: `${REPO}/tree/main/scripts` }],
+          "Two live testnet engagements are recorded and indexed from the network: #2 covers create, fund, evidence submission, human approval and release; #3 covers create, fund, evidence submission, Hold and deadline refund. Every hash below opens the corresponding Stellar Explorer transaction.",
+        refs: [
+          { label: "Engagement #2 public record", href: `${APP_URL || "https://sprintos-ai.vercel.app"}/e/2` },
+          { label: "create #2 · 0ef5bdb8", href: "https://stellar.expert/explorer/testnet/tx/0ef5bdb8334f5c84853a4e346f5dc51f9693257c29fbd03f4997e6ad70fb5708" },
+          { label: "fund #2 · e5c18614", href: "https://stellar.expert/explorer/testnet/tx/e5c1861463277b2d2408d18faecdd3fde1976d0576a91b7bcf8e520b8d1f1e02" },
+          { label: "evidence #2 · 2775cd29", href: "https://stellar.expert/explorer/testnet/tx/2775cd295697ba001d5ccdfcbcc60f1b4b9c5444197ae94aeb6ac8fa717030ca" },
+          { label: "approve #2 · 9085da84", href: "https://stellar.expert/explorer/testnet/tx/9085da84d543a32695089604e5fbf3a0449ebe97bb1f796061d8a10f4434ca9b" },
+          { label: "release #2 · 8e368dcf", href: "https://stellar.expert/explorer/testnet/tx/8e368dcf2c2886aa3149cdb70794c954da9d2fd81a963c7d58ce8ab9eafbeb55" },
+          { label: "Engagement #3 public record", href: `${APP_URL || "https://sprintos-ai.vercel.app"}/e/3` },
+          { label: "create #3 · 186b71a7", href: "https://stellar.expert/explorer/testnet/tx/186b71a79c773d7baf0aefbc152ceb0c67ae9de0a3f063edb8702749012d26e2" },
+          { label: "fund #3 · 36e54c1b", href: "https://stellar.expert/explorer/testnet/tx/36e54c1b72554c802700a13046957df78f29f07f4e867ab8fd01d8fa11fa230e" },
+          { label: "evidence #3 · ea436df2", href: "https://stellar.expert/explorer/testnet/tx/ea436df2a395f673418e7bbf16b809b037f1c873d09865be5d0cd6b07730d824" },
+          { label: "hold #3 · 83227424", href: "https://stellar.expert/explorer/testnet/tx/832274244add7e071985ba4f48bd65aa0eb45f2462cee70d0ee3422c281a511d" },
+          { label: "refund #3 · ae54c14c", href: "https://stellar.expert/explorer/testnet/tx/ae54c14cba2dcf21148e5e4fe328531cb10fc4da4881042c009ace8063fd4b64" },
+          { label: "demo scripts", href: `${REPO}/tree/main/scripts` },
+        ],
       },
     ],
   },
@@ -140,8 +154,11 @@ export const SECTIONS: EvidenceSection[] = [
           "A structured report with an advisory score, criterion checklist, supporting links, missing information, and a Ready for Review / Revision Suggested recommendation.",
         status: "done",
         detail:
-          "All five fields are required by the report schema, plus a report_hash: the SHA-256 of the canonical report with the hash field removed, so a report cannot be altered after the fact without detection.",
-        refs: [{ label: "report schema", href: file("packages/schemas/src/report.ts") }],
+          "All five fields are required by the report schema, plus a report_hash: the SHA-256 of the canonical report with the hash field removed, so a report cannot be altered after the fact without detection. A live report for engagement #2 was generated with score 25, recommendation RevisionSuggested, binding false, and hash sha256:4eb0627f170efe3775a714429a0396ce5e2b19e7f76002df027149200b2f2443.",
+        refs: [
+          { label: "report schema", href: file("packages/schemas/src/report.ts") },
+          { label: "live report for engagement #2", href: "https://sprintos-ai.vercel.app/api/advisory?engagement_id=2&milestone_idx=0&evidence_hash=243f8ae7bbfa484711fa8522423cd36b88b64d39f5a7ba198f8d9b2ba420773e" },
+        ],
       },
       {
         requirement:
@@ -235,9 +252,13 @@ export const SECTIONS: EvidenceSection[] = [
       {
         requirement:
           "A public demo including one completed approval and release scenario and one Hold or refund scenario.",
-        status: "todo",
+        status: "done",
         detail:
-          "Create two engagements on testnet from the deployed site — take one through approve and release, and one through hold and refund-after-deadline — then link both public pages here.",
+          "The public testnet records are live: engagement #2 ends in Released after human approval, and engagement #3 ends in Refunded after Hold and the deadline. Each page shows the ledger state, evidence pointers and indexed transaction trail.",
+        refs: [
+          { label: "Approval → release demo", href: `${APP_URL || "https://sprintos-ai.vercel.app"}/e/2` },
+          { label: "Hold → refund demo", href: `${APP_URL || "https://sprintos-ai.vercel.app"}/e/3` },
+        ],
       },
       {
         requirement:

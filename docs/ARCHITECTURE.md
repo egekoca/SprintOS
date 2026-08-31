@@ -42,10 +42,12 @@ an earlier submission cannot be shown for a later revision.
 ## Storage
 
 The default `DocumentStore` writes JSON under `SPRINTOS_DATA_DIR`. It is suitable
-for local development or a single instance backed by a persistent volume. A
-multi-instance/serverless deployment must replace this implementation with a
-shared object store or database while preserving content-addressed keys and
-schema validation on read.
+for local development or a single instance backed by a persistent volume.
+Setting `BLOB_READ_WRITE_TOKEN` selects Vercel Blob for serverless deployments.
+Criteria, evidence and reports keep content-addressed keys; settlement activity
+is stored as one object per transaction hash so concurrent requests cannot
+overwrite one another. Reads validate every object against its schema and merge
+legacy aggregate activity files for migration.
 
 ## Chain reads and writes
 

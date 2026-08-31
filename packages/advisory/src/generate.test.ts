@@ -37,7 +37,7 @@ function assemble(score: number) {
     missing_information: [],
   };
   return assembleReport({
-    draft, criteria, evidence, fetched, model: "claude-opus-5",
+    draft, criteria, evidence, fetched, model: "gpt-5.6",
     reportId: "3f2504e0-4f89-41d3-9a0c-0305e82c3301",
     generatedAt: "2026-08-24T12:00:00.000Z",
   });
@@ -92,7 +92,7 @@ test("the report uses the post-creation evidence engagement id", () => {
     criteria: { ...criteria, engagement_id: "draft:before-chain" },
     evidence: { ...evidence, engagement_id: "42" },
     fetched,
-    model: "claude-opus-5",
+    model: "gpt-5.6",
     reportId: "3f2504e0-4f89-41d3-9a0c-0305e82c3301",
     generatedAt: "2026-08-24T12:00:00.000Z",
   });
