@@ -3,6 +3,7 @@ import { Address, Transaction, TransactionBuilder, rpc, scValToNative, xdr } fro
 import { ActivityAction, ActivityEntry } from "@sprintos/schemas";
 import { NETWORK, SETTLEMENT_CONTRACT_ID } from "@/lib/stellar/config";
 import { StoreUnavailableError, appendActivity, store, validateEngagementId } from "@/lib/store";
+import { createdEngagementId } from "@/lib/activity";
 import { takeRateLimit } from "@/lib/rate-limit";
 import { isSameOrigin, requestBodyIsTooLarge, requestClientKey } from "@/lib/request-security";
 
@@ -154,15 +155,24 @@ export async function POST(request: Request) {
 
   /* Every method but creation carries its engagement id, and the milestone
      methods carry the index too, so both are read from the ledger rather than
-     from the caller. Creation returns its id instead of taking one, so there
-     the sponsor's own claim is all there is. */
+     from the caller. Creation returns its id instead of taking one, so decode
+     that return value. Accepting the browser's copy here would let a valid
+     creation transaction be attached to an unrelated public engagement page. */
   const [firstArg, secondArg] = call.args;
-  const engagementId =
-    action === "created"
-      ? String(body.engagement_id ?? "")
-      : typeof firstArg === "bigint"
-        ? firstArg.toString()
-        : "";
+  const returnedId = action === "created"
+    ? createdEngagementId(confirmed.returnValue ? scValToNative(confirmed.returnValue) : null)
+    : null;
+  const engagementId = action === "created"
+    ? returnedId ?? ""
+    : typeof firstArg === "bigint"
+      ? firstArg.toString()
+      : "";
+  if (action === "created" && !returnedId) {
+    return NextResponse.json({ error: "The creation transaction did not return an engagement id." }, { status: 409 });
+  }
+  if (action === "created" && body.engagement_id !== undefined && body.engagement_id !== engagementId) {
+    return NextResponse.json({ error: "The supplied engagement id does not match the ledger result." }, { status: 409 });
+  }
   const milestoneIdx =
     action !== "created" && action !== "funded" && typeof secondArg === "number" ? secondArg : undefined;
 

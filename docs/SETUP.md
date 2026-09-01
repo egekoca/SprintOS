@@ -15,6 +15,9 @@ The app defaults to the checked-in testnet deployment, so it talks to a live
 contract straight away. Every read works without a wallet; every write asks the
 wallet to sign.
 
+The public in-app reference is `/docs`. The first-month evidence index is
+`/evidence`, and the explicit AI boundary proof is `/evidence/ai-boundary`.
+
 ## Environment
 
 Nothing here is required to read the chain. Each variable buys one capability.
@@ -40,6 +43,12 @@ moment it matters:
    `BLOB_READ_WRITE_TOKEN`, and the document store switches backends on its
    own — same content-addressed keys, same hashes.
 
+   You do not paste the Blob token into the repository or into the Blob public
+   URL. Vercel injects the token into the connected project's Environment
+   Variables. Confirm that it is enabled for the deployment environment and
+   redeploy. The token is a server secret; never expose it in browser code,
+   screenshots or GitHub.
+
    Without it, acceptance criteria and evidence bundles are written to a
    filesystem that does not survive the request. The reviewer screen then cannot
    re-hash either document, so **Approve and Hold stay disabled** and the
@@ -51,6 +60,10 @@ moment it matters:
 
 `OPENAI_API_KEY` is worth adding too — without it the advisory panel reports
 that the service is not configured, which is honest but makes for a thin demo.
+
+After deployment, open `/api/health`. On Vercel it should return HTTP 200 with
+`status: "ok"`; it must show Blob as the storage backend and a configured public
+URL. The response never includes the Blob token, OpenAI key or RPC URL.
 
 ## Walking the whole flow
 
@@ -108,3 +121,7 @@ pnpm test && pnpm typecheck                # application and schema tests
 See [EVIDENCE.md](EVIDENCE.md) for the full deliverable-by-deliverable pack,
 [ARCHITECTURE.md](ARCHITECTURE.md) for the trust boundaries, and
 [SECURITY.md](SECURITY.md) for the threat model.
+
+See [FIRST-MONTH-EVIDENCE-RUNBOOK.md](FIRST-MONTH-EVIDENCE-RUNBOOK.md) for the
+exact screenshots, recording sequence, transaction evidence and the
+100/100-AI proof.

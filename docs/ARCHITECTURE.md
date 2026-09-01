@@ -55,3 +55,17 @@ Reads use RPC simulation and need no wallet. Writes load the source account,
 simulate/prepare the transaction, ask the selected wallet to sign, submit via
 RPC and wait for ledger confirmation. Network and deployment identifiers are
 pinned to testnet.
+
+## Public verification surfaces
+
+The application exposes `/docs` as the public product reference, `/evidence`
+as the first-month SOW index, and `/evidence/ai-boundary` as the explicit proof
+that a perfect advisory score cannot authorize a payment. `/api/health` reports
+non-secret deployment readiness for RPC, deployment IDs, Blob and the public
+URL. It returns degraded status rather than pretending a serverless deployment
+is usable when its durable store or evidence URL is missing.
+
+The current release is testnet-only by design. A future mainnet pilot must use a
+separate deployment record, canonical mainnet USDC SAC, an explicit fund cap and
+the same interactive wallet authorization boundary; it must not be enabled by
+silently changing the testnet environment variables.

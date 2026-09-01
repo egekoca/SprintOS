@@ -90,9 +90,9 @@ The contract's ABI accepts no score and has no entrypoint an automated party can
 
 ### **Delivered** — A required test showing that even a score of 100 cannot release testnet USDC without the authorized human wallet.
 
-test_ai_score_100_cannot_release. Two companions make the point from the other side: test_ai_score_zero_does_not_block_human_approval and test_settlement_works_with_no_advisory_report_at_all — the advisory module is never on the critical path.
+test_ai_score_100_cannot_release. The public proof page distinguishes the deterministic 100/100 test vector from live human-signed transactions: the report never enters the contract, and there is intentionally no AI payment transaction. Two companions make the point from the other side: test_ai_score_zero_does_not_block_human_approval and test_settlement_works_with_no_advisory_report_at_all — the advisory module is never on the critical path.
 
-[ai_cannot_release.rs](https://github.com/egekoca/SprintOS/blob/main/contracts/settlement/src/test/ai_cannot_release.rs)
+[Public AI boundary proof](https://sprintos-ai.vercel.app/evidence/ai-boundary) · [ai_cannot_release.rs](https://github.com/egekoca/SprintOS/blob/main/contracts/settlement/src/test/ai_cannot_release.rs)
 
 ### **Delivered** — Three sample reports covering a complete delivery, a partial delivery, and insufficient evidence, with evidence fixtures and report hashes.
 
@@ -146,9 +146,9 @@ The public testnet records are live: engagement #2 ends in Released after human 
 
 ### **Partial** — Documentation: setup guide, usage guide, security notes, reviewer checklist.
 
-Architecture, security model and this evidence pack are written. The setup and usage guide covers running and operating the app; a demo video is still outstanding.
+The public docs page now brings setup, workflow, trust model, evidence integrity and API reference together. Architecture, security model, setup and this evidence pack are also written in the repository. A demo video and role screenshots are still outstanding.
 
-[Setup and usage](https://github.com/egekoca/SprintOS/blob/main/docs/SETUP.md) · [Architecture](https://github.com/egekoca/SprintOS/blob/main/docs/ARCHITECTURE.md) · [Security model](https://github.com/egekoca/SprintOS/blob/main/docs/SECURITY.md)
+[Public docs](https://sprintos-ai.vercel.app/docs) · [Setup and usage](https://github.com/egekoca/SprintOS/blob/main/docs/SETUP.md) · [Architecture](https://github.com/egekoca/SprintOS/blob/main/docs/ARCHITECTURE.md) · [Security model](https://github.com/egekoca/SprintOS/blob/main/docs/SECURITY.md)
 
 ### **Outstanding** — Role screenshots, wallet signing recording, and demo video.
 

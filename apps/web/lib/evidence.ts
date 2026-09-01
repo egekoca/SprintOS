@@ -184,8 +184,11 @@ export const SECTIONS: EvidenceSection[] = [
           "A required test showing that even a score of 100 cannot release testnet USDC without the authorized human wallet.",
         status: "done",
         detail:
-          "test_ai_score_100_cannot_release. Two companions make the point from the other side: test_ai_score_zero_does_not_block_human_approval and test_settlement_works_with_no_advisory_report_at_all — the advisory module is never on the critical path.",
-        refs: [{ label: "ai_cannot_release.rs", href: file("contracts/settlement/src/test/ai_cannot_release.rs") }],
+          "test_ai_score_100_cannot_release. The public proof page distinguishes the deterministic 100/100 test vector from live human-signed transactions: the report never enters the contract, and there is intentionally no AI payment transaction. Two companions make the point from the other side: test_ai_score_zero_does_not_block_human_approval and test_settlement_works_with_no_advisory_report_at_all — the advisory module is never on the critical path.",
+        refs: [
+          { label: "Public AI boundary proof", href: "/evidence/ai-boundary" },
+          { label: "ai_cannot_release.rs", href: file("contracts/settlement/src/test/ai_cannot_release.rs") },
+        ],
       },
       {
         requirement:
@@ -265,8 +268,9 @@ export const SECTIONS: EvidenceSection[] = [
           "Documentation: setup guide, usage guide, security notes, reviewer checklist.",
         status: "partial",
         detail:
-          "Architecture, security model and this evidence pack are written. The setup and usage guide covers running and operating the app; a demo video is still outstanding.",
+          "The public docs page now brings setup, workflow, trust model, evidence integrity and API reference together. Architecture, security model, setup and this evidence pack are also written in the repository. A demo video and role screenshots are still outstanding.",
         refs: [
+          { label: "Public docs", href: "/docs" },
           { label: "Setup and usage", href: file("docs/SETUP.md") },
           { label: "Architecture", href: file("docs/ARCHITECTURE.md") },
           { label: "Security model", href: file("docs/SECURITY.md") },
