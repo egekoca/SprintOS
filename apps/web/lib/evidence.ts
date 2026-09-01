@@ -284,9 +284,9 @@ export const SECTIONS: EvidenceSection[] = [
 
 /** The three sample reports, with the hashes anyone can regenerate. */
 export const SAMPLE_REPORTS = [
-  { name: "01-complete-delivery", score: 94, hash: "sha256:cce8f793ffb6cfde7bcbb7fef876cac080bb5c7ef71c434a7da0e2b0cb91e0ce" },
-  { name: "02-partial-delivery", score: 58, hash: "sha256:583cbd4b641d4d1150c01e73fd7e1203c47a4f248e65efd6f93a48abd3d7b319" },
-  { name: "03-insufficient-evidence", score: 8, hash: "sha256:bbc30f374725d2cd29267587c320e8ba441bae4870522725689bde60f7b08d5f" },
+  { name: "01-complete-delivery", score: 94, hash: "sha256:b2c2aa34b7ebc08630aee808e66aa68a924feba07f6815e985b83a0dd34484fe" },
+  { name: "02-partial-delivery", score: 58, hash: "sha256:a450fb41923d9d8e5b6c289facc137ecc8eaf63e7321e2beaf9f958d741e64b1" },
+  { name: "03-insufficient-evidence", score: 8, hash: "sha256:e3456346679a9ee970a767bbeaac4530951806a51ef75b527d2ce0bf09fa1604" },
 ] as const;
 
 /** What an Ambassador can run to check the claims above without trusting them. */

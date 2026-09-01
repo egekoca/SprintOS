@@ -9,7 +9,7 @@ const valid = {
   engagement_id: "0",
   milestone_idx: 0,
   generated_at: "2026-08-24T12:00:00.000Z",
-  model: "claude-opus-5",
+  model: "gpt-5.6",
   binding: false,
   disclaimer: DISCLAIMER,
   advisory_score: 92,

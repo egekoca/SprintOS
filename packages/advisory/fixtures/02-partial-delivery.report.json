@@ -4,7 +4,7 @@
   "engagement_id": "0",
   "milestone_idx": 0,
   "generated_at": "2026-08-24T12:00:00.000Z",
-  "model": "claude-opus-5",
+  "model": "gpt-5.6",
   "binding": false,
   "disclaimer": "Advisory only. This report is not binding. It cannot approve a milestone, authorize a transaction, or release funds. Only the assigned human reviewer can do that, by signing with their own wallet.",
   "advisory_score": 58,
@@ -86,5 +86,5 @@
     "A test covering refund before the deadline.",
     "The test named in criterion 5, or its run output."
   ],
-  "report_hash": "sha256:583cbd4b641d4d1150c01e73fd7e1203c47a4f248e65efd6f93a48abd3d7b319"
+  "report_hash": "sha256:a450fb41923d9d8e5b6c289facc137ecc8eaf63e7321e2beaf9f958d741e64b1"
 }
