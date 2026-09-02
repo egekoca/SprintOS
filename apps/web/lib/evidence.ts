@@ -49,10 +49,12 @@ const file = (path: string) => `${REPO}/blob/main/${path}`;
 
 export const APP_URL = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/+$/, "");
 
+const DEPLOYMENT_CONTRACT_EXPLORER = `https://stellar.expert/explorer/testnet/contract/${deployment.settlementContractId}`;
+
 export const DEPLOYMENT = {
   network: "Stellar testnet",
   contractId: deployment.settlementContractId,
-  contractExplorer: `https://stellar.expert/explorer/testnet/contract/${deployment.settlementContractId}`,
+  contractExplorer: DEPLOYMENT_CONTRACT_EXPLORER,
   usdcSacId: deployment.usdcSacId,
   usdcExplorer: `https://stellar.expert/explorer/testnet/contract/${deployment.usdcSacId}`,
   repository: REPO,
@@ -101,6 +103,17 @@ export const SECTIONS: EvidenceSection[] = [
         detail:
           "Every value-moving entrypoint calls require_auth on the role recorded in contract storage. Settlement uses the testnet USDC SAC directly; nothing custom is minted or signed.",
         refs: [{ label: "Security model", href: file("docs/SECURITY.md") }],
+      },
+      {
+        requirement:
+          "The contract running on testnet is the contract in this repository, and anyone can check that for themselves.",
+        status: "done",
+        detail:
+          "Building this source produces WASM that is byte-identical to what is deployed: sha256 3f8f93abe9f2ce9917f85472a41bc3175bc665363410f2373fa8ad9ac8fbb4ff. Two commands prove it — build locally, then fetch the deployed contract off the network and compare. Nothing in the evidence below rests on trusting that the published source is what actually runs.",
+        refs: [
+          { label: "How to check it", href: file("docs/ARCHITECTURE.md") },
+          { label: "Deployed contract", href: DEPLOYMENT_CONTRACT_EXPLORER },
+        ],
       },
       {
         requirement:
@@ -243,6 +256,10 @@ export const SECTIONS: EvidenceSection[] = [
         status: "done",
         detail:
           "Every write is simulated, prepared, and handed to the wallet. The application holds no key and there is no server-side signing path.",
+        refs: [
+          { label: "wallet.ts — the only place a signature is requested", href: file("apps/web/lib/stellar/wallet.ts") },
+          { label: "contract.ts — simulate, prepare, hand to the wallet", href: file("apps/web/lib/stellar/contract.ts") },
+        ],
       },
       {
         requirement:

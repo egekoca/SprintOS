@@ -1,7 +1,9 @@
 # Setup and usage
 
-Two audiences: someone deploying SprintOS, and someone reviewing a milestone on
-a deployment that already exists. The second half needs no command line.
+This is written for two people. One is deploying SprintOS. The other has been
+handed a link and has to decide whether a milestone was met. If you're the
+second one, skip to [Walking the whole flow](#walking-the-whole-flow) — you'll
+never need a terminal.
 
 ## Run it locally
 
@@ -11,16 +13,18 @@ pnpm install
 pnpm dev
 ```
 
-The app defaults to the checked-in testnet deployment, so it talks to a live
-contract straight away. Every read works without a wallet; every write asks the
-wallet to sign.
+That's it. The app points at the checked-in testnet deployment, so you're
+talking to a live contract from the first page load. Reading needs no wallet.
+Writing always asks one to sign.
 
-The public in-app reference is `/docs`. The first-month evidence index is
-`/evidence`, and the explicit AI boundary proof is `/evidence/ai-boundary`.
+Three pages are worth knowing about: `/docs` is the product reference,
+`/evidence` is the first-month SOW index, and `/evidence/ai-boundary` is where
+the AI-cannot-pay claim gets proved rather than asserted.
 
 ## Environment
 
-Nothing here is required to read the chain. Each variable buys one capability.
+None of this is needed to read the chain. Each variable buys exactly one
+capability, and the app degrades honestly without it.
 
 | Variable | What it unlocks | Needed when |
 | --- | --- | --- |
@@ -34,9 +38,9 @@ Nothing here is required to read the chain. Each variable buys one capability.
 
 ## Deploying to Vercel
 
-The application itself deploys with no configuration. Two settings are not
-optional, and skipping either produces a site that looks fine and fails at the
-moment it matters:
+The app deploys with no configuration at all. But two settings are not really
+optional. Skip either and you get a site that looks completely fine right up
+until the moment someone tries to decide a milestone:
 
 1. **Create a Blob store** from the project's Storage tab (`Create Database`
    → `Blob`), continue, and connect it to the project. That sets
@@ -58,17 +62,17 @@ moment it matters:
    trailing slash. The evidence URI is stored on chain permanently; there is no
    second chance to correct it.
 
-`OPENAI_API_KEY` is worth adding too — without it the advisory panel reports
-that the service is not configured, which is honest but makes for a thin demo.
+Add `OPENAI_API_KEY` as well if you can. Without it the advisory panel says the
+service isn't configured, which is honest, but it makes for a thin demo.
 
-After deployment, open `/api/health`. On Vercel it should return HTTP 200 with
-`status: "ok"`; it must show Blob as the storage backend and a configured public
-URL. The response never includes the Blob token, OpenAI key or RPC URL.
+Then open `/api/health`. On Vercel you want HTTP 200, `status: "ok"`, Blob as
+the storage backend and a configured public URL. The response never contains the
+Blob token, the OpenAI key or the RPC URL, so it's safe to screenshot.
 
 ## Walking the whole flow
 
-Three roles, three wallets. They must be three different Stellar accounts; the
-contract refuses an engagement where any two are the same.
+Three roles, three wallets, and they have to be three genuinely different
+Stellar accounts. The contract refuses an engagement where any two match.
 
 **As the sponsor — `/sponsor`.** Pick a repository, then either paste a brief and
 let SprintOS draft a milestone plan or write the milestones yourself. Every
@@ -84,13 +88,18 @@ pull request, test result, documentation, demo — and a note for the reviewer.
 Signing anchors the hash of that bundle on chain.
 
 **As the reviewer — `/review`.** The milestone opens with the funded criteria
-and the submitted evidence side by side. Both are re-hashed on the server and
-compared with the ledger; if either does not match, the decision buttons stay
-disabled. Optionally generate the advisory report — a score, a verdict per
-criterion with its supporting links, and what it could not verify. It changes
-nothing: you tick an attestation that you read the evidence yourself, then
-Approve or Hold. Releasing the money is a **separate** signature from approving
-the work.
+on one side and the submitted evidence on the other. Both get re-hashed on the
+server and compared against the ledger. If either fails to match, the decision
+buttons stay dead.
+
+You can generate the advisory report if you want one: a score, a verdict on each
+criterion with the links behind it, and an explicit list of what it couldn't
+verify. It changes nothing about what you're allowed to do. You tick a box
+saying you read the evidence yourself, then Approve or Hold.
+
+Releasing the money is a **separate** signature from approving the work. That's
+deliberate — judging and paying are two different acts and the ledger should
+show both.
 
 **Anyone — `/e/<id>`.** The public engagement page. No wallet, no account: every
 milestone, amount, status and deadline, read straight from the ledger.
@@ -115,12 +124,15 @@ resubmit; a release cannot be undone.
 ```bash
 cargo test --package sprintos-settlement   # every contract test, including test_ai_score_100_cannot_release
 pnpm lint:boundaries                       # the advisory module carries no Stellar SDK and no signing code
-pnpm test && pnpm typecheck                # application and schema tests
+pnpm test && pnpm typecheck && pnpm lint   # application and schema tests, types, and the linter
 ```
 
-See [EVIDENCE.md](EVIDENCE.md) for the full deliverable-by-deliverable pack,
-[ARCHITECTURE.md](ARCHITECTURE.md) for the trust boundaries, and
-[SECURITY.md](SECURITY.md) for the threat model.
+To check that the deployed contract really is this source, build it and compare
+hashes — [ARCHITECTURE.md](ARCHITECTURE.md) has the two commands.
+
+[EVIDENCE.md](EVIDENCE.md) has the full deliverable-by-deliverable pack.
+[ARCHITECTURE.md](ARCHITECTURE.md) covers the trust boundaries and reproducible
+builds. [SECURITY.md](SECURITY.md) is the threat model.
 
 See [FIRST-MONTH-EVIDENCE-RUNBOOK.md](FIRST-MONTH-EVIDENCE-RUNBOOK.md) for the
 exact screenshots, recording sequence, transaction evidence and the

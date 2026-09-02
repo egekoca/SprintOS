@@ -1,49 +1,63 @@
 # Security model
 
-## Trust boundaries
+## What trusts what
 
-- The contract is authoritative for money and roles.
-- UI role checks are convenience only; every value-moving path requires Soroban
-  authorization from the role recorded in contract storage.
-- Advisory output is untrusted and non-binding. It cannot import the Stellar SDK
-  or signing code, and the contract accepts no score or recommendation.
-- Criteria, evidence and reports are untrusted off-chain data until their schema
-  and hashes verify.
+The contract is the authority on money and roles. Nothing else is.
 
-## Value-moving paths
+The role checks in the UI are there so people don't click buttons that will
+fail. They protect nothing. Every path that moves value asks Soroban to verify a
+signature against the address recorded in contract storage, and that check runs
+whether or not the interface agreed with it.
 
-- `fund`: sponsor authorization; moves the full commitment into escrow.
-- `release`: reviewer authorization; pays an approved milestone.
-- `claim`: builder authorization; recovers an already-approved payment if the
-  reviewer cannot return for the second signature. It cannot approve work.
-- `refund`: sponsor authorization; reclaims an unapproved milestone after its
-  deadline.
+Advisory output is untrusted and non-binding. The package cannot import a
+Stellar SDK or any signing code — CI fails the build if it tries — and the
+contract accepts no score and no recommendation, so there is no argument through
+which an opinion could reach a payment.
 
-The contract is intentionally immutable: there is no admin, upgrade or pause
-entrypoint. This reduces governance authority but also means a deployed defect
-cannot be patched. Deploy a new contract and migrate users rather than treating
-the testnet address as permanent.
+Criteria, evidence and reports are untrusted off-chain data until their schema
+parses and their hash matches what the ledger recorded.
 
-## Public evidence retrieval
+## The paths that move money
 
-Evidence fetches require credential-free HTTPS. Local, private, link-local,
-reserved and documentation IP ranges are refused after DNS resolution;
-redirects are refused; response time and size are bounded; binary content is
-not accepted. Retrieved text remains prompt-injection-capable data and is fenced
-as untrusted in the model prompt.
+| Function | Who must sign | What it does |
+| --- | --- | --- |
+| `fund` | sponsor | Moves the full commitment into escrow |
+| `release` | reviewer | Pays out an approved milestone |
+| `claim` | builder | Recovers an already-approved payment when the reviewer never comes back for the second signature. It cannot approve work. |
+| `refund` | sponsor | Reclaims an unapproved milestone after its deadline |
+
+The contract is immutable on purpose. No admin, no upgrade path, no pause. That
+buys a guarantee nobody can talk their way around, and it costs the ability to
+patch a defect in place. If one is found, the answer is a new contract and a
+migration, not a fix — so do not treat the testnet address as permanent.
+
+## Fetching public evidence
+
+Evidence fetches use credential-free HTTPS only. After DNS resolves, local,
+private, link-local, reserved and documentation IP ranges are refused; redirects
+are refused outright; response time and size are both bounded; binary content is
+rejected.
+
+What comes back is still text an attacker may have written. It is fenced as
+untrusted data in the model prompt, and the report is refused entirely if it
+cites a URL the builder never submitted — dropping such citations quietly would
+leave a reviewer reading a link nobody offered as evidence.
 
 ## API controls
 
 Advisory generation accepts same-origin requests and applies a small in-process
-rate limit. This is defense-in-depth for the single-instance MVP. A distributed
-deployment must use a shared rate limiter and wallet-backed reviewer
-authentication before exposing paid model generation publicly.
+rate limit. For a single-instance MVP that is defense in depth, not the whole
+defense. Before anyone exposes paid model generation publicly, a distributed
+deployment needs a shared rate limiter and wallet-backed reviewer
+authentication.
 
 ## Operational checklist
 
-- Keep `pnpm audit --prod --audit-level=high` and all CI jobs green.
-- Deploy only optimized WASM built from the reviewed commit.
+- Keep `pnpm audit --prod --audit-level=high` and every CI job green.
+- Deploy only optimized WASM built from the reviewed commit, and check the hash
+  against the deployed contract (see [ARCHITECTURE.md](ARCHITECTURE.md)).
 - Verify the configured SAC and contract id after every deployment.
-- Use a persistent shared document store outside local development.
-- Monitor contract events and storage TTLs.
-- Test reviewer loss, frozen asset/trustline failures and testnet resets.
+- Use a persistent shared document store anywhere but local development.
+- Watch contract events and storage TTLs.
+- Test what happens when the reviewer disappears, when a trustline is frozen,
+  and when testnet resets.

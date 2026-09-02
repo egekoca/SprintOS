@@ -1,9 +1,11 @@
 # First-month evidence runbook
 
-This runbook turns the first-month SOW into a small, reviewable evidence
-packet. It separates what is already verifiable from the screenshots and
-recording that still need to be captured by a person with the three testnet
-wallets.
+Everything the first month owes the SOW, sorted into two piles: what a reviewer
+can already check on their own, and what still needs a person sitting in front
+of three testnet wallets with a screen recorder running.
+
+The second pile is short. It is also the only thing standing between this
+project and a complete evidence packet, so it is worth doing in one sitting.
 
 ## 1. Evidence that already exists
 
@@ -40,11 +42,11 @@ on `/evidence` and on each public engagement page.
 
 ## 3. Screenshots to capture
 
-Use a clean browser window with the URL bar visible. Keep the relevant status,
-wallet address ending, hash and explorer link in frame. Do not show secrets or
-browser password managers.
+Clean browser window, URL bar visible. Keep the status, the last few characters
+of the wallet address, the hash and the explorer link inside the frame. Nothing
+secret, and close the password manager first.
 
-Save the files with these names:
+Name the files exactly this:
 
 | File | Page | What must be visible |
 | --- | --- | --- |
@@ -62,7 +64,9 @@ The boundary screenshot must be accompanied by the contract test output below.
 
 ## 4. Short demo recording
 
-Record one narrated pass, 3 to 5 minutes long:
+One narrated pass, three to five minutes. This single recording satisfies both
+the "demo video" and the "wallet signing recording" the SOW asks for, so there
+is no reason to shoot it twice:
 
 1. Start at `/sponsor` and show the sponsor wallet and fixed milestone terms.
 2. Show the builder's evidence form and the evidence hash after signing.
@@ -81,7 +85,7 @@ private key, token, or unrelated account information.
 
 ## 5. The 100/100 AI boundary proof
 
-Run the deterministic contract test from the repository root:
+From the repository root:
 
 ```bash
 cargo test --package sprintos-settlement test_ai_score_100_cannot_release
@@ -97,16 +101,19 @@ It proves all of the following in one scenario:
 - the escrow and builder balance do not change;
 - after the reviewer signs Approve and Release, the same milestone settles.
 
-This is a deliberately honest proof format. The score is not submitted as a
-contract argument, so no live transaction can contain “AI score 100”. The live
-transactions on the proof page demonstrate the human path, while the local
-contract test demonstrates that the AI path does not exist.
+It is worth being clear about why the proof takes this shape. The score is never
+submitted as a contract argument, so there is no live transaction anywhere that
+could contain “AI score 100” — and if the proof page showed one, that would mean
+the guarantee had been broken. The live transactions demonstrate the human path.
+The local test demonstrates that the AI path does not exist. Together, that is
+the whole claim.
 
 Also run the complete verification set:
 
 ```bash
 pnpm test
 pnpm typecheck
+pnpm lint
 pnpm lint:boundaries
 pnpm build
 cargo fmt --all -- --check
@@ -141,11 +148,15 @@ and the repository. It should state which actions are local tests and which
 are live testnet transactions. Do not put environment files, API keys, Blob
 tokens, seed phrases or wallet backups in this folder.
 
-## 7. Reviewer conclusion to make explicit
+## 7. What to say plainly in the submission
 
-The first month delivers a testnet settlement MVP with human-controlled
-approval and release. The advisory module can improve review speed, but it is
-not a signer, an approver, a contract caller or a payment trigger. Mainnet
-deployment and real-fund settlement are intentionally not claimed in this
-first-month packet; they are proposed as a separately controlled second-month
-deliverable.
+The first month delivers a working testnet settlement MVP where approval and
+release stay under human control.
+
+The advisory module makes review faster. It is not a signer, not an approver,
+not a contract caller and not a payment trigger — and the packet above proves
+each of those separately rather than asserting them together.
+
+Mainnet and real funds are not claimed here. That is deliberate. They belong to
+a second month with its own controls, not to a quiet flip of an environment
+variable.

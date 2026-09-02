@@ -46,6 +46,12 @@ Every value-moving entrypoint calls require_auth on the role recorded in contrac
 
 [Security model](https://github.com/egekoca/SprintOS/blob/main/docs/SECURITY.md)
 
+### **Delivered** — The contract running on testnet is the contract in this repository, and anyone can check that for themselves.
+
+Building this source produces WASM that is byte-identical to what is deployed: sha256 3f8f93abe9f2ce9917f85472a41bc3175bc665363410f2373fa8ad9ac8fbb4ff. Two commands prove it — build locally, then fetch the deployed contract off the network and compare. Nothing in the evidence below rests on trusting that the published source is what actually runs.
+
+[How to check it](https://github.com/egekoca/SprintOS/blob/main/docs/ARCHITECTURE.md) · [Deployed contract](https://stellar.expert/explorer/testnet/contract/CAJUEUOEP6UUNLQ65XOINCUNVBXYPOGNWZC2XZQE7HRV66KTLERPHLND)
+
 ### **Delivered** — Tests cover successful transactions, unauthorized calls, invalid states, duplicate release attempts, incorrect amounts, and early refunds.
 
 44 tests, all six categories: test_happy_path_release · test_stranger_cannot_release and test_unsigned_release_rejected · test_release_on_pending_rejected · test_double_release_rejected · test_zero_amount_rejected and test_total_amount_overflow_is_typed · test_early_refund_rejected. Run with `cargo test --package sprintos-settlement`.
@@ -131,6 +137,8 @@ Both documents are re-hashed on the server and the decision buttons stay disable
 ### **Delivered** — For release or refund, the application prepares the transaction and the authorized user reviews and signs it through the connected wallet.
 
 Every write is simulated, prepared, and handed to the wallet. The application holds no key and there is no server-side signing path.
+
+[wallet.ts — the only place a signature is requested](https://github.com/egekoca/SprintOS/blob/main/apps/web/lib/stellar/wallet.ts) · [contract.ts — simulate, prepare, hand to the wallet](https://github.com/egekoca/SprintOS/blob/main/apps/web/lib/stellar/contract.ts)
 
 ### **Delivered** — The interface displays milestone status, amounts, deadlines, transaction hashes, and Stellar explorer links.
 
