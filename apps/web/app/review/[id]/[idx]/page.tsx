@@ -19,6 +19,7 @@ import {
 } from "@/lib/stellar/contract";
 import { formatUsdc, shortAddress } from "@/lib/stellar/config";
 import { documentHashInBrowser, hashesMatch } from "@/lib/document-hash";
+import { reviewGate, type DocumentState } from "@/lib/review-gate";
 import { EvidenceBundle as EvidenceBundleSchema } from "@sprintos/schemas/milestone";
 
 /**
@@ -37,9 +38,6 @@ function DocumentBadge({ state }: { state: DocumentState }) {
   if (state === "mismatch") return <span className="pill pill-held">hash differs</span>;
   return <span className="pill pill-neutral">not available here</span>;
 }
-
-/** Whether a document could be shown, and whether it is the one that was funded. */
-type DocumentState = "verified" | "mismatch" | "absent";
 
 /**
  * Fetch an evidence bundle from the pointer anchored on chain and verify it.
@@ -108,6 +106,10 @@ export default function ReviewDeskPage({ params }: { params: Promise<{ id: strin
     setEngagement(e);
   }, [id, validId]);
 
+  /* biome-ignore lint/correctness/useExhaustiveDependencies: `refresh` is not
+     called in here, but it closes over the milestone this desk is reading. A
+     new `refresh` means a different milestone, and the documents on screen
+     have to be fetched again rather than left describing the last one. */
   useEffect(() => {
     setLoading(true);
     setEngagement(null);
@@ -250,17 +252,15 @@ export default function ReviewDeskPage({ params }: { params: Promise<{ id: strin
      decision, but only the second is a red flag, and telling a reviewer their
      hashes "differ" when the file is simply missing sent them looking for the
      wrong problem. */
-  const criteriaState: DocumentState = criteria === null
-    ? "absent"
-    : hashesMatch(criteriaHash, milestone.criteria_hash) ? "verified" : "mismatch";
-
-  const evidenceState: DocumentState = milestone.evidence_hash === null
-    ? "absent"
-    : evidence === null
-      ? "absent"
-      : hashesMatch(evidenceHash, milestone.evidence_hash) ? "verified" : "mismatch";
-
-  const documentsVerified = criteriaState === "verified" && evidenceState === "verified";
+  const gate = reviewGate({
+    criteria,
+    criteriaHash,
+    anchoredCriteriaHash: milestone.criteria_hash,
+    evidence,
+    evidenceHash,
+    anchoredEvidenceHash: milestone.evidence_hash,
+  });
+  const { criteria: criteriaState, evidence: evidenceState, decisionsEnabled: documentsVerified } = gate;
 
   return (
     <section className="shell stack-l" style={{ paddingBlock: "2.5rem" }}>
