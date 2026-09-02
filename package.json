@@ -13,6 +13,8 @@
     "build": "pnpm -r build",
     "dev": "pnpm --filter @sprintos/web dev",
     "test": "pnpm -r test",
+    "e2e": "playwright test",
+    "e2e:live": "SPRINTOS_BASE_URL=https://sprintos-ai.vercel.app playwright test",
     "typecheck": "pnpm -r typecheck",
     "lint": "biome lint",
     "lint:fix": "biome lint --write",
@@ -32,6 +34,7 @@
     }
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.11"
+    "@biomejs/biome": "^2.5.11",
+    "@playwright/test": "^1.62.1"
   }
 }
