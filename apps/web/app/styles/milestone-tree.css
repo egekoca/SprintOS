@@ -1,0 +1,139 @@
+/* ==========================================================================
+   The milestone tree
+
+   One budget at the top, four proved pieces at the bottom. Scrolling advances
+   the trunk's light, walks the fox down it, and lights each milestone as it is
+   passed — so reading down the section is the same motion as a project being
+   delivered. Everything keyed off --tree-progress, which MilestoneTree sets
+   from the section's position in the viewport.
+   ========================================================================== */
+.tree { --tree-progress: 0; margin-top: clamp(2rem, 4vw, 3rem); }
+
+.tree-root {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  max-width: 26rem;
+  padding: 1.5rem 1.75rem;
+  border: 1px solid var(--edge-bright);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(150deg, rgba(255,90,18,.09), transparent 62%), var(--concrete-2);
+}
+.tree-root strong {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 4.4vw, 3.2rem);
+  line-height: 1;
+  color: var(--paper);
+  font-variant-numeric: tabular-nums;
+}
+.tree-root strong small { font-family: var(--font-mono); font-size: .62rem; letter-spacing: .12em; color: var(--chalk-faint); }
+.tree-root-note { font-size: .86rem; color: var(--chalk-dim); }
+
+.tree-body { position: relative; padding-left: 3.5rem; padding-top: 1.25rem; }
+
+/* The trunk, and the light travelling down it. */
+.tree-trunk {
+  position: absolute;
+  top: 0;
+  bottom: 2.5rem;
+  left: 1.55rem;
+  width: 2px;
+  background: var(--edge);
+  border-radius: 2px;
+}
+.tree-trunk i {
+  display: block;
+  width: 100%;
+  height: calc(var(--tree-progress) * 100%);
+  background: linear-gradient(180deg, var(--orange-lo), var(--orange));
+  border-radius: 2px;
+  box-shadow: 0 0 14px rgba(255,90,18,.55);
+}
+
+/* The fox rides the fill down. */
+.tree-fox {
+  position: absolute;
+  left: 1.55rem;
+  top: calc(var(--tree-progress) * (100% - 2.5rem));
+  translate: -50% -50%;
+  z-index: 2;
+  filter: drop-shadow(0 0 16px rgba(255,90,18,calc(.25 + var(--tree-progress) * .5)));
+}
+
+.tree-branches { margin: 0; padding: 0; list-style: none; display: grid; gap: 1rem; }
+.tree-branches li { position: relative; }
+
+/* The elbow from trunk to card. */
+.tree-branch {
+  position: absolute;
+  top: 2.15rem;
+  left: -1.95rem;
+  width: 1.95rem;
+  height: 2px;
+  background: var(--edge);
+  transition: background .35s ease;
+}
+.tree-dot {
+  position: absolute;
+  top: 2.15rem;
+  left: -2.35rem;
+  width: .8rem;
+  height: .8rem;
+  translate: 0 -50%;
+  border-radius: 50%;
+  border: 2px solid var(--edge-bright);
+  background: var(--asphalt);
+  transition: border-color .35s ease, background .35s ease, box-shadow .35s ease;
+}
+
+.tree-card {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  padding: 1.25rem 1.4rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-lg);
+  background: var(--concrete);
+  transition: border-color .35s ease, background .35s ease, transform .35s ease;
+}
+.tree-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.tree-card-amount {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--chalk-dim);
+  font-variant-numeric: tabular-nums;
+  transition: color .35s ease;
+}
+.tree-card-amount small { font-family: var(--font-mono); font-size: .55rem; letter-spacing: .12em; color: var(--chalk-faint); }
+.tree-card-state {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  font-family: var(--font-mono);
+  font-size: .6rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+  transition: color .35s ease;
+}
+.tree-card h3 { font-size: 1.1rem; color: var(--paper); }
+.tree-card p { font-size: .86rem; color: var(--chalk-faint); }
+
+/* Reached: the milestone is proved and its share has moved. */
+.is-paid .tree-branch { background: var(--orange); }
+.is-paid .tree-dot { border-color: var(--orange); background: var(--orange); box-shadow: 0 0 12px rgba(255,90,18,.7); }
+.is-paid .tree-card { border-color: rgba(255,90,18,.42); background: linear-gradient(150deg, rgba(255,90,18,.08), transparent 58%), var(--concrete); transform: translateX(3px); }
+.is-paid .tree-card-amount { color: var(--paper); }
+.is-paid .tree-card-state { color: var(--orange); }
+
+.tree-foot { margin-top: 1.5rem; padding-left: 3.5rem; font-size: .85rem; color: var(--chalk-faint); }
+.tree-foot b { color: var(--paper); font-variant-numeric: tabular-nums; }
+
+@media (max-width: 640px) {
+  .tree-body { padding-left: 2.6rem; }
+  .tree-trunk, .tree-fox { left: 1.1rem; }
+  .tree-branch { left: -1.5rem; width: 1.5rem; }
+  .tree-dot { left: -1.9rem; }
+  .tree-foot { padding-left: 2.6rem; }
+}

@@ -1,0 +1,68 @@
+/* ==========================================================================
+   Enter app
+
+   ReactBits was the obvious place to shop for this, but every one of its eight
+   button components is a placeholder — its own tool reports "incomplete
+   implementation, quality 2/10" and says not to use them in production. So
+   this is built here, in the language the rest of the product already speaks:
+   a spray-gradient fill that wipes in from the left, a hairline that stays
+   visible when it is idle, and an arrow that leaves before the label does.
+   ========================================================================== */
+.enter-app {
+  position: relative;
+  isolation: isolate;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  padding: .6rem 1.15rem;
+  border: 1px solid var(--edge-bright);
+  border-radius: var(--radius);
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: .67rem;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--paper);
+  text-decoration: none;
+  transition: border-color .22s ease, color .22s ease, transform .22s ease;
+}
+
+/* The fill lives behind the label and wipes across rather than fading, so the
+   button reads as being switched on. */
+.enter-app::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--spray);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform .34s cubic-bezier(.2,.8,.2,1);
+}
+
+.enter-app:hover,
+.enter-app:focus-visible {
+  border-color: transparent;
+  color: #FFFFFF;
+  transform: translateY(-1px);
+}
+.enter-app:hover::before,
+.enter-app:focus-visible::before { transform: scaleX(1); }
+.enter-app:active { transform: translateY(0); }
+
+.enter-app-arrow {
+  color: var(--orange);
+  transition: transform .28s cubic-bezier(.2,.8,.2,1), color .22s ease;
+}
+.enter-app:hover .enter-app-arrow,
+.enter-app:focus-visible .enter-app-arrow {
+  color: #FFFFFF;
+  transform: translate(3px, -3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .enter-app::before { transition: none; }
+  .enter-app:hover, .enter-app:focus-visible { transform: none; }
+}

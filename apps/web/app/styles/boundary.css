@@ -1,0 +1,75 @@
+/* ==========================================================================
+   The boundary
+
+   The claim that software advises and a person decides used to be two circles
+   with an arrow between them, which said neither who nor what the difference
+   buys anyone. Stated as two lists side by side it is checkable: here is what
+   the software may do, here is what only a person may do, and the styling of
+   each side is the same language used everywhere else — dashed grey for the
+   advisory, solid orange for the human.
+   ========================================================================== */
+.boundary {
+  margin-top: clamp(2.5rem, 5vw, 4rem);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: clamp(1rem, 3vw, 2rem);
+  align-items: stretch;
+  text-align: left;
+}
+
+.boundary-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  padding: clamp(1.4rem, 3vw, 2rem);
+  border-radius: var(--radius-lg);
+}
+.boundary-side.is-advisory {
+  border: 1.5px dashed var(--advisory-edge);
+  background: var(--advisory-bg);
+}
+.boundary-side.is-human {
+  border: 1px solid rgba(255,90,18,.45);
+  background: linear-gradient(150deg, rgba(255,90,18,.1), transparent 60%), var(--concrete);
+}
+
+.boundary-side header { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .85rem; align-items: center; }
+.boundary-mark {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+}
+.is-advisory .boundary-mark { border: 1px dashed var(--advisory-edge); color: var(--advisory-ink); }
+.is-human .boundary-mark { border: 1px solid var(--orange); color: var(--orange); }
+.boundary-side h3 { margin-top: .2rem; color: var(--paper); }
+
+.boundary-side ul { margin: 0; padding: 0; list-style: none; display: grid; gap: .6rem; }
+.boundary-side li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: .55rem;
+  align-items: baseline;
+  font-size: .92rem;
+  color: var(--chalk-dim);
+}
+.is-advisory li .product-icon { color: var(--advisory-ink); }
+.is-human li .product-icon { color: var(--orange); }
+
+/* The line that matters most on each side, set apart from the list above it. */
+.boundary-cannot {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--advisory-edge);
+  font-size: .85rem;
+  color: var(--advisory-ink);
+}
+.boundary-cannot.is-human { border-top-style: solid; border-top-color: rgba(255,90,18,.35); color: var(--chalk-dim); }
+
+.boundary-divider { display: grid; place-items: center; }
+
+@media (max-width: 860px) {
+  .boundary { grid-template-columns: 1fr; }
+  .boundary-divider { order: -1; }
+}

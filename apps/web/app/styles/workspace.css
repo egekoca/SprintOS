@@ -1,0 +1,358 @@
+/* ==========================================================================
+   Workspace, milestone flow and setup clarity
+
+   The app used to open on three role cards and leave the model implicit. These
+   styles support the explanatory workspace page, the milestone track that
+   replaces the stacked panels on an engagement, and the two setup controls the
+   flow was missing: a budget that can be entered as one award and split, and a
+   reviewer that can be the sponsor themselves.
+   ========================================================================== */
+
+/* ----------------------------------------------------------- workspace */
+.workspace { padding-block: clamp(2.5rem, 5vw, 4rem) 2rem; }
+
+.workspace-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(1.5rem, 4vw, 4rem);
+  align-items: center;
+}
+.workspace-intro h1 { margin-top: .8rem; font-size: clamp(2.1rem, 4.6vw, 3.9rem); line-height: .98; }
+.workspace-intro .lede { margin-top: 1.4rem; }
+.workspace-mark { display: flex; justify-content: center; }
+
+.workspace-section-head { margin-bottom: 2rem; }
+.workspace-section-head h2 { margin-top: .5rem; }
+.workspace-section-head .muted { margin-top: .75rem; max-width: 46ch; font-size: .92rem; }
+
+/* The worked example. Numbers first, labels under — it is meant to be read in
+   one pass without stopping on any word. */
+.workspace-example { margin-top: clamp(3rem, 6vw, 5rem); }
+
+/* ------------------------------------------------------------- stages */
+.workspace-stages { margin-top: clamp(3.5rem, 7vw, 6rem); }
+.wstage-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--edge); }
+.wstage {
+  display: grid;
+  grid-template-columns: auto 3rem minmax(0, 1fr) auto;
+  gap: 1.25rem;
+  align-items: start;
+  padding: 1.5rem .25rem;
+  border-bottom: 1px solid var(--edge);
+}
+.wstage-icon {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--edge-bright);
+  border-radius: var(--radius);
+  color: var(--chalk-dim);
+}
+.wstage-step {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  line-height: 2.75rem;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--edge-bright);
+}
+.wstage-copy h3 { font-size: 1.1rem; color: var(--paper); }
+.wstage-copy p { margin-top: .5rem; font-size: .92rem; color: var(--chalk-dim); max-width: 58ch; }
+.wstage-actor {
+  align-self: center;
+  padding: .3rem .6rem;
+  border: 1px solid var(--edge);
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: .62rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+  white-space: nowrap;
+}
+.wstage.is-advisory { background: var(--advisory-bg); }
+.wstage.is-advisory .wstage-icon { border-style: dashed; border-color: var(--advisory-edge); color: var(--advisory-ink); }
+.wstage.is-advisory .wstage-actor { border-style: dashed; border-color: var(--advisory-edge); color: var(--advisory-ink); }
+.wstage.is-human .wstage-icon { border-color: rgba(255,90,18,.5); color: var(--orange); }
+.wstage.is-human .wstage-actor { border-color: rgba(255,90,18,.5); color: var(--orange); }
+
+.wstage-rule {
+  margin-top: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: .6rem;
+  padding: .9rem 1rem;
+  border: 1px dashed var(--advisory-edge);
+  border-radius: var(--radius);
+  background: var(--advisory-bg);
+  font-size: .85rem;
+  color: var(--advisory-ink);
+}
+.wstage-rule .product-icon { flex: 0 0 auto; margin-top: .15rem; }
+
+/* -------------------------------------------------------------- desks */
+.workspace-desks { margin-top: clamp(3.5rem, 7vw, 6rem); }
+.wdesk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; }
+.wdesk {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  padding: 1.5rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-lg);
+  background: var(--concrete);
+  color: inherit;
+  text-decoration: none;
+  transition: background .18s ease, border-color .18s ease, transform .18s ease;
+}
+.wdesk:hover { background: var(--concrete-2); border-color: var(--edge-bright); transform: translateY(-3px); }
+.wdesk-icon {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-bottom: .5rem;
+  border-radius: var(--radius);
+  background: var(--concrete-3);
+  color: var(--orange);
+}
+.wdesk h3 { font-size: 1.5rem; color: var(--paper); }
+.wdesk-body { font-size: .9rem; color: var(--chalk-dim); }
+.wdesk-when { margin-top: .25rem; font-size: .78rem; color: var(--chalk-faint); }
+.wdesk-go {
+  margin-top: auto;
+  padding-top: 1rem;
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--paper);
+}
+.wdesk-go b { float: right; color: var(--orange); }
+.workspace-foot { margin-top: 1.5rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; font-size: .78rem; }
+
+/* ------------------------------------------------------ milestone flow */
+.mflow { display: flex; flex-direction: column; gap: .85rem; }
+.mflow-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+.mflow-progress-label { font-family: var(--font-mono); font-size: .72rem; color: var(--chalk-faint); }
+.mflow-progress-label b { color: var(--paper); }
+
+.mflow-track {
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(11rem, 1fr);
+  gap: .5rem;
+  overflow-x: auto;
+  padding-top: 1.6rem;
+  padding-bottom: .25rem;
+}
+/* The rail sits behind the nodes and fills with the share of money settled. */
+.mflow-rail {
+  position: absolute;
+  top: 1.6rem;
+  left: 1.5rem;
+  right: 1.5rem;
+  height: 2px;
+  background: var(--edge);
+}
+.mflow-rail i { display: block; height: 100%; background: var(--spray); transition: width .4s ease; }
+
+.mflow-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  padding: 2.1rem .9rem 1rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-lg);
+  background: var(--concrete);
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  transition: border-color .18s ease, background .18s ease;
+}
+.mflow-stage:hover { background: var(--concrete-2); }
+.mflow-stage.is-active { border-color: var(--edge-bright); background: var(--concrete-2); }
+.mflow-node {
+  position: absolute;
+  top: -.85rem;
+  left: 1rem;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 1px solid var(--edge-bright);
+  background: var(--asphalt);
+  color: var(--chalk-faint);
+}
+.mflow-index { font-family: var(--font-mono); font-size: .62rem; letter-spacing: .12em; color: var(--chalk-faint); }
+.mflow-title { font-size: .95rem; color: var(--paper); line-height: 1.3; }
+.mflow-amount { font-family: var(--font-display); font-size: 1.15rem; color: var(--chalk-dim); font-variant-numeric: tabular-nums; }
+.mflow-amount small { font-family: var(--font-mono); font-size: .58rem; color: var(--chalk-faint); }
+.mflow-stage-label { font-family: var(--font-mono); font-size: .6rem; letter-spacing: .1em; text-transform: uppercase; color: var(--chalk-faint); }
+
+.mflow-stage.is-paid .mflow-node { border-color: var(--st-released); color: var(--st-released); }
+.mflow-stage.is-paid .mflow-amount { color: var(--paper); }
+.mflow-stage.is-refunded .mflow-node { border-style: dashed; }
+.mflow-stage.is-submitted .mflow-node,
+.mflow-stage.is-approved .mflow-node { border-color: var(--paper); color: var(--paper); }
+/* The one stage a person still has to act on. */
+.mflow-stage.needs-you { border-color: rgba(255,90,18,.45); }
+.mflow-stage.needs-you .mflow-stage-label { color: var(--orange); }
+
+/* ---------------------------------------------------- milestone detail */
+.mdetail {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid var(--edge-bright);
+  border-radius: var(--radius-lg);
+  background: var(--concrete);
+}
+.mdetail-head { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; }
+.mdetail-head h3 { margin-top: .35rem; font-size: 1.6rem; color: var(--paper); }
+.mdetail-head-right { display: flex; align-items: center; gap: 1rem; }
+.mdetail-amount { font-size: 1.5rem; }
+.mdetail-amount small { font-family: var(--font-mono); font-size: .65rem; color: var(--chalk-faint); }
+
+.mdetail-timeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 1px; background: var(--edge); border: 1px solid var(--edge); border-radius: var(--radius); overflow: hidden; }
+.mdetail-mark { display: flex; flex-direction: column; gap: .3rem; padding: .85rem 1rem; background: var(--asphalt); }
+.mdetail-mark strong { font-family: var(--font-mono); font-size: .85rem; font-weight: 500; color: var(--chalk-dim); }
+.mdetail-mark.is-done strong { color: var(--paper); }
+.mdetail-mark.is-warn strong { color: var(--orange-lo); }
+
+.mdetail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1.25rem; }
+.mdetail-block { display: flex; flex-direction: column; gap: .6rem; }
+.mdetail-note { font-size: .85rem; color: var(--chalk-faint); }
+.mdetail-evidence {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .6rem .75rem;
+  border: 1px solid var(--edge-bright);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: .75rem;
+  color: var(--chalk-dim);
+  text-decoration: none;
+  word-break: break-all;
+}
+.mdetail-evidence:hover { border-color: var(--orange); color: var(--paper); }
+.mdetail-action { align-self: flex-start; }
+
+/* --------------------------------------------------------- budget bar */
+.budget-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 11rem) auto minmax(0, 1fr);
+  gap: 1rem;
+  align-items: end;
+  padding: 1.25rem;
+  border: 1px solid var(--edge-bright);
+  border-radius: var(--radius-lg);
+  background: var(--concrete-2);
+}
+.budget-total input { font-family: var(--font-mono); }
+.budget-readout { display: flex; justify-content: flex-end; gap: 1.75rem; }
+.budget-readout span { display: flex; flex-direction: column; gap: .15rem; text-align: right; }
+.budget-readout small { font-family: var(--font-mono); font-size: .58rem; letter-spacing: .12em; text-transform: uppercase; color: var(--chalk-faint); }
+.budget-readout b { font-family: var(--font-display); font-size: 1.5rem; font-weight: 400; color: var(--chalk-dim); font-variant-numeric: tabular-nums; }
+/* A balance is a fact about the plan, not something to act on, so it stays out
+   of brand orange like every other status in this interface. */
+.budget-readout .is-balanced b { color: var(--paper); }
+.budget-readout .is-over b { color: var(--paper); }
+.budget-readout .is-over small { color: var(--paper); }
+.budget-hint { grid-column: 1 / -1; font-size: .8rem; color: var(--chalk-faint); }
+
+/* ------------------------------------------------------ reviewer choice */
+.field-hint { font-size: .75rem; color: var(--chalk-faint); }
+.reviewer-choice { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: .75rem; }
+.reviewer-choice button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: .65rem;
+  row-gap: .25rem;
+  padding: .9rem 1rem;
+  border: 1px solid var(--edge-bright);
+  border-radius: var(--radius);
+  background: var(--asphalt);
+  color: var(--chalk-dim);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  transition: border-color .18s ease, background .18s ease;
+}
+.reviewer-choice button .product-icon { grid-row: 1 / span 2; align-self: start; margin-top: .15rem; }
+.reviewer-choice button b { color: var(--paper); font-size: .92rem; }
+.reviewer-choice button small { font-size: .78rem; color: var(--chalk-faint); }
+.reviewer-choice button:hover { background: var(--concrete-2); }
+.reviewer-choice button.is-active { border-color: var(--orange); background: rgba(255,90,18,.08); color: var(--paper); }
+.reviewer-choice button.is-active .product-icon { color: var(--orange); }
+.reviewer-self-note {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .82rem;
+  color: var(--chalk-dim);
+}
+.reviewer-self-note .product-icon { color: var(--st-released); flex: 0 0 auto; }
+
+/* ------------------------------------------------- repository clarity */
+/* The panel spaces its children with explicit margins rather than a flex gap,
+   so each new block sets its own. */
+.repo-why { margin-top: 1.25rem; font-size: .88rem; color: var(--chalk-dim); max-width: 68ch; }
+.repo-mode-tabs { margin-top: 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: .75rem; }
+.repo-mode-tabs button {
+  display: flex;
+  align-items: flex-start;
+  gap: .65rem;
+  padding: .9rem 1rem;
+  border: 1px solid var(--edge-bright);
+  border-radius: var(--radius);
+  background: var(--asphalt);
+  color: var(--chalk-dim);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  transition: border-color .18s ease, background .18s ease;
+}
+.repo-mode-tabs button .product-icon { flex: 0 0 auto; margin-top: .1rem; }
+.repo-mode-tabs button span { display: flex; flex-direction: column; gap: .2rem; }
+.repo-mode-tabs button b { color: var(--paper); font-size: .92rem; }
+.repo-mode-tabs button small { font-size: .78rem; color: var(--chalk-faint); }
+.repo-mode-tabs button:hover { background: var(--concrete-2); }
+.repo-mode-tabs button.is-active { border-color: var(--orange); background: rgba(255,90,18,.08); }
+.repo-mode-tabs button.is-active .product-icon { color: var(--orange); }
+
+.repo-public-entry { margin-top: 1.75rem; }
+.repo-public-entry > label { display: block; }
+.repo-public-entry .repo-connect-row { margin-top: .5rem; }
+
+/* ---------------------------------------------------------- score dial */
+.score-dial { position: relative; display: grid; place-items: center; flex: 0 0 auto; }
+.score-dial svg { width: 100%; height: 100%; }
+.score-dial-track { fill: none; stroke: var(--advisory-edge); stroke-width: 7; }
+.score-dial-fill { fill: none; stroke: var(--advisory-ink); stroke-width: 7; stroke-linecap: round; }
+.score-dial-value {
+  position: absolute;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--advisory-ink);
+  font-variant-numeric: tabular-nums;
+}
+.score-dial-value small { font-family: var(--font-mono); font-size: .5rem; color: var(--chalk-faint); }
+
+@media (max-width: 860px) {
+  .workspace-intro { grid-template-columns: 1fr; }
+  .workspace-mark { order: -1; justify-content: flex-start; }
+  .wstage { grid-template-columns: auto minmax(0, 1fr); row-gap: .5rem; }
+  .wstage-step { display: none; }
+  .wstage-actor { grid-column: 2; justify-self: start; }
+  .budget-bar { grid-template-columns: 1fr; }
+  .budget-readout { justify-content: flex-start; }
+  .mdetail-head-right { width: 100%; justify-content: space-between; }
+}

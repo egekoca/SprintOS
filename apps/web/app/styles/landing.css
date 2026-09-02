@@ -1,0 +1,549 @@
+/* ------------------------------------------------------ concise landing */
+.rec-visual {
+  background:
+    radial-gradient(760px 560px at 50% 16%, rgba(255,90,18,.13), transparent 68%),
+    linear-gradient(180deg, #0b0b0b, var(--asphalt) 42%);
+}
+
+/* Marketing and product now share the same night surface. The landing keeps
+   its warmer spotlight, but never switches the page into a separate white
+   theme. */
+body:has(.rec-visual) {
+  --ink: #090909;
+  --paper: #FFFFFF;
+  --asphalt: #090909;
+  --concrete: #111111;
+  --concrete-2: #181818;
+  --concrete-3: #202020;
+  --chalk: #FFFFFF;
+  --chalk-dim: #D2D2D2;
+  --chalk-faint: #A0A0A0;
+  --edge: #303030;
+  --edge-bright: #575757;
+  --advisory-bg: #141414;
+  --advisory-edge: #3B3B3B;
+  --advisory-ink: #A8A8A8;
+  background: #090909;
+  color: var(--chalk);
+}
+body:has(.rec-visual)::before { opacity: .5; }
+body:has(.rec-visual) .marketing-header {
+  border-bottom-color: rgba(255,255,255,.1);
+  /* Near-opaque on purpose: at .86 the headline scrolling underneath was still
+     legible through the navigation. */
+  background: rgba(9,9,9,.97);
+  backdrop-filter: blur(18px) saturate(1.1);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
+}
+/* The logo used to sit on a small plate here, added to hold it together over
+   the hero. It was compensating for the extracted PNG's soft fringe, which is
+   now stripped, so the mark sits directly on the header as it should. */
+body:has(.rec-visual) .marketing-nav a,
+
+body:has(.rec-visual) .marketing-nav a:hover,
+
+body:has(.rec-visual) footer { background: #090909 !important; }
+
+.rec-visual {
+  background:
+    radial-gradient(820px 600px at 50% 16%, rgba(255,90,18,.17), transparent 68%),
+    linear-gradient(180deg, #0A0A0A, #100B08 42%, #090909);
+}
+.rec-visual .rec-orbit-node {
+  background: rgba(18,15,13,.96);
+  border-color: rgba(255,104,30,.78);
+  color: #FFFFFF;
+  box-shadow: 0 12px 30px rgba(0,0,0,.44), 0 0 0 5px rgba(255,90,18,.09), 0 0 32px rgba(255,90,18,.28);
+}
+.rec-visual .rec-orbit-node-three { color: var(--orange-lo); }
+.rec-visual .rec-orbit-ring { border-color: #5A4A40; }
+.rec-visual .rec-solution-step { background: rgba(17,17,17,.88); }
+.rec-visual .rec-solution-section { background: linear-gradient(145deg, rgba(255,90,18,.1), rgba(14,14,14,.94) 48%); }
+.rec-visual .btn-primary { color: #090909; }
+
+/* The section is a runway; the stage inside is what you actually look at. Its
+   extra height is the scroll the opening sequence consumes. */
+.rec-orbit-hero {
+  min-height: 190svh;
+  padding: 0;
+  text-align: center;
+  position: relative;
+}
+.rec-orbit-viewport {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* Symmetric on purpose. Any difference between the two offsets the centred
+     group by half of it, which is what left the mark a few pixels above the
+     middle of the screen during the intro. */
+  padding-block: 2rem;
+}
+body:has(.rec-visual) .rec-orbit-viewport {
+  /* The bar plus the height of a mark's label, which sits above its node and
+     was the part getting clipped. */
+  padding-top: calc(2rem + var(--reveal) * (var(--header-h, 4.5rem) + 1.5rem));
+  padding-bottom: 2rem;
+}
+.rec-orbit-stage {
+  width: 100%;
+  min-height: clamp(16rem, 34vh, 23rem);
+  flex: 1;
+  position: relative;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+}
+.rec-orbit-stage::before {
+  content: "";
+  position: absolute;
+  width: min(31vw, 25rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,112,42,.18), rgba(255,90,18,.055) 42%, transparent 70%);
+  filter: blur(4px);
+  animation: orbit-halo 5.5s ease-in-out infinite;
+  z-index: 0;
+}
+/* Both values are set from scroll position by HeroOrbit and settle together:
+   scale 1 and spin 0 are the resting state the rest of the page sees. */
+/* Layout only. The animated values are inherited from body, where HeroOrbit
+   writes them — declaring them here would shadow the inherited value and the
+   sequence would never move. */
+.rec-orbit-stage { --orbit-radius: min(17.5vw, 14rem); }
+
+.rec-orbit-spin {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  /* Scaled with the mark. Held at a fixed radius, the marks ended up inside
+     the enlarged fox during the intro and read as missing. */
+  transform: rotate(var(--orbit-spin)) scale(var(--hero-fox-scale));
+  /* Damping. The angle is recomputed every frame straight from scroll
+     position, so a hard flick of the wheel was being tracked one to one and
+     the ring snapped round with it. Easing toward each new angle instead lets
+     the group trail the scroll slightly and arrive under its own weight. */
+  transition: transform .42s cubic-bezier(.2, .8, .2, 1);
+  opacity: var(--orbit-emerge);
+  will-change: transform, opacity;
+  /* The wrapper spans the whole stage, so it would otherwise sit over the fox
+     and swallow the pointer it tracks. The marks are not interactive. */
+  pointer-events: none;
+}
+/* Each mark travels with the group but keeps its own contents upright. The
+   counter-rotation is driven by the raw scroll value, so it has to be damped
+   on the same curve as the wrapper or the icons twist inside their nodes
+   while the ring is still catching up. */
+.rec-orbit-spin .rec-orbit-node .product-icon {
+  transform: rotate(calc(-1 * (var(--angle) + var(--orbit-spin))));
+  transition: transform .42s cubic-bezier(.2, .8, .2, 1);
+}
+
+.rec-orbit-stage .fox-stage {
+  width: min(24vw, 20rem);
+  z-index: 3;
+  filter: drop-shadow(0 18px 22px rgba(74,28,5,.18));
+  transform: scale(var(--hero-fox-scale));
+  transform-origin: center center;
+  transition: transform .42s cubic-bezier(.2, .8, .2, 1);
+  will-change: transform;
+}
+/* Framing, not competition. At full width these ran straight under the fox and
+   read as a collision rather than as depth, so they are smaller, quieter and
+   pinned to the edges with the centre left to the mark. */
+.rec-orbit-word {
+  position: absolute;
+  top: 46%;
+  transform: translateY(-50%);
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 5.6vw, 5rem);
+  line-height: 1;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  color: transparent;
+  -webkit-text-stroke: 1.2px #4E443C;
+  opacity: .75;
+  z-index: 0;
+  pointer-events: none;
+}
+.rec-orbit-brand {
+  position: absolute;
+  top: 46%;
+  transform: translateY(-50%);
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 5.6vw, 5rem);
+  line-height: 1;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  color: transparent;
+  -webkit-text-stroke: 1.2px #6A5C51;
+  z-index: 0;
+  pointer-events: none;
+  /* The same light that crosses the fox crosses the name. The letters are
+     hollow, so the glint is painted as the glyphs' fill — a band clipped to
+     the text that travels through the word and leaves it empty again. The
+     outline itself never moves. */
+  background-image: linear-gradient(
+    100deg,
+    transparent 45%,
+    rgba(255,122,30,.14) 48%,
+    rgba(255,158,90,.72) 50%,
+    rgba(255,122,30,.14) 52%,
+    transparent 55%
+  );
+  background-repeat: no-repeat;
+  background-size: 320% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: brand-sheen 2.9s cubic-bezier(.45,0,.5,1) infinite;
+}
+/* The name's own two syllables: the product is the OS, so that half carries
+   the brand colour while the rest stays concrete grey. */
+.rec-orbit-brand-os { -webkit-text-stroke-color: rgba(255,110,26,.82); }
+/* Offset either side of the fox's own sweep, so one light crosses the whole
+   composition left to right rather than three flashing at once. */
+.rec-orbit-brand.rec-orbit-word-left { animation-delay: -.34s; }
+.rec-orbit-brand.rec-orbit-word-right { animation-delay: .34s; }
+
+/* A background wider than its box moves left as the position percentage
+   grows, so the sweep counts down — that is what sends the glint left to
+   right, the same way the fox's highlight travels. */
+@keyframes brand-sheen {
+  0%, 34% { background-position: 210% 0; }
+  100% { background-position: -110% 0; }
+}
+.rec-orbit-word-left { left: 0; }
+.rec-orbit-word-right { right: 0; }
+.rec-orbit-ring { position: absolute; border-radius: 50%; border: 1.5px solid var(--edge); z-index: 1; transform: scale(var(--hero-fox-scale)); }
+.rec-orbit-ring-one {
+  width: min(35vw, 28rem);
+  aspect-ratio: 1;
+  box-shadow: inset 0 0 42px rgba(255,90,18,.045), 0 0 42px rgba(255,90,18,.045);
+  animation: orbit-ring-breathe 6s ease-in-out infinite;
+}
+.rec-orbit-ring-two {
+  width: min(27vw, 21rem);
+  aspect-ratio: 1;
+  border-style: dashed;
+  border-color: rgba(232,74,12,.46) !important;
+  animation: orbit 24s linear infinite;
+}
+/* Places a mark on the ring. The slot carries the position, the node inside it
+   keeps its own drift animation, and the contents counter-rotate by the sum of
+   both rotations so a label never reads upside down. */
+.rec-orbit-slot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  transform: rotate(var(--angle)) translateY(calc(-1 * var(--orbit-radius)));
+}
+
+.rec-orbit-node {
+  position: absolute;
+  top: 0;
+  left: 0;
+  translate: -50% -50%;
+  width: 3.15rem;
+  height: 3.15rem;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--edge-bright);
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--chalk-dim);
+  z-index: 4;
+  will-change: transform, box-shadow;
+}
+.rec-orbit-node::before {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border: 1px solid rgba(255,90,18,.22);
+  border-radius: inherit;
+  animation: orbit-node-ripple 3s ease-out infinite;
+}
+.rec-orbit-node .product-icon { stroke-width: 2.15; filter: drop-shadow(0 0 5px rgba(255,90,18,.24)); }
+
+/* The label rides with its node rather than sitting on the ring, so the three
+   steps stay readable while the marks drift. Anchored on the far side of the
+   mark: inside the slot's rotated frame "up" always points away from the
+   centre, so no label can swing across the fox however far the group has
+   turned — which is what put MILESTONE over the ear. */
+.rec-orbit-node b {
+  position: absolute;
+  bottom: calc(100% + .5rem);
+  left: 50%;
+  transform: translateX(-50%) rotate(calc(-1 * (var(--angle) + var(--orbit-spin))));
+  font-family: var(--font-mono);
+  font-size: .58rem;
+  font-weight: 500;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+  white-space: nowrap;
+  text-shadow: 0 1px 6px rgba(9,9,9,.9);
+  pointer-events: none;
+}
+.rec-orbit-node-three b { color: var(--orange-lo); }
+.rec-orbit-node-three { color: var(--orange); }
+.rec-orbit-node-one { animation: orbit-node-one 5.4s ease-in-out infinite; }
+.rec-orbit-node-two { animation: orbit-node-two 4.8s ease-in-out -.8s infinite; }
+.rec-orbit-node-three { animation: orbit-node-three 5.8s ease-in-out -1.7s infinite; }
+.rec-orbit-node-two::before { animation-delay: -1s; }
+.rec-orbit-node-three::before { animation-delay: -2s; }
+.rec-orbit-stage:hover .rec-orbit-node {
+  box-shadow: 0 14px 34px rgba(0,0,0,.5), 0 0 0 6px rgba(255,90,18,.12), 0 0 42px rgba(255,90,18,.36);
+}
+.rec-orbit-message { position: relative; z-index: 5; display: flex; flex-direction: column; align-items: center; margin-top: 0; }
+.rec-orbit-message h1 { font-size: clamp(3rem, 5.6vw, 5.2rem); line-height: .95; }
+.rec-orbit-lede {
+  margin-top: 1rem;
+  max-width: 34rem;
+  font-size: clamp(1rem, 1.5vw, 1.15rem);
+  color: var(--chalk-dim);
+  font-weight: 500;
+  text-wrap: balance;
+}
+.rec-orbit-message .rec-cta { justify-content: center; margin-top: 1.25rem; }
+
+.rec-visual-section { padding-block: clamp(6rem, 10vw, 10rem); border-top: var(--rule); }
+/* Stacked and left-aligned. The old arrangement pinned a numbered badge to the
+   left and threw a very large right-aligned title across the rest, which left a
+   void between them once the number went — and made every section open with the
+   same gesture, so the page read as one layout repeated. */
+/* The markup carries its own line breaks, so no width cap is needed —
+   capping it in `ch` of a condensed face broke two-word lines into four. */
+.rec-visual-heading { display: flex; flex-direction: column; gap: .6rem; }
+.rec-visual-heading > p { font-family: var(--font-mono); font-size: .66rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--orange); }
+.rec-visual-heading h2 { font-size: clamp(2.4rem, 4.6vw, 4rem); line-height: .92; }
+
+/* Real cards. These were three cells divided by hairlines, with the icon
+   pinned top and the title pushed to the bottom by `margin-top: auto` — which
+   opened a hand-span of dead space in the middle of every one and left the
+   whole row reading as unfinished. Icon, title and body now sit together in a
+   surface that reacts to the cursor. */
+.rec-problem-grid {
+  margin-top: 2.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: 1rem;
+}
+.rec-visual-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: .85rem;
+  padding: 1.75rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(160deg, rgba(255,255,255,.022), transparent 55%), var(--concrete);
+  transition: border-color .2s ease, transform .2s ease, background .2s ease;
+}
+/* A hairline that lights along the top edge on approach. */
+.rec-visual-card::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: var(--spray);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform .34s cubic-bezier(.2,.8,.2,1);
+}
+.rec-visual-card:hover { border-color: var(--edge-bright); transform: translateY(-3px); }
+.rec-visual-card:hover::after { transform: scaleX(1); }
+
+.rec-visual-card > span {
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius);
+  border: 1px dashed var(--advisory-edge);
+  background: var(--advisory-bg);
+  color: var(--advisory-ink);
+}
+.rec-visual-card h3 { font-size: 1.3rem; color: var(--paper); }
+.rec-visual-card p { font-size: .9rem; line-height: 1.6; color: var(--chalk-dim); font-weight: 400; }
+
+.rec-solution-section { background: linear-gradient(145deg, rgba(255,90,18,.055), transparent 45%); }
+.rec-solution-flow { margin-top: 2.5rem; display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--edge); }
+.rec-solution-step { padding: 1.6rem; position: relative; display: flex; flex-direction: column; gap: .8rem; background: var(--concrete); transition: background .2s ease; }
+.rec-solution-step:hover { background: var(--concrete-2); }
+.rec-solution-step + .rec-solution-step { border-left: var(--rule); }
+.rec-solution-icon { width: 3rem; height: 3rem; display: grid; place-items: center; border: 1px solid var(--edge-bright); border-radius: var(--radius); color: var(--paper); }
+.rec-solution-step:nth-child(3) .rec-solution-icon,
+.rec-solution-step:nth-child(4) .rec-solution-icon { color: var(--orange); border-color: rgba(255,90,18,.55); }
+.rec-solution-step h3 { font-size: 1.25rem; }
+.rec-solution-step p { color: var(--chalk-dim); font-size: .88rem; line-height: 1.6; font-weight: 400; }
+.rec-solution-step > i { position: absolute; top: 50%; right: -1rem; width: 2rem; height: 2rem; display: grid; place-items: center; border-radius: 50%; background: var(--orange); color: var(--ink); font-family: var(--font-mono); font-style: normal; z-index: 2; }
+
+/* ---------------------------------------------------- scrolled-in reveals */
+/* Rows that assemble themselves as the reader arrives. `Reveal` adds
+   `.is-revealed` when the container enters the viewport and numbers each child
+   in `--i`; everything below is only the choreography.
+
+   The entrance is an animation rather than a transition, and it fills
+   `backwards`. That matters: once a child has landed it is left in its own
+   ordinary state, so hover transforms and the arrow that hangs outside a step
+   still behave exactly as they do without any of this. */
+.rec-reveal > * { opacity: 0; }
+.rec-reveal.is-revealed > * {
+  opacity: 1;
+  animation-duration: var(--reveal-duration, .5s);
+  animation-timing-function: cubic-bezier(.2, .8, .25, 1);
+  animation-fill-mode: backwards;
+  animation-delay: calc(var(--reveal-step, 120ms) * var(--i, 0));
+}
+
+/* The problem cards fall in from above, one after the other, and settle. The
+   drop is deliberately a long way and the bounce is deliberately double: a
+   short slide reads as a fade, and the row has to read as three separate
+   things arriving rather than one block appearing. */
+.rec-reveal.is-drop.is-revealed > * {
+  animation-name: rec-reveal-drop;
+  --reveal-duration: .64s;
+}
+@keyframes rec-reveal-drop {
+  0%   { opacity: 0; transform: translateY(-4.6rem); }
+  55%  { opacity: 1; transform: translateY(.5rem); }
+  76%  { opacity: 1; transform: translateY(-.16rem); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* The flow steps open left to right, quickly — the wipe reads as the row
+   being drawn in the order the work actually happens. */
+.rec-reveal.is-wipe.is-revealed > * {
+  animation-name: rec-reveal-wipe;
+  --reveal-duration: .42s;
+}
+@keyframes rec-reveal-wipe {
+  from { opacity: 0; clip-path: inset(0 100% 0 0); transform: translateX(-.9rem); }
+  to   { opacity: 1; clip-path: inset(0 0 0 0);    transform: translateX(0); }
+}
+
+/* Motion off: the rows are simply there. */
+@media (prefers-reduced-motion: reduce) {
+  .rec-reveal > * { opacity: 1; }
+  .rec-reveal.is-revealed > * { animation: none; }
+}
+/* And with no script to add the class, the same — the rest of this page is
+   readable without JavaScript, so these rows must be too. */
+@media (scripting: none) {
+  .rec-reveal > * { opacity: 1; }
+}
+
+
+.rec-simple-hero {
+  min-height: min(920px, 100svh);
+  padding-top: clamp(9rem, 16vh, 12rem);
+  padding-bottom: 4rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(18rem, .92fr);
+  gap: clamp(2rem, 7vw, 7rem);
+  align-items: center;
+}
+
+.rec-simple-copy { position: relative; z-index: 2; }
+.rec-simple-copy h1 {
+  margin-top: 1.65rem;
+  font-size: clamp(3.8rem, 7.6vw, 7.6rem);
+  line-height: .82;
+  letter-spacing: -.018em;
+}
+.rec-simple-lede {
+  margin-top: 2rem;
+  color: var(--chalk-dim);
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
+}
+.rec-simple-fox {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 34rem;
+}
+.rec-simple-fox::before {
+  content: "";
+  position: absolute;
+  width: min(34vw, 30rem);
+  aspect-ratio: 1;
+  border: 1px solid var(--edge);
+  border-radius: 50%;
+}
+.rec-simple-fox .fox-stage { width: min(25vw, 22rem); z-index: 1; }
+
+.rec-simple-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: var(--rule);
+  border-bottom: var(--rule);
+}
+.rec-simple-fact { padding: 1.5rem 1.75rem; display: flex; align-items: baseline; gap: 1rem; }
+.rec-simple-fact + .rec-simple-fact { border-left: var(--rule); }
+.rec-simple-fact strong {
+  font-family: var(--font-display);
+  font-size: 2.3rem;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--paper);
+}
+.rec-simple-fact:nth-child(2) strong { color: var(--orange); }
+.rec-simple-fact span {
+  font-family: var(--font-mono);
+  font-size: .6rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+}
+
+.rec-simple-flow { padding-block: clamp(6rem, 10vw, 10rem); }
+.rec-simple-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; }
+.rec-simple-heading h2 { font-size: clamp(2.8rem, 5.5vw, 5.5rem); }
+.rec-simple-steps {
+  margin-top: 4rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: var(--rule);
+  border-bottom: var(--rule);
+}
+.rec-simple-steps article { min-height: 20rem; padding: 2rem; display: flex; flex-direction: column; }
+.rec-simple-steps article + article { border-left: var(--rule); }
+.rec-simple-number { font-family: var(--font-display); font-size: 2.8rem; color: transparent; -webkit-text-stroke: 1px var(--edge-bright); }
+.rec-simple-step-icon {
+  width: 5.25rem;
+  height: 5.25rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--edge-bright);
+  border-radius: 50%;
+  color: var(--paper);
+}
+.rec-simple-steps article:nth-child(3) .rec-simple-step-icon { color: var(--orange); border-color: rgba(255,90,18,.55); }
+.rec-simple-role { margin-top: auto; font-family: var(--font-mono); font-size: .6rem; letter-spacing: .16em; text-transform: uppercase; color: var(--orange); }
+.rec-simple-steps h3 { margin-top: .65rem; font-size: 2.1rem; }
+
+.rec-simple-trust {
+  min-height: 42rem;
+  padding-block: 7rem;
+  border-top: var(--rule);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.rec-simple-trust .fox-stage { width: 6.5rem; }
+.rec-simple-trust h2 { margin-top: 1.35rem; font-size: clamp(3.2rem, 6.8vw, 6.5rem); line-height: .86; }
+.rec-simple-trust > p { margin-top: 1.75rem; color: var(--chalk-dim); }
+.rec-simple-trust > .btn { margin-top: 2rem; }
+.rec-permission-visual { display: flex; align-items: center; justify-content: center; gap: clamp(1.25rem, 4vw, 3.5rem); margin-bottom: 1.5rem; }
+.rec-permission-visual > span { width: 6rem; aspect-ratio: 1; display: grid; place-items: center; border: 1px dashed var(--advisory-edge); border-radius: 50%; color: var(--advisory-ink); }
+.rec-permission-visual > span b { font-family: var(--font-mono); font-size: .58rem; letter-spacing: .13em; text-transform: uppercase; font-weight: 500; }
+.rec-permission-visual > span.is-human { border-style: solid; border-color: var(--orange); color: var(--orange); }
+.rec-permission-visual > i { font-family: var(--font-mono); color: var(--chalk-faint); font-style: normal; }

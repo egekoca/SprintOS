@@ -1,0 +1,94 @@
+/* ==========================================================================
+   Criteria, evidence and the builder desk
+
+   The contract carries hashes; these are the documents behind them. Both are
+   rendered as plain lists — a checklist of what was promised, a list of links
+   for what arrived — with the hash reduced to a one-line verification note
+   underneath rather than a block of monospace nobody reads.
+   ========================================================================== */
+.criteria { display: flex; flex-direction: column; gap: .75rem; }
+.criteria-empty { font-size: .85rem; color: var(--chalk-faint); }
+
+.criteria-list-view,
+.evidence-list-view { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: .5rem; }
+
+.criteria-list-view li,
+.evidence-list-view li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: .6rem;
+  font-size: .9rem;
+  color: var(--chalk-dim);
+}
+.criteria-list-view li { grid-template-columns: auto minmax(0, 1fr); }
+.criteria-list-view .product-icon,
+.evidence-list-view .product-icon { color: var(--chalk-faint); align-self: center; }
+
+.evidence-list-view a { color: var(--chalk-dim); text-decoration: none; border-bottom: 1px solid var(--edge-bright); word-break: break-all; }
+.evidence-list-view a:hover { color: var(--paper); border-color: var(--orange); }
+.evidence-list-view small { font-family: var(--font-mono); font-size: .58rem; letter-spacing: .1em; text-transform: uppercase; color: var(--chalk-faint); white-space: nowrap; }
+.evidence-note { padding-left: .9rem; border-left: 2px solid var(--edge); font-size: .85rem; color: var(--chalk-faint); }
+
+/* The hash is what makes the list above evidence rather than a claim, so it is
+   stated once as a result, not dumped as sixty-four characters. */
+.criteria-hash {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  font-family: var(--font-mono);
+  font-size: .62rem;
+  letter-spacing: .06em;
+  color: var(--chalk-faint);
+}
+.criteria-hash::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--chalk-faint); }
+.criteria-hash.is-verified::before { background: var(--st-released); }
+.criteria-hash code { color: var(--edge-bright); word-break: break-all; }
+.criteria-hash a { color: var(--chalk-faint); text-decoration: none; border-bottom: 1px dotted var(--edge-bright); }
+.criteria-hash a:hover { color: var(--paper); }
+
+/* ---------------------------------------------------------------- a desk */
+.desk { display: flex; flex-direction: column; gap: 1.75rem; padding-block: clamp(2rem, 4vw, 3rem); }
+.desk-head { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem; }
+.desk-head h2 { margin-top: .4rem; }
+.desk-switch { display: flex; align-items: center; gap: .6rem; font-size: .8125rem; }
+.desk-switch select { width: auto; min-width: 12rem; }
+.desk-foot { font-size: .8125rem; }
+
+.desk-gate {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  max-width: 40rem;
+  padding-block: clamp(3rem, 8vw, 6rem);
+}
+.desk-gate h2 { margin-top: .25rem; }
+
+/* ------------------------------------------------------- evidence form */
+.evidence-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--edge);
+}
+.evidence-form > .btn-primary { align-self: flex-start; }
+.evidence-row { display: grid; grid-template-columns: minmax(0, 1fr) 10rem auto; gap: .5rem; }
+.evidence-row select { width: 100%; }
+.evidence-remove {
+  width: 2.25rem;
+  border: 1px solid var(--edge-bright);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--chalk-faint);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.evidence-remove:hover { color: var(--paper); border-color: var(--chalk-faint); }
+
+@media (max-width: 640px) {
+  .evidence-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .evidence-row select { grid-column: 1 / -1; }
+}

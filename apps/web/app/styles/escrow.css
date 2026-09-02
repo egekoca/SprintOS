@@ -1,0 +1,115 @@
+/* ==========================================================================
+   Escrow model, the start band, and wallet help
+
+   Three additions that all answer "what actually happens here": where the
+   money sits while work is in progress, what setting up an award will ask of
+   you, and what to do when a wallet is missing or on the wrong network.
+   ========================================================================== */
+
+/* -------------------------------------------------------- start band */
+.start-band { margin-top: clamp(3rem, 6vw, 5rem); }
+.start-band-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--edge);
+}
+.start-band-head h2 { margin-top: .4rem; }
+.start-band-head .muted { margin-top: .6rem; font-size: .92rem; }
+.start-band-cta { min-height: 3.1rem; padding-inline: 1.5rem; }
+
+.start-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+.start-steps li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: .85rem;
+  padding: 1.4rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-lg);
+  background: var(--concrete);
+}
+.start-step-icon {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius);
+  background: var(--concrete-3);
+  color: var(--orange);
+}
+.start-steps h3 { color: var(--paper); }
+.start-steps p { margin-top: .45rem; font-size: .88rem; color: var(--chalk-dim); }
+
+/* ------------------------------------------------------- wallet help */
+.wallet-help {
+  display: flex;
+  flex-direction: column;
+  gap: .85rem;
+  width: 100%;
+  max-width: 38rem;
+  padding: 1.4rem;
+  border: 1px solid var(--edge-bright);
+  border-radius: var(--radius-lg);
+  background: var(--concrete);
+}
+.wallet-help.is-network { border-color: rgba(255,90,18,.4); background: rgba(255,90,18,.05); }
+.wallet-help-title {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  font-weight: 600;
+  color: var(--paper);
+}
+.wallet-help.is-network .wallet-help-title .product-icon { color: var(--orange); }
+.wallet-help-note { font-size: .88rem; color: var(--chalk-dim); }
+.wallet-help-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+
+.wallet-options { margin: 0; padding: 0; list-style: none; display: grid; gap: .5rem; }
+.wallet-options a {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .7rem;
+  padding: .7rem .9rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius);
+  background: var(--asphalt);
+  color: var(--chalk-dim);
+  text-decoration: none;
+  transition: border-color .16s ease, color .16s ease;
+}
+.wallet-options a:hover { border-color: var(--orange); color: var(--paper); }
+.wallet-options img { border-radius: 4px; }
+.wallet-options b {
+  font-family: var(--font-mono);
+  font-size: .6rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--orange);
+}
+
+@media (max-width: 860px) {
+  .start-band-head { flex-direction: column; align-items: stretch; }
+  .start-band-cta { justify-content: center; }
+}
+
+/* A network warning is a fact to act on later, not a blocked action. */
+.network-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}

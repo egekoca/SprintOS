@@ -1,0 +1,67 @@
+/* ==========================================================================
+   The commit gate
+
+   Milestones and requirements are hashed into the contract and can never be
+   edited afterwards. The wizard therefore ends in two deliberate stops — an
+   attestation that the sponsor has read the plan, and a plain question asking
+   whether to lock it — rather than a single button that quietly does something
+   irreversible.
+   ========================================================================== */
+.commit-gate {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid var(--edge-bright);
+  border-radius: var(--radius-lg);
+  background: var(--concrete);
+}
+
+.commit-warning { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .9rem; align-items: start; }
+.commit-warning > .product-icon { margin-top: .2rem; color: var(--orange); }
+.commit-warning h3 { color: var(--paper); }
+.commit-warning p { margin-top: .5rem; font-size: .92rem; color: var(--chalk-dim); max-width: 62ch; }
+
+.commit-facts {
+  margin: 0;
+  padding: 1rem 0 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1rem 1.5rem;
+  border-top: 1px solid var(--edge);
+  font-size: .85rem;
+  color: var(--chalk-faint);
+}
+.commit-facts li { display: flex; flex-direction: column; gap: .2rem; }
+.commit-facts span {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--paper);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The second stop. Framed as a question with a real way back, so declining is
+   as easy as agreeing. */
+.commit-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--orange);
+  border-radius: var(--radius);
+  background: rgba(255,90,18,.07);
+}
+.commit-confirm-question {
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 2.4vw, 1.7rem);
+  line-height: 1.15;
+  text-transform: uppercase;
+  color: var(--paper);
+}
+.commit-confirm-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+
+@media (max-width: 640px) {
+  .commit-confirm-actions .btn { width: 100%; justify-content: center; }
+}

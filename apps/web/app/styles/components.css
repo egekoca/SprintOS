@@ -1,0 +1,251 @@
+/* ------------------------------------------------------------- layout */
+.shell { width: min(100% - 2.5rem, 1200px); margin-inline: auto; }
+.stack   { display: flex; flex-direction: column; gap: 1.25rem; }
+.stack-s { display: flex; flex-direction: column; gap: 0.625rem; }
+.stack-l { display: flex; flex-direction: column; gap: 2.5rem; }
+.row     { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+.spread  { display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+
+.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+.grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+
+/* --------------------------------------------------------------- panel */
+.panel {
+  background: linear-gradient(145deg, rgba(255,255,255,0.018), transparent 60%), var(--concrete);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.375rem;
+}
+
+.panel-tight { padding: 1rem; }
+
+/* A stencilled rail down the left edge, like a mark sprayed along the seam. */
+.panel-marked { border-left: 3px solid transparent; border-image: var(--spray) 1; }
+
+/* ------------------------------------------------------------- buttons */
+.btn {
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0.6875rem 1.25rem;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: transform 0.12s ease, filter 0.12s ease, background 0.12s ease;
+  text-decoration: none;
+}
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn:not(:disabled):hover { transform: translateY(-1px); }
+.btn:not(:disabled):active { transform: translateY(0); }
+
+/* The strongest orange treatment is reserved for an action a human authorizes
+   with their own wallet. */
+.btn-primary {
+  background: var(--spray);
+  color: #fff;
+  box-shadow: 0 0 0 0 var(--orange-glow);
+}
+.btn-primary:not(:disabled):hover { filter: brightness(1.08); box-shadow: 0 6px 22px -8px var(--orange-glow); }
+
+.btn-ghost { background: transparent; color: var(--chalk); border-color: var(--edge-bright); }
+.btn-ghost:not(:disabled):hover { background: var(--concrete-2); border-color: var(--chalk-faint); }
+
+.btn-hold { background: transparent; color: var(--paper); border-color: var(--chalk-faint); }
+.btn-hold:not(:disabled):hover { background: rgba(255,255,255,0.07); border-color: var(--paper); }
+
+.btn-sm { font-size: 0.8125rem; padding: 0.4375rem 0.8125rem; }
+
+/* --------------------------------------------------------------- pills */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 2px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+.pill::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+.pill-pending   { color: var(--st-pending); }
+.pill-submitted { color: var(--st-submitted); }
+.pill-approved  { color: var(--st-approved); }
+.pill-held      { color: var(--st-held); border-style: dashed; }
+.pill-released  { color: var(--st-released); }
+.pill-refunded  { color: var(--st-refunded); }
+.pill-neutral   { color: var(--chalk-faint); }
+
+/* ------------------------------------------------------------ advisory */
+/* The design thesis, expressed in CSS: dashed edge, dulled surface, no orange
+   anywhere. This block is the only place in the app that looks provisional,
+   and that is exactly what it is. */
+.advisory {
+  background: var(--advisory-bg);
+  border: 1.5px dashed var(--advisory-edge);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  color: var(--advisory-ink);
+}
+.advisory h3 { color: var(--chalk-dim); }
+
+.advisory-score {
+  font-family: var(--font-display);
+  font-size: 3.25rem;
+  line-height: 1;
+  color: var(--advisory-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.advisory-banner {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+  border-top: 1px dashed var(--advisory-edge);
+  padding-top: 0.625rem;
+}
+
+.advisory-fox-loading,
+.advisory-score-scene { display: flex; align-items: center; gap: 1rem; position: relative; }
+.advisory-fox-loading { min-height: 7rem; padding: .75rem 1rem; border: 1px dashed var(--advisory-edge); }
+.advisory-fox-loading .fox-stage { width: 4.5rem; flex: 0 0 4.5rem; }
+.advisory-fox-loading > span { display: grid; }
+.advisory-fox-loading b { color: var(--chalk-dim); font-size: .88rem; }
+.advisory-fox-loading small { color: var(--chalk-faint); }
+.advisory-score-scene { min-height: 7.5rem; padding-left: 5.1rem; overflow: hidden; }
+.advisory-score-scene .fox-stage { position: absolute; left: -1rem; bottom: -1.35rem; width: 6.5rem; opacity: .86; }
+.advisory-score-scene .advisory-score { position: relative; z-index: 1; }
+
+/* --------------------------------------------------------------- data */
+.data { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+.addr {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--chalk-dim);
+  word-break: break-all;
+}
+
+.amount {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.table-wrap { overflow-x: auto; border: 1px solid var(--edge); border-radius: var(--radius-lg); }
+table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 0.9375rem; }
+th, td { text-align: left; padding: 0.75rem 1rem; border-bottom: 1px solid var(--edge); }
+thead th {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+  background: var(--concrete-2);
+}
+tbody tr:last-child td { border-bottom: none; }
+
+/* --------------------------------------------------------------- forms */
+/* A caption over a set of controls rather than over one field. It reads like a
+   label and is wired to its group with aria-labelledby, but it is not a <label>
+   element, because a <label> that names nothing in particular is a lie a screen
+   reader has to work around. */
+label, .group-label { font-size: 0.8125rem; font-weight: 600; color: var(--chalk-dim); letter-spacing: 0.01em; }
+.group-label { display: block; }
+
+input[type="text"], input[type="number"], input[type="url"], input[type="date"],
+input[type="datetime-local"], textarea, select {
+  width: 100%;
+  background: var(--asphalt);
+  border: 1px solid var(--edge-bright);
+  border-radius: var(--radius);
+  color: var(--chalk);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  padding: 0.5625rem 0.75rem;
+}
+input::placeholder, textarea::placeholder { color: var(--chalk-faint); }
+input:focus, textarea:focus, select:focus { border-color: var(--orange); }
+
+.field { display: flex; flex-direction: column; gap: 0.3125rem; }
+
+/* The gate in front of every decision. Styled as a physical checkbox rather
+   than a nicety — the reviewer is attesting to something. */
+.attest {
+  display: flex;
+  gap: 0.625rem;
+  align-items: flex-start;
+  padding: 0.75rem 0.875rem;
+  background: var(--concrete-2);
+  border: 1px solid var(--edge-bright);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--chalk-dim);
+}
+.attest input { accent-color: var(--orange); width: 1rem; height: 1rem; margin-top: 0.1875rem; flex-shrink: 0; }
+.attest:has(input:checked) { border-color: var(--orange); color: var(--chalk); }
+
+/* ---------------------------------------------------------- decoration */
+/* A drip running off an edge. Pure decoration, and hidden from assistive tech
+   wherever it is used. */
+.drip { display: block; color: var(--orange); }
+
+/* Strip of masking tape, for labels stuck onto the wall. */
+.tape-label {
+  display: inline-block;
+  background: var(--tape);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.75rem;
+  transform: rotate(-1.2deg);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+
+/* Stencilled section number. Only used where the content is genuinely a
+   sequence — the settlement flow — never as decoration. */
+.stencil-num {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--edge-bright);
+  font-variant-numeric: tabular-nums;
+}
+
+.hr-spray { height: 2px; border: 0; background: var(--spray); opacity: 0.55; }
+
+/* ------------------------------------------------------------- utility */
+.badge-link {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--chalk-dim);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--edge-bright);
+}
+.badge-link:hover { color: var(--orange-lo); border-color: var(--orange); }
+
+.notice {
+  border: 1px solid var(--edge-bright);
+  border-left: 3px solid var(--danger);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 0.75rem 1rem;
+  background: var(--concrete);
+  font-size: 0.875rem;
+  color: var(--chalk-dim);
+}
+.notice-ok { border-left-color: var(--st-released); }

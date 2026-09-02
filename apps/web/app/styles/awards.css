@@ -1,0 +1,47 @@
+/* ==========================================================================
+   Awards — the programmes one person runs
+
+   An award is a draft until it is published, so these screens have two modes.
+   Draft is a form; published is a record. The visual difference is deliberate
+   and one-way, matching what the contract allows.
+   ========================================================================== */
+.award-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--edge); }
+.award-list li { border-bottom: 1px solid var(--edge); }
+
+.award-row {
+  display: grid;
+  grid-template-columns: 11rem minmax(0, 1fr) auto auto;
+  gap: 1.5rem;
+  align-items: center;
+  padding: 1.1rem .5rem;
+  color: inherit;
+  text-decoration: none;
+  transition: background .16s ease;
+}
+.award-row:hover { background: rgba(255,255,255,.02); }
+.award-main { display: flex; flex-direction: column; gap: .25rem; min-width: 0; }
+.award-main strong { color: var(--paper); font-size: 1rem; }
+.award-main small { color: var(--chalk-faint); font-size: .8rem; }
+.award-budget { font-family: var(--font-display); font-size: 1.2rem; color: var(--chalk-dim); font-variant-numeric: tabular-nums; }
+.award-budget small { font-family: var(--font-mono); font-size: .58rem; color: var(--chalk-faint); }
+.award-pills { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .15rem; }
+
+.award-role {
+  justify-self: start;
+  padding: .3rem .6rem;
+  border: 1px solid var(--edge-bright);
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: .62rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+  white-space: nowrap;
+}
+/* Only the deciding role wears brand orange — it is the one that can act. */
+.award-role.is-reviewer { border-color: rgba(255,90,18,.5); color: var(--orange); }
+
+@media (max-width: 860px) {
+  .award-row { grid-template-columns: minmax(0, 1fr) auto; row-gap: .5rem; }
+  .award-role { grid-column: 1 / -1; }
+}

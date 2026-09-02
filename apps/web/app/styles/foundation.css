@@ -1,0 +1,184 @@
+/* ==========================================================================
+   SprintOS design system
+
+   Street surface, ledger discipline.
+
+   The visual language is graffiti — concrete ground, spray-paint orange,
+   stencil display type, tape and drips. But this application moves money, so
+   the texture is a skin over a strict information layer, never a substitute
+   for it. Anywhere a reviewer reads numbers, hashes or evidence, the noise
+   drops away and legibility wins.
+
+   One rule governs colour, and it is the same rule the contract enforces:
+
+       Brand orange belongs to human authority.
+
+   Approve, Hold, Release and Sign wear it. The advisory module never does —
+   it is rendered in concrete grey with a dashed edge, so a reviewer can see at
+   a glance which parts of the screen can act and which can only advise.
+   ========================================================================== */
+
+/* -------------------------------------------------------------- tokens */
+:root {
+  /* Height of the fixed marketing bar, so layouts can reserve it. */
+  --header-h: 4.5rem;
+  /* The logo is the palette: fox orange, paper white and true ink. */
+  --orange:        #FF5A12;
+  --orange-lo:     #FF7A1E;
+  --orange-hi:     #D9360B;
+  --orange-glow:   rgba(250, 100, 25, 0.28);
+  --spray:         linear-gradient(118deg, var(--orange-lo), var(--orange-hi));
+
+  --ink:           #090909;
+  --paper:         #FFFFFF;
+  --asphalt:       #090909;
+  --concrete:      #111111;
+  --concrete-2:    #181818;
+  --concrete-3:    #202020;
+  --chalk:         #FFFFFF;
+  --chalk-dim:     #C7C7C7;
+  --chalk-faint:   #9B9B9B;
+  --edge:          #292929;
+  --edge-bright:   #454545;
+
+  /* State. Deliberately none of these is orange — orange means "a human may
+     act here", and a status pill is a fact, not an action. */
+  --st-pending:    #858585;
+  --st-submitted:  #FFFFFF;
+  --st-approved:   #FF7A1E;
+  --st-held:       #C7C7C7;
+  --st-released:   #FF5A12;
+  --st-refunded:   #858585;
+  --danger:        #FFFFFF;
+
+  /* The advisory palette: intentionally the dullest thing on screen. */
+  --advisory-bg:   #141414;
+  --advisory-edge: #3B3B3B;
+  --advisory-ink:  #A1A1A1;
+
+  --radius:        4px;   /* stencilled, not soft */
+  --radius-lg:     8px;
+  --tape:          #FFFFFF;
+
+  --font-display: "Anton", "Arial Narrow", sans-serif;
+  --font-body:    "Barlow", ui-sans-serif, system-ui, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-tag:     "Permanent Marker", var(--font-display);
+}
+
+/* This product commits to one visual world: a wall at night. It is painted
+   explicitly rather than inheriting a host theme, so it holds on any ground. */
+
+/* ---------------------------------------------------------------- base */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  /* The opening sequence's finished state. HeroOrbit overrides these inline
+     while the landing page is mounted; anywhere else, and with no JavaScript,
+     the page is simply already assembled. */
+  --reveal: 1;
+  --hero-fox-scale: 1;
+  --orbit-spin: 0deg;
+  --orbit-emerge: 1;
+  margin: 0;
+  background-color: var(--asphalt);
+  background-image:
+    /* pooled light from somewhere off-frame */
+    radial-gradient(1100px 620px at 78% -12%, rgba(255,90,18,0.12), transparent 62%),
+    radial-gradient(760px 480px at 4% 8%, rgba(255,255,255,0.025), transparent 60%);
+  color: var(--chalk);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+/* Concrete grain. A fixed overlay so it reads as the surface the interface is
+   painted on, rather than as a texture riding on each panel. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
+}
+
+main, header, footer { position: relative; z-index: 1; }
+
+/* ---------------------------------------------------------- typography */
+/* Display type is a voice, not a default. h1 and h2 announce a page or a
+   section and earn the stencil; h3 labels a card or a milestone and appears
+   dozens of times per screen, so it stays in the body face. Setting every
+   heading in uppercase Anton made the whole interface shout. */
+h1, h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+  text-wrap: balance;
+  margin: 0;
+  line-height: 0.94;
+}
+
+h3 {
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 0.005em;
+  text-wrap: balance;
+  margin: 0;
+  line-height: 1.25;
+  color: var(--paper);
+}
+
+h1 { font-size: clamp(2.5rem, 7vw, 5.5rem); }
+h2 { font-size: clamp(1.6rem, 3.4vw, 2.4rem); }
+h3 { font-size: 1.0625rem; }
+
+p { margin: 0; }
+
+a { color: var(--orange-lo); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible, input:focus-visible,
+textarea:focus-visible, select:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+code, .mono { font-family: var(--font-mono); font-variant-ligatures: none; }
+
+/* Painted through a stencil: the gradient shows through the letterforms. */
+.stencil {
+  background: var(--spray);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* A hand-tagged word. Used at most once per screen — restraint is what keeps
+   it reading as a tag rather than as a font choice. */
+.tag {
+  font-family: var(--font-tag);
+  text-transform: none;
+  color: var(--orange-lo);
+  transform: rotate(-2.5deg);
+  display: inline-block;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+}
+
+.lede { font-size: clamp(1rem, 1.6vw, 1.1875rem); color: var(--chalk-dim); max-width: 62ch; }
+
+.muted { color: var(--chalk-dim); }
+.faint { color: var(--chalk-faint); }
