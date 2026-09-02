@@ -84,32 +84,85 @@ function bytesToHex(bytes: Uint8Array | Buffer): string {
   return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+/**
+ * Everything the ledger hands back arrives as `unknown`.
+ *
+ * `scValToNative` is typed loosely because it decodes whatever the contract
+ * returned, and this is the one place in the application where data crosses in
+ * from outside without a Zod schema waiting for it. Reading it through these
+ * accessors means a contract that returns a shape this build does not expect
+ * fails here, by name, instead of surfacing three screens later as a milestone
+ * with an `undefined` amount.
+ */
+type Raw = Record<string, unknown>;
+
+function field(raw: Raw, key: string): unknown {
+  const value = raw[key];
+  if (value === undefined) throw new Error(`The contract returned no "${key}".`);
+  return value;
+}
+
+function asRecord(value: unknown, what: string): Raw {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new Error(`The contract returned ${what} in a shape this build cannot read.`);
+  }
+  return value as Raw;
+}
+
+/** Addresses decode either as an `Address` or as a strkey string. */
+function asAddress(value: unknown): string {
+  return value instanceof Address ? value.toString() : String(value);
+}
+
+function asBigInt(value: unknown, what: string): bigint {
+  try {
+    return BigInt(value as string | number | bigint);
+  } catch {
+    throw new Error(`The contract returned a ${what} that is not a number.`);
+  }
+}
+
+function asBytes(value: unknown, what: string): string {
+  if (!(value instanceof Uint8Array)) throw new Error(`The contract returned a ${what} that is not bytes.`);
+  return bytesToHex(value);
+}
+
 /** Turn the raw contract value into the shape the UI works with. */
-function toEngagement(raw: any): Engagement {
+function toEngagement(value: unknown): Engagement {
+  const raw = asRecord(value, "an engagement");
+  const milestones = field(raw, "milestones");
+  if (!Array.isArray(milestones)) throw new Error("The contract returned milestones that are not a list.");
+
   return {
-    id: BigInt(raw.id),
-    sponsor: raw.sponsor instanceof Address ? raw.sponsor.toString() : String(raw.sponsor),
-    builder: String(raw.builder),
-    reviewer: String(raw.reviewer),
-    token: String(raw.token),
-    total_amount: BigInt(raw.total_amount),
-    status: decodeStatus(raw.status, ENGAGEMENT_STATUSES),
-    created_at: BigInt(raw.created_at),
-    milestones: (raw.milestones ?? []).map(toMilestone),
+    id: asBigInt(field(raw, "id"), "engagement id"),
+    sponsor: asAddress(field(raw, "sponsor")),
+    builder: asAddress(field(raw, "builder")),
+    reviewer: asAddress(field(raw, "reviewer")),
+    token: asAddress(field(raw, "token")),
+    total_amount: asBigInt(field(raw, "total_amount"), "total amount"),
+    status: decodeStatus(field(raw, "status"), ENGAGEMENT_STATUSES),
+    created_at: asBigInt(field(raw, "created_at"), "creation time"),
+    milestones: milestones.map(toMilestone),
   };
 }
 
-function toMilestone(raw: any): Milestone {
+function toMilestone(value: unknown): Milestone {
+  const raw = asRecord(value, "a milestone");
+  /* Both of these are genuinely optional on chain: a milestone carries no
+     evidence until the builder submits some. */
+  const evidenceHash = raw.evidence_hash;
+  const evidenceUri = raw.evidence_uri;
+
   return {
-    title: String(raw.title),
-    criteria_hash: bytesToHex(raw.criteria_hash),
-    amount: BigInt(raw.amount),
-    deadline: BigInt(raw.deadline),
-    status: decodeStatus(raw.status, MILESTONE_STATUSES),
-    evidence_hash: raw.evidence_hash ? bytesToHex(raw.evidence_hash) : null,
-    evidence_uri: raw.evidence_uri ? String(raw.evidence_uri) : null,
-    submitted_at: BigInt(raw.submitted_at),
-    decided_at: BigInt(raw.decided_at),
+    title: String(field(raw, "title")),
+    criteria_hash: asBytes(field(raw, "criteria_hash"), "criteria hash"),
+    amount: asBigInt(field(raw, "amount"), "milestone amount"),
+    deadline: asBigInt(field(raw, "deadline"), "deadline"),
+    status: decodeStatus(field(raw, "status"), MILESTONE_STATUSES),
+    evidence_hash: evidenceHash ? asBytes(evidenceHash, "evidence hash") : null,
+    evidence_uri: evidenceUri ? String(evidenceUri) : null,
+    submitted_at: asBigInt(field(raw, "submitted_at"), "submission time"),
+    decided_at: asBigInt(field(raw, "decided_at"), "decision time"),
   };
 }
 
@@ -172,7 +225,7 @@ async function simulateRead<T>(method: string, args: xdr.ScVal[]): Promise<T> {
 }
 
 export async function getEngagement(id: bigint | number): Promise<Engagement> {
-  const raw = await simulateRead<any>("get_engagement", [nativeToScVal(BigInt(id), { type: "u64" })]);
+  const raw = await simulateRead<unknown>("get_engagement", [nativeToScVal(BigInt(id), { type: "u64" })]);
   return toEngagement(raw);
 }
 
@@ -327,7 +380,10 @@ function hashToScVal(hex: string): xdr.ScVal {
   if (!/^[0-9a-f]{64}$/i.test(clean)) {
     throw new Error("Expected a 32-byte hexadecimal document hash.");
   }
-  const bytes = Uint8Array.from(clean.match(/.{2}/g)!.map((b) => parseInt(b, 16)));
+  /* The regexp above already proved this is 64 hex characters, but reaching
+     for `!` to say so leaves the next reader checking that claim by hand. */
+  const pairs = clean.match(/.{2}/g) ?? [];
+  const bytes = Uint8Array.from(pairs.map((b) => Number.parseInt(b, 16)));
   return xdr.ScVal.scvBytes(Buffer.from(bytes));
 }
 

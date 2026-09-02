@@ -26,7 +26,7 @@ const ROLE_LABEL: Record<Exclude<Role, "observer">, string> = {
 };
 
 export default function AwardsPage() {
-  const { address, connect } = useWallet();
+  const { address } = useWallet();
   const [engagements, setEngagements] = useState<Engagement[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,6 +37,9 @@ export default function AwardsPage() {
     setEngagements(all);
   }, []);
 
+  /* biome-ignore lint/correctness/useExhaustiveDependencies: `attempt` is a
+     manual retry counter. It is not read in here — bumping it is the whole
+     point, because it is how the Retry button re-runs a load that failed. */
   useEffect(() => {
     if (!address) {
       setEngagements([]);

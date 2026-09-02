@@ -263,7 +263,7 @@ function MilestoneChoice({ milestone, selected, disabled, onToggle }: { mileston
       <span className="repo-milestone-check">{selected && <ProductIcon name="check" size={15} />}</span>
       <span className="repo-milestone-copy"><strong>{milestone.title}</strong><small>{milestone.due_on ? milestone.due_on.slice(0, 10) : "No due date"}</small></span>
       <span className="repo-progress" style={{ "--repo-progress": `${progress}%` } as React.CSSProperties}><b>{progress}%</b></span>
-      {milestone.issues.length > 0 && <span className="repo-issue-dots" aria-label={`${milestone.issues.length} criteria detected`}>{milestone.issues.slice(0, MAX_CRITERIA).map((issue) => <i key={issue.number} />)}</span>}
+      {milestone.issues.length > 0 && <span className="repo-issue-dots" role="img" aria-label={`${milestone.issues.length} criteria detected`}>{milestone.issues.slice(0, MAX_CRITERIA).map((issue) => <i key={issue.number} />)}</span>}
     </button>
   );
 }

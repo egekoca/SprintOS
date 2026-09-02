@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     );
   }
 
-  let parsed;
+  let parsed: z.infer<typeof Body>;
   try {
     parsed = Body.parse(await request.json());
   } catch {

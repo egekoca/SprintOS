@@ -41,5 +41,7 @@ export function ProductIcon({ name, size = 24, className = "" }: { name: Product
     wallet: <><path d="M4 6.5h14a2 2 0 0 1 2 2V19H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h12" /><path d="M15 11h5v4h-5a2 2 0 0 1 0-4Z" /></>,
   };
 
-  return <svg {...common}>{paths[name]}</svg>;
+  /* Every icon here sits next to text that already says what it means, so
+     it is decorative and stays out of the accessibility tree. */
+  return <svg {...common} role="presentation" aria-hidden="true">{paths[name]}</svg>;
 }

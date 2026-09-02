@@ -1,0 +1,60 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.11/schema.json",
+  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "files": {
+    "includes": [
+      "apps/web/**/*.ts",
+      "apps/web/**/*.tsx",
+      "packages/**/*.ts",
+      "scripts/**/*.mjs",
+      "scripts/**/*.mts",
+      "!**/node_modules",
+      "!**/.next",
+      "!**/dist",
+      "!**/fixtures"
+    ]
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "suspicious": {
+        "noExplicitAny": "error",
+        "noConsole": { "level": "error", "options": { "allow": ["warn", "error"] } },
+        "noDoubleEquals": "error",
+        "noArrayIndexKey": "off"
+      },
+      "correctness": {
+        "noUnusedVariables": "error",
+        "noUnusedImports": "error",
+        "noUnusedFunctionParameters": "error"
+      },
+      "style": {
+        "useConst": "error",
+        "noNonNullAssertion": "error",
+        "useImportType": "error"
+      },
+      "complexity": { "noForEach": "off" },
+      "performance": { "noImgElement": "off" },
+      "a11y": { "recommended": true, "useSemanticElements": "off" },
+      "nursery": { "recommended": false }
+    }
+  },
+  "formatter": { "enabled": false },
+  "assist": { "enabled": false },
+  "overrides": [
+    {
+      "includes": ["**/*.test.ts", "packages/advisory/src/make-fixtures.ts"],
+      "linter": {
+        "rules": {
+          "style": { "noNonNullAssertion": "off" },
+          "suspicious": { "noConsole": "off" }
+        }
+      }
+    },
+    {
+      "includes": ["scripts/**"],
+      "linter": { "rules": { "suspicious": { "noConsole": "off" } } }
+    }
+  ]
+}

@@ -42,7 +42,7 @@ interface LinkRow { url: string; type: EvidenceType }
 const emptyLinks = (): LinkRow[] => [{ url: "", type: "repo" }];
 
 export default function BuilderPage() {
-  const { address, connect } = useWallet();
+  const { address } = useWallet();
   const [engagements, setEngagements] = useState<Engagement[]>([]);
   const [loading, setLoading] = useState(true);
   const [engagementIndex, setEngagementIndex] = useState(0);
@@ -58,6 +58,9 @@ export default function BuilderPage() {
     setEngagements(await listEngagements());
   }, []);
 
+  /* biome-ignore lint/correctness/useExhaustiveDependencies: `attempt` is a
+     manual retry counter. It is not read in here — bumping it is the whole
+     point, because it is how the Retry button re-runs a load that failed. */
   useEffect(() => {
     setLoading(true);
     setError(null);
@@ -75,6 +78,10 @@ export default function BuilderPage() {
 
   /* Open on whatever is actually actionable, so the desk lands on the work
      rather than always on milestone one. */
+  /* biome-ignore lint/correctness/useExhaustiveDependencies: `address` is not
+     read in here. It is listed because switching wallet must reset the desk —
+     leaving the previous builder's milestone selected would show one person's
+     work under another person's account. */
   useEffect(() => {
     setEngagementIndex(0);
     setMilestoneIndex(0);
@@ -267,8 +274,8 @@ export default function BuilderPage() {
 
             {canSubmit && (
               <div className="evidence-form">
-                <div className="stack-s">
-                  <label>Public links — proof anyone can open without a login</label>
+                <div className="stack-s" role="group" aria-labelledby="evidence-links-label">
+                  <span className="group-label" id="evidence-links-label">Public links — proof anyone can open without a login</span>
                   {links.map((link, index) => (
                     <div className="evidence-row" key={index}>
                       <input

@@ -131,7 +131,7 @@ export function HeroOrbit() {
   }, []);
 
   return (
-    <div className="rec-orbit-stage" aria-label="What was promised becomes what is paid">
+    <div className="rec-orbit-stage" role="img" aria-label="What was promised becomes what is paid">
       {/* Two pairs in the same places. The name flanks the mark while the page
           is still locked and hands over to the words that describe the product
           as it assembles, so the opening reads as a title card. */}

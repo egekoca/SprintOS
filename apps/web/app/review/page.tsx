@@ -21,6 +21,9 @@ export default function ReviewListPage() {
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
 
+  /* biome-ignore lint/correctness/useExhaustiveDependencies: `attempt` is a
+     manual retry counter. It is not read in here — bumping it is the whole
+     point, because it is how the Retry button re-runs a load that failed. */
   useEffect(() => {
     setLoading(true);
     setError(null);

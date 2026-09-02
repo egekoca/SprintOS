@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { Address, Transaction, TransactionBuilder, rpc, scValToNative, xdr } from "@stellar/stellar-sdk";
-import { ActivityAction, ActivityEntry } from "@sprintos/schemas";
+import { Address, type FeeBumpTransaction, Transaction, TransactionBuilder, rpc, scValToNative, type xdr } from "@stellar/stellar-sdk";
+import { type ActivityAction, ActivityEntry } from "@sprintos/schemas";
+import type { ActivityEntry as ActivityEntryValue } from "@sprintos/schemas";
 import { NETWORK, SETTLEMENT_CONTRACT_ID } from "@/lib/stellar/config";
 import { StoreUnavailableError, appendActivity, store, validateEngagementId } from "@/lib/store";
 import { createdEngagementId } from "@/lib/activity";
@@ -47,7 +48,7 @@ interface OnChainCall {
 
 /** Pull the single contract invocation out of a confirmed transaction. */
 function readInvocation(envelopeXdr: string): OnChainCall | null {
-  let tx;
+  let tx: Transaction | FeeBumpTransaction;
   try {
     tx = TransactionBuilder.fromXDR(envelopeXdr, NETWORK.passphrase);
   } catch {
@@ -57,9 +58,9 @@ function readInvocation(envelopeXdr: string): OnChainCall | null {
      never builds one, so anything that is not a plain transaction is refused. */
   if (!(tx instanceof Transaction) || tx.operations.length !== 1) return null;
   const op = tx.operations[0];
-  if (!op || op.type !== "invokeHostFunction") return null;
+  if (op?.type !== "invokeHostFunction") return null;
 
-  let invoke;
+  let invoke: xdr.InvokeContractArgs;
   try {
     invoke = op.func.invokeContract();
   } catch {
@@ -127,7 +128,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Expected a 32-byte hexadecimal transaction hash." }, { status: 400 });
   }
 
-  let confirmed;
+  let confirmed: rpc.Api.GetTransactionResponse;
   try {
     confirmed = await server().getTransaction(txHash);
   } catch {
@@ -176,7 +177,7 @@ export async function POST(request: Request) {
   const milestoneIdx =
     action !== "created" && action !== "funded" && typeof secondArg === "number" ? secondArg : undefined;
 
-  let entry;
+  let entry: ActivityEntryValue;
   try {
     validateEngagementId(engagementId);
     entry = ActivityEntry.parse({

@@ -136,7 +136,7 @@ function contoursOf(inside) {
       let [, , cx, cy] = first;
       while (!(cx === first[0] && cy === first[1])) {
         const options = starts.get(key(cx, cy));
-        if (!options || !options.length) break;
+        if (!options?.length) break;
         const edge = options.pop();
         loop.push([edge[0], edge[1]]);
         cx = edge[2];

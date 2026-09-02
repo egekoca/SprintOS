@@ -26,7 +26,7 @@ const valid = {
   ],
   evidence: [],
   missing_information: [],
-  report_hash: "sha256:" + "a".repeat(64),
+  report_hash: `sha256:${"a".repeat(64)}`,
 };
 
 test("a well-formed report parses", () => {

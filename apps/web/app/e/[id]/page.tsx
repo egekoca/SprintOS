@@ -38,6 +38,9 @@ export default function EngagementPage({ params }: { params: Promise<{ id: strin
   /* Bumped by the retry button; the read effect depends on it. */
   const [attempt, setAttempt] = useState(0);
 
+  /* biome-ignore lint/correctness/useExhaustiveDependencies: `attempt` is a
+     manual retry counter. It is not read in here — bumping it is the whole
+     point, because it is how the Retry button re-runs a load that failed. */
   useEffect(() => {
     setLoading(true);
     setEngagement(null);
@@ -109,9 +112,9 @@ export default function EngagementPage({ params }: { params: Promise<{ id: strin
       <div className="panel stack-s">
         <p className="eyebrow">Parties</p>
         <div className="grid-3">
-          <Party role="Sponsor" address={engagement.sponsor} />
-          <Party role="Builder" address={engagement.builder} />
-          <Party role="Reviewer" address={engagement.reviewer} note="the only address that can approve; reviewer releases or builder claims afterward" />
+          <Party party="Sponsor" address={engagement.sponsor} />
+          <Party party="Builder" address={engagement.builder} />
+          <Party party="Reviewer" address={engagement.reviewer} note="the only address that can approve; reviewer releases or builder claims afterward" />
         </div>
       </div>
 
@@ -238,10 +241,10 @@ function Figure({ label, value, accent }: { label: string; value: string; accent
   );
 }
 
-function Party({ role, address, note }: { role: string; address: string; note?: string }) {
+function Party({ party, address, note }: { party: string; address: string; note?: string }) {
   return (
     <div className="stack-s" style={{ gap: "0.25rem" }}>
-      <span className="eyebrow">{role}</span>
+      <span className="eyebrow">{party}</span>
       <a href={explorerAccount(address)} target="_blank" rel="noreferrer" className="badge-link">
         {shortAddress(address, 6, 6)} ↗
       </a>

@@ -117,8 +117,43 @@ async function readLimitedText(response: Response): Promise<string> {
   return text + decoder.decode();
 }
 
-async function readJson(response: Response): Promise<Record<string, any>> {
-  return JSON.parse(await readLimitedText(response)) as Record<string, any>;
+/**
+ * The slices of GitHub's API this module actually reads.
+ *
+ * Every field is optional because none of it is guaranteed: the response may be
+ * an error body, a shape that changed, or a repository with nothing in it. The
+ * module summarizes what it finds and says so when a field is missing, rather
+ * than pretending the API is a contract.
+ */
+interface GitHubRepo {
+  full_name?: string;
+  description?: string;
+  default_branch?: string;
+  stargazers_count?: number;
+  open_issues_count?: number;
+  pushed_at?: string;
+}
+
+interface GitHubCommit {
+  sha?: string;
+  commit?: { message?: string; author?: { name?: string; date?: string } };
+  stats?: { additions?: number; deletions?: number };
+  files?: Array<{ filename?: string; status?: string }>;
+}
+
+interface GitHubPull {
+  number?: number;
+  title?: string;
+  state?: string;
+  merged_at?: string | null;
+  additions?: number;
+  deletions?: number;
+  changed_files?: number;
+  body?: string | null;
+}
+
+async function readJson<T>(response: Response): Promise<T> {
+  return JSON.parse(await readLimitedText(response)) as T;
 }
 
 function clamp(text: string): string {
@@ -176,8 +211,8 @@ async function fetchGitHub(link: EvidenceLink, target: GitHubTarget): Promise<Fe
   const api = `https://api.github.com/repos/${target.owner}/${target.repo}`;
 
   const repoRes = await get(api, headers);
-  const repoBody = repoRes.ok ? await readJson(repoRes) : undefined;
-  const verdict = privacyVerdict(repoRes.status, repoBody as { private?: boolean });
+  const repoBody = repoRes.ok ? await readJson<GitHubRepo & { private?: boolean }>(repoRes) : undefined;
+  const verdict = privacyVerdict(repoRes.status, repoBody);
   if (!verdict.ok) {
     return { ...base, fetched: false, public: false, content: "", error: verdict.reason };
   }
@@ -200,7 +235,7 @@ async function fetchGitHub(link: EvidenceLink, target: GitHubTarget): Promise<Fe
     if (!res.ok) {
       return { ...base, fetched: false, public: true, content: lines.join("\n"), error: `Commit not readable (HTTP ${res.status}).` };
     }
-    const c = await readJson(res);
+    const c = await readJson<GitHubCommit>(res);
     lines.push(
       "",
       `Commit ${c.sha?.slice(0, 10)} by ${c.commit?.author?.name} on ${c.commit?.author?.date}`,
@@ -208,7 +243,7 @@ async function fetchGitHub(link: EvidenceLink, target: GitHubTarget): Promise<Fe
       `Changes: +${c.stats?.additions} / -${c.stats?.deletions} across ${c.files?.length ?? 0} files`,
       // File names and counts only. Patch bodies are deliberately not read:
       // the module reviews whether evidence exists, not the source itself.
-      `Files: ${(c.files ?? []).slice(0, 40).map((f: any) => `${f.filename} (${f.status})`).join(", ")}`,
+      `Files: ${(c.files ?? []).slice(0, 40).map((f) => `${f.filename} (${f.status})`).join(", ")}`,
     );
   }
 
@@ -217,7 +252,7 @@ async function fetchGitHub(link: EvidenceLink, target: GitHubTarget): Promise<Fe
     if (!res.ok) {
       return { ...base, fetched: false, public: true, content: lines.join("\n"), error: `Pull request not readable (HTTP ${res.status}).` };
     }
-    const p = await readJson(res);
+    const p = await readJson<GitHubPull>(res);
     lines.push(
       "",
       `Pull request #${p.number}: ${p.title}`,

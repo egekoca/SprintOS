@@ -133,6 +133,9 @@ function formatDate(date: Date): string {
 
 function chunk(values: string[], count: number): string[][] {
   const groups = Array.from({ length: count }, () => [] as string[]);
-  values.forEach((value, index) => groups[Math.min(count - 1, Math.floor(index * count / values.length))]!.push(value));
+  for (const [index, value] of values.entries()) {
+    const group = groups[Math.min(count - 1, Math.floor((index * count) / values.length))];
+    if (group) group.push(value);
+  }
   return groups.filter((group) => group.length > 0);
 }
