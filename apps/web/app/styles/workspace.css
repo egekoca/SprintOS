@@ -334,15 +334,68 @@
 
 /* ---------------------------------------------------------- score dial */
 .score-dial { position: relative; display: grid; place-items: center; flex: 0 0 auto; }
-.score-dial svg { width: 100%; height: 100%; }
-.score-dial-track { fill: none; stroke: var(--advisory-edge); stroke-width: 7; }
-.score-dial-fill { fill: none; stroke: var(--advisory-ink); stroke-width: 7; stroke-linecap: round; }
-.score-dial-value {
+.score-dial svg { width: 100%; height: 100%; overflow: visible; }
+
+.score-dial-track {
+  fill: none;
+  stroke: var(--advisory-edge);
+  stroke-width: 9;
+  stroke-linecap: round;
+}
+.score-dial-fill {
+  fill: none;
+  stroke-width: 9;
+  stroke-linecap: round;
+  transition: d 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.score-dial-cap { stroke: var(--advisory-bg); stroke-width: 2.5; }
+
+.score-dial-tick { stroke: var(--advisory-edge); stroke-width: 1.5; }
+.score-dial-tick.is-major { stroke: var(--chalk-faint); stroke-width: 2; }
+
+/* The readout sits inside the arc, stacked: fox, number, unit. */
+.score-dial-face {
   position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.05rem;
+  pointer-events: none;
+}
+.score-dial-value {
   font-family: var(--font-display);
-  font-size: 1.6rem;
-  color: var(--advisory-ink);
+  font-size: 2.15rem;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.score-dial-unit {
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+}
+
+/* Sits in the gap at the bottom of the arc, which is what the gap is for. */
+.score-dial-verdict {
+  position: absolute;
+  bottom: -0.15rem;
+  font-size: 0.6875rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+  background: var(--advisory-bg);
+  padding: 0.15rem 0.5rem;
+  border: 1px dashed var(--advisory-edge);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.score-dial-verdict.is-ready { color: var(--dial-high); border-color: var(--dial-high); }
+
+@media (prefers-reduced-motion: reduce) {
+  .score-dial-fill { transition: none; }
 }
 .score-dial-value small { font-family: var(--font-mono); font-size: .5rem; color: var(--chalk-faint); }
 
@@ -356,3 +409,45 @@
   .budget-readout { justify-content: flex-start; }
   .mdetail-head-right { width: 100%; justify-content: space-between; }
 }
+
+/* --------------------------------------------- milestone score overview */
+.milestone-score-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: 1rem;
+}
+.milestone-score-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem 1rem 1.5rem;
+  background: var(--advisory-bg);
+  border: 1px dashed var(--advisory-edge);
+  border-radius: var(--radius-lg);
+}
+/* Titles wrap to different depths, and a dial that sits lower than the one
+   beside it makes two equal scores look unequal. */
+.milestone-score-card header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: 0.65rem;
+  width: 100%;
+  min-height: 3rem;
+}
+.milestone-score-index {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--chalk-faint);
+}
+.milestone-score-card header strong {
+  display: block;
+  font-size: 0.9375rem;
+  line-height: 1.25;
+  color: var(--chalk);
+}
+.milestone-score-card header small { color: var(--chalk-faint); font-size: 0.75rem; }
+/* Pushed to the bottom so the line sits level across cards whose titles wrapped
+   to different depths. */
+.milestone-score-note { font-size: 0.8125rem; color: var(--chalk-dim); margin: auto 0 0; }

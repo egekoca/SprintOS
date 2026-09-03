@@ -56,6 +56,14 @@
   --advisory-edge: #3B3B3B;
   --advisory-ink:  #A1A1A1;
 
+  /* The score gauge. Deliberately off the brand ramp: none of these is the
+     brand orange, because orange means a human may act and a score never is a
+     permission. They are muted for the same reason — a vivid green at 100 would
+     read as approval, and approval is not something this module can give. */
+  --dial-low:      #C4463A;
+  --dial-mid:      #C9963F;
+  --dial-high:     #4E9E73;
+
   --radius:        4px;   /* stencilled, not soft */
   --radius-lg:     8px;
   --tape:          #FFFFFF;

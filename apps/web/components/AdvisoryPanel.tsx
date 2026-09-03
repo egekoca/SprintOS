@@ -3,6 +3,7 @@
 import type { AdvisoryReport } from "@sprintos/schemas/report";
 import { FoxSpinner } from "./FoxLoader";
 import { FoxSculpture } from "./FoxSculpture";
+import { ScoreDial } from "./ScoreDial";
 
 /**
  * The advisory report, rendered as the least authoritative thing on the page.
@@ -68,14 +69,14 @@ export function AdvisoryPanel({
       {report && (
         <>
           <div className="advisory-score-scene">
-            <FoxSculpture size={104} idPrefix="score-result" />
-            <span className="advisory-score">{report.advisory_score}</span>
-            <div className="stack-s" style={{ gap: "0.125rem" }}>
-              <span className="mono" style={{ fontSize: "0.875rem", color: "var(--chalk-dim)" }}>
-                {report.recommendation === "ReadyForReview" ? "Ready for review" : "Revision suggested"}
+            <ScoreDial score={report.advisory_score} recommendation={report.recommendation} />
+            <div className="stack-s" style={{ gap: "0.25rem" }}>
+              <span className="mono" style={{ fontSize: "0.8125rem", color: "var(--chalk-dim)" }}>
+                {report.criteria.filter((c) => c.verdict === "met").length} of {report.criteria.length} criteria met
               </span>
-              <span className="faint" style={{ fontSize: "0.75rem" }}>
-                out of 100 · advisory only
+              <span className="faint" style={{ fontSize: "0.75rem", maxWidth: "22ch" }}>
+                How much of the evidence checked out — not a decision, and not a
+                permission to release anything.
               </span>
             </div>
           </div>
