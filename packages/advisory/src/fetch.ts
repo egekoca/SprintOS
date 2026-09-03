@@ -166,10 +166,23 @@ function clamp(text: string): string {
 interface GitHubTarget {
   owner: string;
   repo: string;
-  kind: "repo" | "commit" | "pull" | "other";
+  kind: "repo" | "commit" | "pull" | "file" | "dir" | "other";
   ref?: string;
+  /** Path within the repository, for `file` and `dir` targets. */
+  path?: string;
 }
 
+/**
+ * Work out what a GitHub link is actually pointing at.
+ *
+ * `blob` and `tree` matter more than they look. When a builder opens a file on
+ * github.com and copies the address bar — which is what anybody does — they get
+ * a `blob` URL. Treating that as "some repository" and summarizing the
+ * repository instead used to hand the model five lines of star counts in place
+ * of the source file it was asked to check, and every criterion came back
+ * `cannot_verify`. The most natural way to submit evidence was the one that
+ * worked worst.
+ */
 export function parseGitHubUrl(url: string): GitHubTarget | null {
   let u: URL;
   try {
@@ -179,13 +192,22 @@ export function parseGitHubUrl(url: string): GitHubTarget | null {
   }
   if (u.hostname !== "github.com" && u.hostname !== "www.github.com") return null;
 
-  const parts = u.pathname.split("/").filter(Boolean);
-  const [owner, repo, section, ref] = parts;
+  const parts = u.pathname.split("/").filter(Boolean).map((part) => decodeURIComponent(part));
+  const [owner, repo, section, ref, ...rest] = parts;
   if (!owner || !repo) return null;
 
   if (!section) return { owner, repo, kind: "repo" };
   if (section === "commit" && ref) return { owner, repo, kind: "commit", ref };
   if (section === "pull" && ref) return { owner, repo, kind: "pull", ref };
+
+  /* `blob`/`tree` are `<section>/<ref>/<path…>`. A tree URL with no path left
+     is the repository root on a branch, which is just the repository. */
+  if ((section === "blob" || section === "tree") && ref) {
+    const path = rest.join("/");
+    if (!path) return { owner, repo, kind: "repo" };
+    return { owner, repo, kind: section === "blob" ? "file" : "dir", ref, path };
+  }
+
   return { owner, repo, kind: "other" };
 }
 
@@ -203,6 +225,24 @@ function privacyVerdict(status: number, body?: { private?: boolean }): { ok: boo
   if (!String(status).startsWith("2")) return { ok: false, reason: `GitHub returned HTTP ${status}.` };
   if (body?.private) return { ok: false, reason: "Repository is private. Private sources are never opened." };
   return { ok: true };
+}
+
+/** How many directory entries are worth listing before it stops being evidence. */
+const MAX_DIR_ENTRIES = 60;
+
+/** Percent-encode each path segment, leaving the separators alone. */
+function encodePath(path: string): string {
+  return path.split("/").map(encodeURIComponent).join("/");
+}
+
+/* The contents API hands back raw bytes for any file, so an image or a wasm
+   blob arrives as mojibake. Passing that to the model wastes the budget and
+   tells it nothing. */
+function looksBinary(text: string): boolean {
+  const sample = text.slice(0, 1000);
+  if (sample.includes("\u0000")) return true;
+  const weird = sample.replace(/[\t\n\r\x20-\x7E\u00A0-\uFFFD]/g, "").length;
+  return weird / Math.max(sample.length, 1) > 0.1;
 }
 
 async function fetchGitHub(link: EvidenceLink, target: GitHubTarget): Promise<FetchedEvidence> {
@@ -228,6 +268,61 @@ async function fetchGitHub(link: EvidenceLink, target: GitHubTarget): Promise<Fe
   if (target.kind === "repo") {
     const readme = await get(`${api}/readme`, { ...headers, Accept: "application/vnd.github.raw" });
     if (readme.ok) lines.push("", "README:", clamp(await readLimitedText(readme)));
+  }
+
+  /* A file the builder pointed at, read as raw text through the contents API.
+     Same credential-free request and same size ceiling as every other source —
+     only the endpoint is different. */
+  if (target.kind === "file" && target.ref && target.path) {
+    const res = await get(
+      `${api}/contents/${encodePath(target.path)}?ref=${encodeURIComponent(target.ref)}`,
+      { ...headers, Accept: "application/vnd.github.raw" },
+    );
+    if (!res.ok) {
+      return {
+        ...base,
+        fetched: false,
+        public: true,
+        content: lines.join("\n"),
+        error: `File not readable (HTTP ${res.status}).`,
+      };
+    }
+    const text = await readLimitedText(res);
+    if (looksBinary(text)) {
+      lines.push("", `File: ${target.path} @ ${target.ref}`, "(binary file, not read)");
+    } else {
+      lines.push("", `File: ${target.path} @ ${target.ref}`, "", clamp(text));
+    }
+  }
+
+  /* A directory listing. Names and sizes only — the point of a `tree` link is
+     usually "these files exist", and fetching every one of them would blow the
+     prompt budget on a single piece of evidence. */
+  if (target.kind === "dir" && target.ref && target.path) {
+    const res = await get(
+      `${api}/contents/${encodePath(target.path)}?ref=${encodeURIComponent(target.ref)}`,
+      headers,
+    );
+    if (!res.ok) {
+      return {
+        ...base,
+        fetched: false,
+        public: true,
+        content: lines.join("\n"),
+        error: `Directory not readable (HTTP ${res.status}).`,
+      };
+    }
+    const entries = await readJson<Array<{ name?: string; type?: string; size?: number }>>(res);
+    if (Array.isArray(entries)) {
+      lines.push("", `Directory: ${target.path} @ ${target.ref} — ${entries.length} entries`);
+      for (const entry of entries.slice(0, MAX_DIR_ENTRIES)) {
+        const suffix = entry.type === "dir" ? "/" : ` (${entry.size ?? 0} bytes)`;
+        lines.push(`  ${entry.name}${suffix}`);
+      }
+      if (entries.length > MAX_DIR_ENTRIES) {
+        lines.push(`  …and ${entries.length - MAX_DIR_ENTRIES} more`);
+      }
+    }
   }
 
   if (target.kind === "commit" && target.ref) {
