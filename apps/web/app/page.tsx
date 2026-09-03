@@ -2,6 +2,7 @@ import Link from "next/link";
 import { FoxSculpture } from "@/components/FoxSculpture";
 import { HeroOrbit } from "@/components/HeroOrbit";
 import { MilestoneTree } from "@/components/MilestoneTree";
+import { LiveTotals } from "@/components/LiveTotals";
 import { ProductIcon, type ProductIconName } from "@/components/ProductIcon";
 import { Reveal } from "@/components/Reveal";
 
@@ -103,6 +104,9 @@ export default function LandingPage() {
         />
         <MilestoneTree />
       </section>
+
+      {/* The argument above is checkable, so state the checkable part. */}
+      <LiveTotals />
 
       {/* Two circles and an arrow said "reads" and "signs" without saying who,
           or what the difference buys anyone. The boundary is worth stating as

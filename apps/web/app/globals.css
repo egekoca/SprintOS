@@ -32,6 +32,7 @@
 @import "./styles/landing.css";
 @import "./styles/setup.css";
 @import "./styles/workspace.css";
+@import "./styles/board.css";
 @import "./styles/builder-desk.css";
 @import "./styles/awards.css";
 @import "./styles/commit-gate.css";

@@ -1,0 +1,189 @@
+/* ==========================================================================
+   The board — what the programme has done, and who did it
+
+   Two jobs on one page: four figures anyone can check against the chain, and a
+   ranking of the builders behind them. The podium is deliberately small. A
+   leaderboard whose top three fill the screen makes everyone else feel like a
+   footnote, and the useful part of a board is the part you can scan.
+   ========================================================================== */
+
+/* ------------------------------------------------------------- the figures */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.75rem;
+}
+/* Icon on the left, three lines of text on the right. Grid areas put the icon
+   on top of the label often enough that a flex row is simply the safer shape. */
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-lg);
+  background: var(--concrete);
+}
+.stat-icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius);
+  color: var(--chalk-faint);
+}
+.stat-text { display: grid; gap: 0.1rem; min-width: 0; }
+.stat b {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+.stat-text > span { font-size: 0.8125rem; color: var(--chalk-dim); }
+.stat small { font-size: 0.6875rem; color: var(--chalk-faint); }
+
+/* The money that actually reached a builder is the figure this whole project
+   exists to produce, so it is the one that wears the brand. */
+.stat.is-strong { border-color: var(--orange-hi); }
+.stat.is-strong b { color: var(--orange); }
+.stat.is-strong .stat-icon { border-color: var(--orange-hi); color: var(--orange); }
+
+/* ---------------------------------------------------------------- the board */
+.board {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-lg);
+  background: var(--concrete);
+}
+.board-head h3 { margin-top: 0.15rem; }
+.board-empty { color: var(--chalk-faint); font-size: 0.9375rem; margin: 0; padding: 1rem 0; }
+
+/* Three across, all the same height. No stepped plinth: the rank number does
+   that job in one character and leaves the row legible. */
+.board-podium {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.65rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.board-podium-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius);
+  background: var(--concrete-2);
+}
+.board-podium-slot b {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-variant-numeric: tabular-nums;
+}
+.board-podium-slot small { color: var(--chalk-faint); font-size: 0.6875rem; }
+.board-podium-slot a { font-size: 0.75rem; }
+.board-medal {
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  color: var(--chalk-faint);
+  border: 1px solid var(--edge-bright);
+  border-radius: 999px;
+  padding: 0 0.45rem;
+  margin-bottom: 0.2rem;
+}
+.board-podium-slot.is-rank-1 { border-color: var(--orange-hi); }
+.board-podium-slot.is-rank-1 .board-medal { color: var(--orange); border-color: var(--orange-hi); }
+.board-podium-slot.is-rank-1 b { color: var(--orange); }
+
+@media (max-width: 720px) {
+  .board-podium { grid-template-columns: 1fr; }
+}
+
+/* ---------------------------------------------------------------- the table */
+.board-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.board-table th {
+  text-align: left;
+  font-size: 0.6875rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+  font-weight: 500;
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid var(--edge);
+}
+.board-table td { padding: 0.55rem 0.6rem; border-bottom: 1px solid var(--edge); }
+.board-table tbody tr:last-child td { border-bottom: none; }
+.board-rank {
+  font-family: var(--font-display);
+  color: var(--chalk-faint);
+  font-variant-numeric: tabular-nums;
+  width: 3rem;
+}
+.board-table td.data, .board-table th:nth-child(n+3) { text-align: right; }
+
+/* The viewer's own row, wherever it lands. */
+.board-table tr.is-mine td { background: var(--concrete-3); }
+.board-table tr.is-mine .board-rank { color: var(--orange); }
+.board-you {
+  margin-left: 0.5rem;
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--orange);
+  border: 1px solid var(--orange-hi);
+  border-radius: 999px;
+  padding: 0.05rem 0.4rem;
+}
+
+/* Marks the jump between the page and the pinned row, so a rank of 47 sitting
+   under a rank of 10 does not read as a mistake. */
+.board-gap td {
+  text-align: center;
+  color: var(--chalk-faint);
+  letter-spacing: 0.4em;
+  padding: 0.3rem;
+  border-bottom: 1px solid var(--edge);
+}
+
+.board-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.8125rem;
+}
+.board-pager small { color: var(--chalk-faint); }
+
+/* --------------------------------------- the three figures on the landing */
+.live-totals {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding-block: clamp(2.5rem, 6vw, 4rem);
+  text-align: center;
+}
+.live-totals-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1.5rem 2.5rem;
+  width: 100%;
+  max-width: 52rem;
+}
+.live-totals-row span { display: grid; gap: 0.2rem; }
+.live-totals-row b {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.live-totals-row span:first-child b { color: var(--orange); }
+.live-totals-row small { font-size: 0.8125rem; color: var(--chalk-dim); }
