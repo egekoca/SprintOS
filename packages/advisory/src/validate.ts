@@ -69,16 +69,31 @@ export function checkCitations(
 }
 
 /** Every criterion assessed exactly once, and no invented ones. */
+/**
+ * Compare criterion ids without tripping over how the model wrote them.
+ *
+ * Asked to assess `c1`, the model sometimes answers `[c1]`, sometimes `C1`.
+ * The id is a label the report carries back, not a claim about the work, and
+ * refusing an otherwise sound report over a pair of brackets threw away a
+ * genuine assessment roughly one run in five. Anything that survives this is
+ * still checked against the criteria the sponsor actually set.
+ */
+export function normalizeCriterionId(id: string): string {
+  return id.trim().replace(/^[[({<"'\s]+|[\])}>"'\s]+$/g, "").toLowerCase();
+}
+
 export function checkCriteriaCoverage(draft: Draft, criteria: CriteriaDocument): string[] {
-  const expected = criteria.criteria.map((c) => c.id);
-  const got = draft.criteria.map((c) => c.id);
+  const expected = criteria.criteria.map((c) => normalizeCriterionId(c.id));
+  const got = draft.criteria.map((c) => normalizeCriterionId(c.id));
   const problems: string[] = [];
 
-  for (const id of expected) {
-    if (!got.includes(id)) problems.push(`Criterion ${id} was not assessed.`);
+  for (const [i, id] of expected.entries()) {
+    if (!got.includes(id)) problems.push(`Criterion ${criteria.criteria[i].id} was not assessed.`);
   }
-  for (const id of got) {
-    if (!expected.includes(id)) problems.push(`Report assesses ${id}, which is not a criterion of this milestone.`);
+  for (const [i, id] of got.entries()) {
+    if (!expected.includes(id)) {
+      problems.push(`Report assesses ${draft.criteria[i].id}, which is not a criterion of this milestone.`);
+    }
   }
   const duplicates = got.filter((id, i) => got.indexOf(id) !== i);
   for (const id of new Set(duplicates)) {

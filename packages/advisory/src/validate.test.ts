@@ -5,6 +5,7 @@ import {
   checkCriteriaCoverage,
   checkScoreCoherence,
   ReportValidationError,
+  normalizeCriterionId,
   validateDraft,
   type Draft,
 } from "./validate.ts";
@@ -102,4 +103,37 @@ test("validation reports every problem at once, not just the first", () => {
     assert.ok(err instanceof ReportValidationError);
     assert.ok(err.problems.length >= 2);
   }
+});
+
+/* Asked to assess `c1`, the model sometimes answers `[c1]` or `C1`. That is a
+   spelling difference, not a claim about the work, and it used to throw away an
+   otherwise sound report about one run in five. */
+test("bracketed and uppercased criterion ids still match the sponsor's", () => {
+  assert.equal(normalizeCriterionId("[c1]"), "c1");
+  assert.equal(normalizeCriterionId("C1"), "c1");
+  assert.equal(normalizeCriterionId(" (c1) "), "c1");
+  assert.equal(normalizeCriterionId('"c1"'), "c1");
+  assert.equal(normalizeCriterionId("c1"), "c1");
+});
+
+test("a report using bracketed ids is accepted, not refused", () => {
+  const bracketed = draft();
+  bracketed.criteria = bracketed.criteria.map((c) => ({ ...c, id: `[${c.id}]` }));
+  assert.deepEqual(checkCriteriaCoverage(bracketed, criteria), []);
+});
+
+/* Normalizing must not make the check lenient about substance: an id the
+   sponsor never set is still an invented criterion. */
+test("an invented criterion is still caught after normalization", () => {
+  const invented = draft();
+  invented.criteria = [{ ...invented.criteria[0]!, id: "[c9]" }, invented.criteria[1]!];
+  const problems = checkCriteriaCoverage(invented, criteria);
+  assert.ok(problems.some((p) => /not a criterion/.test(p)), problems.join(" | "));
+});
+
+test("the same criterion assessed twice in different spellings is caught", () => {
+  const twice = draft();
+  twice.criteria = [twice.criteria[0]!, { ...twice.criteria[0]!, id: "[C1]" }, twice.criteria[1]!];
+  const problems = checkCriteriaCoverage(twice, criteria);
+  assert.ok(problems.some((p) => /more than once/.test(p)), problems.join(" | "));
 });

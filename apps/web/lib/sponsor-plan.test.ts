@@ -168,3 +168,23 @@ test("an account is shortened at both ends, and short values are left alone", ()
   assert.equal(shortAccount(""), "—");
   assert.equal(shortAccount("short"), "short");
 });
+
+/* The contract refuses all three role collisions. This was the one the form
+   never checked, so "I'll review it myself" built a transaction that was always
+   rejected on chain — after the sponsor had signed it and paid the fee. */
+test("the sponsor cannot also be the reviewer", () => {
+  const problem = roleProblemOf({ sponsor: SPONSOR, builder: BUILDER, reviewer: SPONSOR });
+  assert.match(problem ?? "", /reviewer cannot be the sponsor/i);
+});
+
+test("every collision the contract rejects is refused by the form first", () => {
+  const collisions: Array<[string, string, string]> = [
+    [SPONSOR, SPONSOR, REVIEWER],
+    [SPONSOR, BUILDER, SPONSOR],
+    [SPONSOR, BUILDER, BUILDER],
+  ];
+  for (const [sponsor, builder, reviewer] of collisions) {
+    assert.notEqual(roleProblemOf({ sponsor, builder, reviewer }), null, `${sponsor}/${builder}/${reviewer}`);
+  }
+  assert.equal(roleProblemOf({ sponsor: SPONSOR, builder: BUILDER, reviewer: REVIEWER }), null);
+});

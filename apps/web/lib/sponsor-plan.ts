@@ -117,6 +117,12 @@ export function roleProblemOf({ sponsor, builder, reviewer }: RoleCheck): string
   }
   if (builder.trim() === sponsor) return "The builder cannot be the sponsor's own account.";
   if (builder.trim() === reviewer) return "The builder cannot also be the reviewer.";
+  /* The contract refuses all three combinations, and this was the one the form
+     never checked — so "I'll review it myself" produced a transaction that was
+     always rejected on chain, after the sponsor had signed and paid a fee. */
+  if (reviewer === sponsor) {
+    return "The reviewer cannot be the sponsor's own account. Nominate a separate address to decide payouts.";
+  }
   return null;
 }
 

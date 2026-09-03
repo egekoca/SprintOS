@@ -10,7 +10,7 @@ import {
 } from "@sprintos/schemas";
 import { fetchAllEvidence, type FetchedEvidence } from "./fetch.ts";
 import { buildUserPrompt, SYSTEM_PROMPT } from "./prompt.ts";
-import { type Draft, parseReport, validateDraft } from "./validate.ts";
+import { type Draft, normalizeCriterionId, parseReport, validateDraft } from "./validate.ts";
 import { requestStructuredJson } from "./openai.ts";
 
 export const DEFAULT_MODEL = process.env.OPENAI_MODEL?.trim() || "gpt-5.6";
@@ -141,6 +141,18 @@ export async function generateReport(options: GenerateOptions): Promise<Advisory
   }
 
   validateDraft(draft, criteria, evidence.links);
+
+  /* Store the sponsor's own id for each criterion, not whatever spelling the
+     model handed back. The report is read next to the criteria document, and
+     a reviewer should not have to work out that `[c1]` and `c1` are the same
+     requirement. */
+  draft.criteria = draft.criteria.map((assessed) => {
+    const match = criteria.criteria.find(
+      (c) => normalizeCriterionId(c.id) === normalizeCriterionId(assessed.id),
+    );
+    return match ? { ...assessed, id: match.id } : assessed;
+  });
+
   return assembleReport({ draft, criteria, evidence, fetched, model });
 }
 
