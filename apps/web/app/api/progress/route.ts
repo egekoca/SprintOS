@@ -8,6 +8,7 @@ import {
   ReportValidationError,
   type RepositoryEntry,
 } from "@sprintos/advisory";
+import type { EvidenceLink } from "@sprintos/schemas";
 import { StoreUnavailableError, store } from "@/lib/store";
 import { takeRateLimit } from "@/lib/rate-limit";
 import { isSameOrigin, requestBodyIsTooLarge, requestClientKey } from "@/lib/request-security";
@@ -72,6 +73,70 @@ async function repositoryRoot(
   };
 }
 
+/**
+ * Swap a directory link for a file inside it, where there is an obvious one.
+ *
+ * A `tree` link lists names and sizes. That tells the model a `docs` folder has
+ * nine things in it, which is almost nothing — the first version of this check
+ * scored a milestone 35 that scored 98 once the builder linked the one document
+ * inside that folder. Five links is the whole budget, so each one has to carry
+ * content rather than an index.
+ */
+async function openDirectories(
+  owner: string,
+  repo: string,
+  branch: string,
+  repository: string,
+  links: EvidenceLink[],
+): Promise<EvidenceLink[]> {
+  const headers: Record<string, string> = {
+    accept: "application/vnd.github+json",
+    "user-agent": "sprintos-progress-check",
+  };
+  if (process.env.GITHUB_TOKEN) headers.authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
+
+  const out: EvidenceLink[] = [];
+  for (const link of links) {
+    const path = link.url.includes(`/tree/${branch}/`)
+      ? link.url.split(`/tree/${branch}/`)[1]
+      : null;
+    if (!path) {
+      out.push(link);
+      continue;
+    }
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`,
+        { headers, signal: AbortSignal.timeout(8_000) },
+      );
+      if (!res.ok) {
+        out.push(link);
+        continue;
+      }
+      const inside = (await res.json()) as Array<{ name?: string; type?: string; path?: string }>;
+      if (!Array.isArray(inside)) {
+        out.push(link);
+        continue;
+      }
+      /* Prefer prose over configuration: a README or a dated write-up says what
+         was built, where a lockfile says nothing a reviewer can use. */
+      const best =
+        inside.find((e) => e.type === "file" && /^readme\.mdx?$/i.test(e.name ?? "")) ??
+        inside.find((e) => e.type === "file" && /\.(md|markdown)$/i.test(e.name ?? "")) ??
+        inside.find((e) => e.type === "file" && /\.(ya?ml|toml|json)$/i.test(e.name ?? ""));
+
+      out.push(
+        best?.path
+          ? { url: `${repository}/blob/${branch}/${best.path}`, type: link.type, label: link.label }
+          : link,
+      );
+    } catch {
+      out.push(link);
+    }
+  }
+  return out;
+}
+
 export async function POST(request: Request) {
   if (!isSameOrigin(request)) {
     return NextResponse.json({ error: "Cross-origin progress checks are not allowed." }, { status: 403 });
@@ -131,7 +196,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const links = chooseEvidencePaths(repository, root.entries, root.branch);
+  const chosen = chooseEvidencePaths(repository, root.entries, root.branch);
+  const links = await openDirectories(owner, repo, root.branch, repository, chosen);
   const evidence = repositoryEvidence(parsed.engagement_id, parsed.milestone_idx, links);
 
   try {
