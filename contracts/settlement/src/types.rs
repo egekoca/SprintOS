@@ -3,6 +3,13 @@ use soroban_sdk::{contracttype, Address, BytesN, String, Vec};
 /// Hard ceiling from the SOW: an engagement supports at most three milestones.
 pub const MAX_MILESTONES: u32 = 3;
 
+/// How many extra wallets the sponsor may authorise to decide payouts.
+///
+/// Bounded because the list is walked on every decision and stored in one
+/// entry: unbounded growth would make an engagement progressively more
+/// expensive to act on, and eventually impossible.
+pub const MAX_REVIEWERS: u32 = 10;
+
 /// Lifecycle of a single milestone.
 ///
 /// Every transition out of this enum requires a signature from a specific human
@@ -62,9 +69,17 @@ pub struct Engagement {
     pub id: u64,
     pub sponsor: Address,
     pub builder: Address,
-    /// The only address that may approve, hold, or release. The SOW makes this
-    /// the sole decision maker, and the contract encodes exactly that.
-    pub reviewer: Address,
+    /// Extra wallets the sponsor authorised to decide payouts.
+    ///
+    /// The sponsor always has that authority — they defined the milestones and
+    /// they funded them, so they are the one person who must be able to look at
+    /// the work and pay for it. This list is who else may, and the sponsor can
+    /// change it at any time.
+    ///
+    /// The builder can never appear here. That is the one collision that would
+    /// be a hole rather than an inconvenience: a builder who could approve
+    /// would sign off their own work and release their own payment.
+    pub reviewers: Vec<Address>,
     /// SAC address of the settlement asset (testnet USDC).
     pub token: Address,
     pub total_amount: i128,

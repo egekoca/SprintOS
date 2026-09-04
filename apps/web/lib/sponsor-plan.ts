@@ -100,30 +100,44 @@ export function accountIsValid(value: string): boolean {
 export interface RoleCheck {
   sponsor: string | null;
   builder: string;
-  reviewer: string;
+  /** Wallets authorised to decide payouts alongside the sponsor. May be empty. */
+  extraReviewers: readonly string[];
 }
 
 /**
- * Why these three accounts cannot be used together, or null when they can.
+ * Why these accounts cannot be used together, or null when they can.
  *
- * The contract refuses to create an engagement whose roles are not three
- * distinct addresses, so catching it here saves a wasted signature.
+ * The sponsor always decides payouts — they wrote the milestones and funded
+ * them. This checks the two things the contract will refuse: paying yourself,
+ * and letting the builder sign off their own work.
  */
-export function roleProblemOf({ sponsor, builder, reviewer }: RoleCheck): string | null {
+export function roleProblemOf({ sponsor, builder, extraReviewers }: RoleCheck): string | null {
   if (!sponsor) return "Connect the sponsor wallet.";
   if (!accountIsValid(builder)) return "Enter a valid G… account for the builder.";
-  if (!accountIsValid(reviewer)) {
-    return "Enter a valid G… account for the reviewer, or choose to review it yourself.";
-  }
   if (builder.trim() === sponsor) return "The builder cannot be the sponsor's own account.";
-  if (builder.trim() === reviewer) return "The builder cannot also be the reviewer.";
-  /* The contract refuses all three combinations, and this was the one the form
-     never checked — so "I'll review it myself" produced a transaction that was
-     always rejected on chain, after the sponsor had signed and paid a fee. */
-  if (reviewer === sponsor) {
-    return "The reviewer cannot be the sponsor's own account. Nominate a separate address to decide payouts.";
+
+  const seen = new Set<string>();
+  for (const raw of extraReviewers) {
+    const who = raw.trim();
+    if (!who) continue;
+    if (!accountIsValid(who)) return "Every authorised wallet must be a valid G… account.";
+    if (who === builder.trim()) return "The builder can never decide their own payout.";
+    if (who === sponsor) return "Your own wallet already decides — there is no need to add it.";
+    if (seen.has(who)) return "That wallet is listed twice.";
+    seen.add(who);
+  }
+  if (seen.size > MAX_EXTRA_REVIEWERS) {
+    return `You can authorise at most ${MAX_EXTRA_REVIEWERS} extra wallets.`;
   }
   return null;
+}
+
+/** Matches MAX_REVIEWERS in the settlement contract. */
+export const MAX_EXTRA_REVIEWERS = 10;
+
+/** The authorised wallets as the contract wants them: trimmed, no blanks. */
+export function cleanReviewers(extraReviewers: readonly string[]): string[] {
+  return extraReviewers.map((who) => who.trim()).filter(Boolean);
 }
 
 /** Total USDC allocated across the plan, skipping anything unparseable. */

@@ -7,6 +7,26 @@
 //! the Stellar Asset Contract). A builder submits evidence. An assigned human
 //! reviewer approves or holds, and releases payment.
 //!
+//! ## Who may decide a payout
+//!
+//! The sponsor. They wrote the milestones and they funded them, so they are the
+//! one person who must be able to look at the work and pay for it. An earlier
+//! version refused an engagement whose sponsor and reviewer were the same
+//! address, on the theory that separating them protected the builder. It did
+//! not: the sponsor picks the reviewer, so a sponsor minded to withhold payment
+//! simply nominated their own second wallet. The rule stopped the honest case
+//! and inconvenienced nobody else.
+//!
+//! The sponsor may authorise further wallets with `add_reviewer`, and withdraw
+//! that authority again. Any authorised wallet acts alone; a team that wants
+//! "two of us must agree" gets it by making an authorised address a Stellar
+//! multisig account, which this contract needs to know nothing about.
+//!
+//! One collision is still refused, at creation and on every later addition:
+//! **the builder can never decide a payout.** That one is a hole rather than an
+//! inconvenience — a builder who could approve would sign off their own work and
+//! release their own payment.
+//!
 //! ## The one guarantee this contract exists to make
 //!
 //! SprintOS ships an AI module that scores submitted evidence. That module
@@ -33,7 +53,7 @@ mod test;
 pub use errors::Error;
 pub use types::{
     DataKey, Engagement, EngagementStatus, Milestone, MilestoneInput, MilestoneStatus,
-    MAX_MILESTONES,
+    MAX_MILESTONES, MAX_REVIEWERS,
 };
 
 use soroban_sdk::{contract, contractimpl, token, Address, BytesN, Env, String, Vec};
@@ -56,9 +76,12 @@ impl SettlementContract {
     ///
     /// Deliberately not re-callable: if the token could be swapped later, an
     /// engagement funded in USDC could be released in something worthless.
-    pub fn __constructor(env: Env, token: Address) {
+    /// `first_id` starts the engagement counter above whatever the previous
+    /// deployment reached, so an id names exactly one engagement across both and
+    /// a link written against the old contract never resolves to a new one.
+    pub fn __constructor(env: Env, token: Address, first_id: u64) {
         env.storage().instance().set(&DataKey::Config, &token);
-        env.storage().instance().set(&DataKey::Counter, &0u64);
+        env.storage().instance().set(&DataKey::Counter, &first_id);
     }
 
     /// The SEP-41 asset every engagement settles in.
@@ -73,18 +96,39 @@ impl SettlementContract {
 
     /// Define an engagement and its milestones. Does not move funds — see `fund`.
     ///
-    /// Requires the sponsor's signature.
+    /// The sponsor signs, and by signing becomes the account that decides every
+    /// payout. `reviewers` is who else may — it can be empty, and the sponsor can
+    /// change it later with `add_reviewer` and `remove_reviewer`.
     pub fn create_engagement(
         env: Env,
         sponsor: Address,
         builder: Address,
-        reviewer: Address,
+        reviewers: Vec<Address>,
         milestones: Vec<MilestoneInput>,
     ) -> Result<u64, Error> {
         sponsor.require_auth();
 
-        if sponsor == builder || sponsor == reviewer || builder == reviewer {
+        if sponsor == builder {
             return Err(Error::DuplicateRole);
+        }
+        if reviewers.len() > MAX_REVIEWERS {
+            return Err(Error::TooManyReviewers);
+        }
+        for (i, who) in reviewers.iter().enumerate() {
+            /* The one collision that is a hole rather than an inconvenience. */
+            if who == builder {
+                return Err(Error::BuilderCannotReview);
+            }
+            /* The sponsor already decides; listing them again would only make
+            `remove_reviewer` look as though it could take that away. */
+            if who == sponsor {
+                return Err(Error::AlreadyReviewer);
+            }
+            for other in reviewers.iter().skip(i + 1) {
+                if other == who {
+                    return Err(Error::AlreadyReviewer);
+                }
+            }
         }
 
         let count = milestones.len();
@@ -143,7 +187,7 @@ impl SettlementContract {
             id,
             sponsor: sponsor.clone(),
             builder: builder.clone(),
-            reviewer: reviewer.clone(),
+            reviewers: reviewers.clone(),
             token,
             total_amount: total,
             status: EngagementStatus::Draft,
@@ -152,7 +196,7 @@ impl SettlementContract {
         };
 
         Self::save(&env, &engagement);
-        events::engagement_created(&env, id, &sponsor, &builder, &reviewer, total);
+        events::engagement_created(&env, id, &sponsor, &builder, total);
         Ok(id)
     }
 
@@ -232,9 +276,18 @@ impl SettlementContract {
     ///
     /// Approving does not pay. `release` is a separate signature so that the
     /// judgement and the money movement are two distinct, auditable acts.
-    pub fn approve(env: Env, engagement_id: u64, milestone_idx: u32) -> Result<(), Error> {
+    pub fn approve(
+        env: Env,
+        caller: Address,
+        engagement_id: u64,
+        milestone_idx: u32,
+    ) -> Result<(), Error> {
         let mut e = Self::load(&env, engagement_id)?;
-        e.reviewer.require_auth();
+        /* Prove who is calling, then ask whether they may. Soroban has no way to
+        require "one of these addresses", so the caller names themselves and
+        the contract checks the claim against the engagement. */
+        caller.require_auth();
+        Self::require_reviewer(&e, &caller)?;
 
         let mut m = Self::milestone(&e, milestone_idx)?;
         if m.status != MilestoneStatus::EvidenceSubmitted {
@@ -245,16 +298,21 @@ impl SettlementContract {
         m.decided_at = env.ledger().timestamp();
         e.milestones.set(milestone_idx, m);
 
-        let reviewer = e.reviewer.clone();
         Self::save(&env, &e);
-        events::approved(&env, engagement_id, milestone_idx, &reviewer);
+        events::approved(&env, engagement_id, milestone_idx, &caller);
         Ok(())
     }
 
     /// Send the milestone back for revision. The builder may resubmit.
-    pub fn hold(env: Env, engagement_id: u64, milestone_idx: u32) -> Result<(), Error> {
+    pub fn hold(
+        env: Env,
+        caller: Address,
+        engagement_id: u64,
+        milestone_idx: u32,
+    ) -> Result<(), Error> {
         let mut e = Self::load(&env, engagement_id)?;
-        e.reviewer.require_auth();
+        caller.require_auth();
+        Self::require_reviewer(&e, &caller)?;
 
         let mut m = Self::milestone(&e, milestone_idx)?;
         if m.status != MilestoneStatus::EvidenceSubmitted {
@@ -265,9 +323,8 @@ impl SettlementContract {
         m.decided_at = env.ledger().timestamp();
         e.milestones.set(milestone_idx, m);
 
-        let reviewer = e.reviewer.clone();
         Self::save(&env, &e);
-        events::held(&env, engagement_id, milestone_idx, &reviewer);
+        events::held(&env, engagement_id, milestone_idx, &caller);
         Ok(())
     }
 
@@ -276,9 +333,15 @@ impl SettlementContract {
     /// The reviewer-controlled payout path. Requires the reviewer's signature
     /// and an `Approved` status — no score or recommendation can reach this
     /// line. After that human approval, `claim` is the builder's recovery path.
-    pub fn release(env: Env, engagement_id: u64, milestone_idx: u32) -> Result<(), Error> {
+    pub fn release(
+        env: Env,
+        caller: Address,
+        engagement_id: u64,
+        milestone_idx: u32,
+    ) -> Result<(), Error> {
         let e = Self::load(&env, engagement_id)?;
-        e.reviewer.require_auth();
+        caller.require_auth();
+        Self::require_reviewer(&e, &caller)?;
         Self::pay_approved(&env, engagement_id, milestone_idx, e)
     }
 
@@ -366,6 +429,71 @@ impl SettlementContract {
         Ok(())
     }
 
+    // ------------------------------------------------------- authorisation
+
+    /// Whether this address may approve, hold or release on this engagement.
+    pub fn can_decide(env: Env, engagement_id: u64, who: Address) -> Result<bool, Error> {
+        let e = Self::load(&env, engagement_id)?;
+        Ok(Self::is_reviewer(&e, &who))
+    }
+
+    /// Authorise another wallet to decide payouts on this engagement.
+    ///
+    /// Only the sponsor may call this. The builder is refused however the call
+    /// is dressed up: a builder who could approve would sign off their own work
+    /// and release their own payment, and that is the one collision this
+    /// contract will not allow at any point in an engagement's life.
+    pub fn add_reviewer(env: Env, engagement_id: u64, who: Address) -> Result<(), Error> {
+        let mut e = Self::load(&env, engagement_id)?;
+        e.sponsor.require_auth();
+
+        if who == e.builder {
+            return Err(Error::BuilderCannotReview);
+        }
+        if Self::is_reviewer(&e, &who) {
+            return Err(Error::AlreadyReviewer);
+        }
+        if e.reviewers.len() >= MAX_REVIEWERS {
+            return Err(Error::TooManyReviewers);
+        }
+
+        e.reviewers.push_back(who.clone());
+        let sponsor = e.sponsor.clone();
+        Self::save(&env, &e);
+        events::reviewer_added(&env, engagement_id, &sponsor, &who);
+        Ok(())
+    }
+
+    /// Withdraw that authority again.
+    ///
+    /// The sponsor cannot remove themselves. Their authority comes from having
+    /// funded the work rather than from a list entry, and an engagement nobody
+    /// can decide would leave the builder waiting for a deadline instead of a
+    /// decision.
+    pub fn remove_reviewer(env: Env, engagement_id: u64, who: Address) -> Result<(), Error> {
+        let mut e = Self::load(&env, engagement_id)?;
+        e.sponsor.require_auth();
+
+        let mut kept: Vec<Address> = Vec::new(&env);
+        let mut found = false;
+        for existing in e.reviewers.iter() {
+            if existing == who {
+                found = true;
+            } else {
+                kept.push_back(existing);
+            }
+        }
+        if !found {
+            return Err(Error::NotAReviewer);
+        }
+
+        e.reviewers = kept;
+        let sponsor = e.sponsor.clone();
+        Self::save(&env, &e);
+        events::reviewer_removed(&env, engagement_id, &sponsor, &who);
+        Ok(())
+    }
+
     // ---------------------------------------------------------------- views
 
     pub fn get_engagement(env: Env, engagement_id: u64) -> Result<Engagement, Error> {
@@ -428,6 +556,28 @@ impl SettlementContract {
         env.storage()
             .instance()
             .extend_ttl(LIFETIME_THRESHOLD, BUMP_AMOUNT);
+    }
+
+    /// The sponsor always decides. Anyone they authorised decides too.
+    fn is_reviewer(e: &Engagement, who: &Address) -> bool {
+        if *who == e.sponsor {
+            return true;
+        }
+        /* Defence in depth. The builder cannot get onto this list through
+        `create_engagement` or `add_reviewer`, so this can only fire if one of
+        those checks is ever weakened — which is exactly when it matters. */
+        if *who == e.builder {
+            return false;
+        }
+        e.reviewers.iter().any(|listed| listed == *who)
+    }
+
+    fn require_reviewer(e: &Engagement, who: &Address) -> Result<(), Error> {
+        if Self::is_reviewer(e, who) {
+            Ok(())
+        } else {
+            Err(Error::Unauthorized)
+        }
     }
 
     fn milestone(e: &Engagement, idx: u32) -> Result<Milestone, Error> {

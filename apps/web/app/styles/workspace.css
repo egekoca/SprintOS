@@ -451,3 +451,48 @@
 /* Pushed to the bottom so the line sits level across cards whose titles wrapped
    to different depths. */
 .milestone-score-note { font-size: 0.8125rem; color: var(--chalk-dim); margin: auto 0 0; }
+
+/* ------------------------------------------------ who can release the money */
+.deciders { display: flex; flex-direction: column; gap: 0.55rem; }
+
+/* The answer, stated before any field: you. Everything under it is optional,
+   and a sponsor who reads only this line has read enough. */
+.decider-you {
+  display: flex;
+  gap: 0.55rem;
+  align-items: flex-start;
+  margin: 0;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--chalk-dim);
+  border: 1px solid var(--orange-hi);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--orange) 6%, transparent);
+}
+.decider-you b { color: var(--chalk); }
+.decider-you svg { color: var(--orange); flex: 0 0 auto; margin-top: 0.15rem; }
+
+.decider-row { display: flex; gap: 0.5rem; align-items: center; }
+.decider-row input { flex: 1 1 auto; }
+.decider-remove {
+  flex: 0 0 auto;
+  font-size: 0.75rem;
+  color: var(--chalk-faint);
+  background: none;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius);
+  padding: 0.4rem 0.65rem;
+}
+.decider-remove:hover { color: var(--chalk); border-color: var(--edge-bright); }
+
+.decider-add {
+  align-self: flex-start;
+  font-size: 0.8125rem;
+  color: var(--chalk-dim);
+  background: none;
+  border: 1px dashed var(--edge-bright);
+  border-radius: var(--radius);
+  padding: 0.45rem 0.8rem;
+}
+.decider-add:hover { color: var(--orange); border-color: var(--orange-hi); }

@@ -40,7 +40,7 @@ function engagement(
     id: 0n,
     sponsor,
     builder,
-    reviewer: "GR".padEnd(56, "R"),
+    reviewers: ["GR".padEnd(56, "R")],
     token: "C".repeat(56),
     total_amount: milestones.reduce((sum, m) => sum + m.amount, 0n),
     status,

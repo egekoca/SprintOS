@@ -8,7 +8,7 @@ pub enum Error {
     NotInitialized = 2,
     EngagementNotFound = 3,
     MilestoneNotFound = 4,
-    /// The caller is not the role this action requires.
+    /// The caller is neither the sponsor nor one of the authorised reviewers.
     Unauthorized = 5,
     /// The milestone is not in a status from which this action is legal.
     InvalidState = 6,
@@ -28,4 +28,12 @@ pub enum Error {
     ArithmeticOverflow = 17,
     InvalidTitle = 18,
     InvalidEvidenceUri = 19,
+    /// The sponsor may authorise at most MAX_REVIEWERS extra wallets.
+    TooManyReviewers = 20,
+    /// That wallet is already authorised.
+    AlreadyReviewer = 21,
+    /// That wallet was not on the list to begin with.
+    NotAReviewer = 22,
+    /// The builder can never decide their own payout.
+    BuilderCannotReview = 23,
 }

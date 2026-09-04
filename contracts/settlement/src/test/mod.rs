@@ -10,8 +10,10 @@
 //! | `negative_state`     | invalid states, duplicate release, wrong amounts   |
 //! | `refund`             | deadline refunds, early refunds                    |
 //! | `ai_cannot_release`  | a score of 100 cannot move funds                   |
+//! | `authorisation`      | who may decide a payout, and who never may         |
 
 mod ai_cannot_release;
+mod authorisation;
 mod happy;
 mod negative_auth;
 mod negative_state;
@@ -76,7 +78,7 @@ pub fn setup<'a>() -> Fixture<'a> {
     let reviewer = Address::generate(&env);
     let stranger = Address::generate(&env);
 
-    let contract_id = env.register(SettlementContract, (token.clone(),));
+    let contract_id = env.register(SettlementContract, (token.clone(), 0u64));
     let client = SettlementContractClient::new(&env, &contract_id);
 
     // Fund the sponsor so it can actually escrow.
@@ -122,12 +124,22 @@ pub fn three_milestones(f: &Fixture) -> Vec<MilestoneInput> {
 
 pub const TOTAL: i128 = 1_000 * UNIT;
 
+/// The engagement's extra authorised wallets — just the named reviewer.
+///
+/// The sponsor decides payouts whether or not this list is empty; most tests
+/// use the separate reviewer so the two authorities can be told apart.
+pub fn reviewers(f: &Fixture) -> Vec<Address> {
+    let mut v = Vec::new(&f.env);
+    v.push_back(f.reviewer.clone());
+    v
+}
+
 /// create + fund, with all auths mocked. Returns the engagement id.
 pub fn funded_engagement(f: &Fixture) -> u64 {
     f.env.mock_all_auths();
-    let id = f
-        .client
-        .create_engagement(&f.sponsor, &f.builder, &f.reviewer, &three_milestones(f));
+    let id =
+        f.client
+            .create_engagement(&f.sponsor, &f.builder, &reviewers(f), &three_milestones(f));
     f.client.fund(&id);
     id
 }

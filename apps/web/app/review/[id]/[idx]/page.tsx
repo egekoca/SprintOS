@@ -383,9 +383,10 @@ export default function ReviewDeskPage({ params }: { params: Promise<{ id: strin
 
         {address && !isReviewer && (
           <p className="notice">
-            This wallet is the {role} on this engagement, not the reviewer. Only{" "}
-            <span className="mono">{shortAddress(engagement.reviewer)}</span> can decide here — and the
-            contract enforces that independently of this page.
+            This wallet is the {role} on this engagement and cannot decide payouts here.
+            The sponsor <span className="mono">{shortAddress(engagement.sponsor)}</span> decides,
+            along with any wallet they authorised — and the contract enforces that
+            independently of this page.
           </p>
         )}
 

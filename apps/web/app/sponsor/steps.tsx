@@ -8,7 +8,7 @@ import { ProductIcon, type ProductIconName } from "@/components/ProductIcon";
 import { TxLink } from "@/components/TxLink";
 import { formatUsdc } from "@/lib/stellar/config";
 import { formatMoment } from "@/lib/sponsor-draft";
-import { shortAccount } from "@/lib/sponsor-plan";
+import { MAX_EXTRA_REVIEWERS, shortAccount } from "@/lib/sponsor-plan";
 import { MilestoneEditor } from "./MilestoneEditor";
 import type { EngagementSetup } from "./useEngagementSetup";
 
@@ -194,32 +194,50 @@ export function RolesStep({ setup }: { setup: EngagementSetup }) {
           </div>
 
           <div className="field">
-            <span className="group-label" id="reviewer-choice-label">Who signs the payout decision?</span>
-            <div className="reviewer-choice" role="group" aria-labelledby="reviewer-choice-label">
-              <button type="button" className={setup.selfReview ? "is-active" : ""} onClick={() => setup.setSelfReview(true)}>
-                <ProductIcon name="signature" size={19} />
-                <b>I&rsquo;ll review it myself</b>
-                <small>You wrote the milestones, so you read the score and release the money.</small>
-              </button>
-              <button type="button" className={!setup.selfReview ? "is-active" : ""} onClick={() => setup.setSelfReview(false)}>
-                <ProductIcon name="eye" size={19} />
-                <b>Someone else reviews</b>
-                <small>Nominate an independent account to decide. You cannot overrule it.</small>
-              </button>
+            <span className="group-label" id="deciders-label">Who can release the money?</span>
+            <div className="deciders" role="group" aria-labelledby="deciders-label">
+              <p className="decider-you">
+                <ProductIcon name="check" size={16} />
+                <span>
+                  <b>You do{address ? ` — ${shortAccount(address)}` : ""}.</b> You wrote the
+                  milestones and you are funding them, so your wallet decides every payout.
+                  Nothing below is required.
+                </span>
+              </p>
+
+              {setup.extraReviewers.map((who, index) => (
+                <div className="decider-row" key={index}>
+                  <input
+                    type="text"
+                    placeholder="G…"
+                    value={who}
+                    aria-label={`Authorised wallet ${index + 1}`}
+                    onChange={(event) => setup.updateReviewer(index, event.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="decider-remove"
+                    onClick={() => setup.removeReviewer(index)}
+                    aria-label={`Remove authorised wallet ${index + 1}`}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+
+              {setup.extraReviewers.length < MAX_EXTRA_REVIEWERS && (
+                <button type="button" className="decider-add" onClick={setup.addReviewer}>
+                  + Authorise another wallet
+                </button>
+              )}
+
+              <small className="field-hint">
+                Anyone you add can read the evidence and release payments on this engagement,
+                acting on their own. You can add or remove them later. The builder can never
+                be added.
+              </small>
             </div>
           </div>
-
-          {setup.selfReview ? (
-            <p className="reviewer-self-note">
-              <ProductIcon name="check" size={16} />
-              The engagement will record your own account as reviewer{address ? ` (${shortAccount(address)})` : ""}.
-            </p>
-          ) : (
-            <div className="field">
-              <label htmlFor="reviewer">Reviewer wallet address</label>
-              <input id="reviewer" type="text" placeholder="G…" value={setup.reviewer} onChange={(event) => setup.setReviewer(event.target.value)} />
-            </div>
-          )}
         </div>
       </div>
 
@@ -251,8 +269,12 @@ export function ReviewStep({ setup }: { setup: EngagementSetup }) {
         <ReceiptRow icon="wallet" label="Builder" value={shortAccount(setup.builder)} />
         <ReceiptRow
           icon="signature"
-          label="Reviewer"
-          value={setup.selfReview ? `${shortAccount(setup.address ?? "")} · you` : shortAccount(setup.reviewer)}
+          label="Decides payouts"
+          value={
+            setup.extraReviewers.filter(Boolean).length === 0
+              ? `${shortAccount(setup.address ?? "")} · you`
+              : `you, plus ${setup.extraReviewers.filter(Boolean).length} more`
+          }
         />
         {milestones.map((milestone, index) => (
           <div className="receipt-milestone" key={`${milestone.title}-${index}`}>
@@ -334,7 +356,7 @@ function CommitGate({ setup }: { setup: EngagementSetup }) {
         <li><span>{milestones.length}</span> milestone{milestones.length === 1 ? "" : "s"}, fixed</li>
         <li><span>{requirements}</span> requirements, fixed</li>
         <li><span>{formatUsdc(total)}</span> USDC committed to escrow</li>
-        <li><span>{setup.selfReview ? "You" : shortAccount(setup.reviewer)}</span> will decide each payout</li>
+        <li><span>You{setup.extraReviewers.filter(Boolean).length > 0 ? ` +${setup.extraReviewers.filter(Boolean).length}` : ""}</span> will decide each payout</li>
       </ul>
 
       <label className="attest">

@@ -14,8 +14,27 @@ pub struct EngagementCreated {
     pub engagement_id: u64,
     pub sponsor: Address,
     pub builder: Address,
-    pub reviewer: Address,
     pub total_amount: i128,
+}
+
+/// The sponsor authorised another wallet to decide payouts.
+#[contractevent]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ReviewerAdded {
+    #[topic]
+    pub engagement_id: u64,
+    pub sponsor: Address,
+    pub reviewer: Address,
+}
+
+/// The sponsor withdrew that authority.
+#[contractevent]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ReviewerRemoved {
+    #[topic]
+    pub engagement_id: u64,
+    pub sponsor: Address,
+    pub reviewer: Address,
 }
 
 /// The sponsor moved the full milestone total into escrow.
@@ -100,14 +119,12 @@ pub fn engagement_created(
     engagement_id: u64,
     sponsor: &Address,
     builder: &Address,
-    reviewer: &Address,
     total_amount: i128,
 ) {
     EngagementCreated {
         engagement_id,
         sponsor: sponsor.clone(),
         builder: builder.clone(),
-        reviewer: reviewer.clone(),
         total_amount,
     }
     .publish(env);
@@ -183,4 +200,22 @@ pub fn refunded(
 
 pub fn closed(env: &Env, engagement_id: u64) {
     Closed { engagement_id }.publish(env);
+}
+
+pub fn reviewer_added(env: &Env, engagement_id: u64, sponsor: &Address, reviewer: &Address) {
+    ReviewerAdded {
+        engagement_id,
+        sponsor: sponsor.clone(),
+        reviewer: reviewer.clone(),
+    }
+    .publish(env);
+}
+
+pub fn reviewer_removed(env: &Env, engagement_id: u64, sponsor: &Address, reviewer: &Address) {
+    ReviewerRemoved {
+        engagement_id,
+        sponsor: sponsor.clone(),
+        reviewer: reviewer.clone(),
+    }
+    .publish(env);
 }

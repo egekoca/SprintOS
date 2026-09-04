@@ -114,7 +114,11 @@ export default function EngagementPage({ params }: { params: Promise<{ id: strin
         <div className="grid-3">
           <Party party="Sponsor" address={engagement.sponsor} />
           <Party party="Builder" address={engagement.builder} />
-          <Party party="Reviewer" address={engagement.reviewer} note="the only address that can approve; reviewer releases or builder claims afterward" />
+          <Party party="Decides payouts" address={engagement.sponsor}
+            note="the sponsor decides; the builder never can" />
+          {engagement.reviewers.map((r) => (
+            <Party key={r} party="Also authorised" address={r} />
+          ))}
         </div>
       </div>
 

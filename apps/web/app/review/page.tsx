@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useWallet } from "@/components/WalletProvider";
-import { listEngagements, roleOf, type Engagement } from "@/lib/stellar/contract";
+import { canDecide, listEngagements, type Engagement } from "@/lib/stellar/contract";
 import { formatUsdc, shortAddress } from "@/lib/stellar/config";
 import { EngagementPill, StatusPill } from "@/components/StatusPill";
 import { FoxLoader } from "@/components/FoxLoader";
@@ -36,7 +36,7 @@ export default function ReviewListPage() {
   const waiting = engagements.flatMap((e) =>
     e.milestones
       .map((m, idx) => ({ e, m, idx }))
-      .filter(({ m }) => m.status === "EvidenceSubmitted" && (!address || e.reviewer === address)),
+      .filter(({ m }) => m.status === "EvidenceSubmitted" && (!address || canDecide(e, address))),
   );
 
   return (
@@ -113,8 +113,13 @@ export default function ReviewListPage() {
                     <td className="mono">#{String(e.id)}</td>
                     <td className="mono" style={{ fontSize: "0.8125rem" }}>{shortAddress(e.builder)}</td>
                     <td className="mono" style={{ fontSize: "0.8125rem" }}>
-                      {shortAddress(e.reviewer)}
-                      {address && roleOf(e, address) === "reviewer" && (
+                      {shortAddress(e.sponsor)}
+                      {e.reviewers.length > 0 && (
+                        <span className="faint" style={{ marginLeft: "0.375rem", fontSize: "0.6875rem" }}>
+                          +{e.reviewers.length}
+                        </span>
+                      )}
+                      {address && canDecide(e, address) && (
                         <span className="faint" style={{ marginLeft: "0.375rem", fontSize: "0.6875rem" }}>you</span>
                       )}
                     </td>

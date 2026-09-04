@@ -12,7 +12,10 @@ fn test_release_requires_approved() {
     f.client
         .submit_evidence(&id, &0, &f.hash(11), &f.uri("https://example.com"));
 
-    assert_eq!(f.client.try_release(&id, &0), Err(Ok(Error::InvalidState)));
+    assert_eq!(
+        f.client.try_release(&f.reviewer, &id, &0),
+        Err(Ok(Error::InvalidState))
+    );
     assert_eq!(f.balance(&f.builder), 0);
 }
 
@@ -21,7 +24,10 @@ fn test_release_requires_approved() {
 fn test_release_on_pending_rejected() {
     let f = setup();
     let id = funded_engagement(&f);
-    assert_eq!(f.client.try_release(&id, &0), Err(Ok(Error::InvalidState)));
+    assert_eq!(
+        f.client.try_release(&f.reviewer, &id, &0),
+        Err(Ok(Error::InvalidState))
+    );
 }
 
 #[test]
@@ -36,7 +42,10 @@ fn test_claim_requires_approved() {
 fn test_approve_requires_evidence() {
     let f = setup();
     let id = funded_engagement(&f);
-    assert_eq!(f.client.try_approve(&id, &0), Err(Ok(Error::InvalidState)));
+    assert_eq!(
+        f.client.try_approve(&f.reviewer, &id, &0),
+        Err(Ok(Error::InvalidState))
+    );
 }
 
 /// Holding an unsubmitted milestone is meaningless and refused.
@@ -44,7 +53,10 @@ fn test_approve_requires_evidence() {
 fn test_hold_requires_evidence() {
     let f = setup();
     let id = funded_engagement(&f);
-    assert_eq!(f.client.try_hold(&id, &0), Err(Ok(Error::InvalidState)));
+    assert_eq!(
+        f.client.try_hold(&f.reviewer, &id, &0),
+        Err(Ok(Error::InvalidState))
+    );
 }
 
 /// 08 — paying the same milestone twice.
@@ -54,11 +66,11 @@ fn test_double_release_rejected() {
     let id = funded_engagement(&f);
     f.client
         .submit_evidence(&id, &0, &f.hash(11), &f.uri("https://example.com"));
-    f.client.approve(&id, &0);
-    f.client.release(&id, &0);
+    f.client.approve(&f.reviewer, &id, &0);
+    f.client.release(&f.reviewer, &id, &0);
 
     assert_eq!(
-        f.client.try_release(&id, &0),
+        f.client.try_release(&f.reviewer, &id, &0),
         Err(Ok(Error::AlreadyReleased))
     );
     // Crucially: the balance did not move a second time.
@@ -73,10 +85,13 @@ fn test_cannot_reapprove_released() {
     let id = funded_engagement(&f);
     f.client
         .submit_evidence(&id, &0, &f.hash(11), &f.uri("https://example.com"));
-    f.client.approve(&id, &0);
-    f.client.release(&id, &0);
+    f.client.approve(&f.reviewer, &id, &0);
+    f.client.release(&f.reviewer, &id, &0);
 
-    assert_eq!(f.client.try_approve(&id, &0), Err(Ok(Error::InvalidState)));
+    assert_eq!(
+        f.client.try_approve(&f.reviewer, &id, &0),
+        Err(Ok(Error::InvalidState))
+    );
     assert_eq!(
         f.client
             .try_submit_evidence(&id, &0, &f.hash(12), &f.uri("https://example.com")),
@@ -98,9 +113,12 @@ fn test_double_fund_rejected() {
 fn test_cannot_submit_before_funding() {
     let f = setup();
     f.env.mock_all_auths();
-    let id = f
-        .client
-        .create_engagement(&f.sponsor, &f.builder, &f.reviewer, &three_milestones(&f));
+    let id = f.client.create_engagement(
+        &f.sponsor,
+        &f.builder,
+        &reviewers(&f),
+        &three_milestones(&f),
+    );
 
     assert_eq!(
         f.client
@@ -125,7 +143,7 @@ fn test_max_three_milestones() {
 
     assert_eq!(
         f.client
-            .try_create_engagement(&f.sponsor, &f.builder, &f.reviewer, &v),
+            .try_create_engagement(&f.sponsor, &f.builder, &reviewers(&f), &v),
         Err(Ok(Error::TooManyMilestones))
     );
 }
@@ -139,7 +157,7 @@ fn test_zero_milestones_rejected() {
 
     assert_eq!(
         f.client
-            .try_create_engagement(&f.sponsor, &f.builder, &f.reviewer, &empty),
+            .try_create_engagement(&f.sponsor, &f.builder, &reviewers(&f), &empty),
         Err(Ok(Error::NoMilestones))
     );
 }
@@ -160,7 +178,7 @@ fn test_zero_amount_rejected() {
 
     assert_eq!(
         f.client
-            .try_create_engagement(&f.sponsor, &f.builder, &f.reviewer, &v),
+            .try_create_engagement(&f.sponsor, &f.builder, &reviewers(&f), &v),
         Err(Ok(Error::InvalidAmount))
     );
 }
@@ -180,7 +198,7 @@ fn test_total_amount_overflow_is_typed() {
     }
     assert_eq!(
         f.client
-            .try_create_engagement(&f.sponsor, &f.builder, &f.reviewer, &milestones),
+            .try_create_engagement(&f.sponsor, &f.builder, &reviewers(&f), &milestones),
         Err(Ok(Error::ArithmeticOverflow))
     );
 }
@@ -199,7 +217,7 @@ fn test_title_and_evidence_uri_lengths_are_bounded() {
     });
     assert_eq!(
         f.client
-            .try_create_engagement(&f.sponsor, &f.builder, &f.reviewer, &milestones),
+            .try_create_engagement(&f.sponsor, &f.builder, &reviewers(&f), &milestones),
         Err(Ok(Error::InvalidTitle))
     );
 
@@ -231,28 +249,107 @@ fn test_past_deadline_rejected() {
 
     assert_eq!(
         f.client
-            .try_create_engagement(&f.sponsor, &f.builder, &f.reviewer, &v),
+            .try_create_engagement(&f.sponsor, &f.builder, &reviewers(&f), &v),
         Err(Ok(Error::InvalidDeadline))
     );
 }
 
-/// The three roles must be three different people. A sponsor who is also the
-/// reviewer could approve and pay themselves with no oversight at all.
+/// The sponsor cannot also be the builder — they would be paying themselves,
+/// which is not settlement, just a transfer with extra steps.
 #[test]
-fn test_roles_must_be_distinct() {
+fn test_sponsor_cannot_be_the_builder() {
     let f = setup();
     f.env.mock_all_auths();
 
     assert_eq!(
-        f.client
-            .try_create_engagement(&f.sponsor, &f.builder, &f.sponsor, &three_milestones(&f)),
+        f.client.try_create_engagement(
+            &f.sponsor,
+            &f.sponsor,
+            &reviewers(&f),
+            &three_milestones(&f)
+        ),
         Err(Ok(Error::DuplicateRole))
     );
+}
+
+/// The builder can never be authorised to decide their own payout — the one
+/// collision that is a hole rather than an inconvenience.
+#[test]
+fn test_builder_cannot_be_listed_as_a_reviewer() {
+    let f = setup();
+    f.env.mock_all_auths();
+
+    let mut with_builder = Vec::new(&f.env);
+    with_builder.push_back(f.builder.clone());
+    assert_eq!(
+        f.client.try_create_engagement(
+            &f.sponsor,
+            &f.builder,
+            &with_builder,
+            &three_milestones(&f)
+        ),
+        Err(Ok(Error::BuilderCannotReview))
+    );
+}
+
+/// Listing the sponsor is refused because the sponsor already decides. Allowing
+/// it would make `remove_reviewer` look as though it could take that away.
+#[test]
+fn test_sponsor_is_not_listed_twice() {
+    let f = setup();
+    f.env.mock_all_auths();
+
+    let mut with_sponsor = Vec::new(&f.env);
+    with_sponsor.push_back(f.sponsor.clone());
+    assert_eq!(
+        f.client.try_create_engagement(
+            &f.sponsor,
+            &f.builder,
+            &with_sponsor,
+            &three_milestones(&f)
+        ),
+        Err(Ok(Error::AlreadyReviewer))
+    );
+}
+
+/// The same wallet twice is a mistake worth reporting rather than quietly
+/// collapsing, because the sponsor may have meant two different addresses.
+#[test]
+fn test_the_same_reviewer_twice_is_refused() {
+    let f = setup();
+    f.env.mock_all_auths();
+
+    let mut twice = Vec::new(&f.env);
+    twice.push_back(f.reviewer.clone());
+    twice.push_back(f.reviewer.clone());
     assert_eq!(
         f.client
-            .try_create_engagement(&f.sponsor, &f.builder, &f.builder, &three_milestones(&f)),
-        Err(Ok(Error::DuplicateRole))
+            .try_create_engagement(&f.sponsor, &f.builder, &twice, &three_milestones(&f)),
+        Err(Ok(Error::AlreadyReviewer))
     );
+}
+
+/// The case the previous contract refused and this one is built around: the
+/// sponsor decides their own payouts, with nobody else authorised at all.
+#[test]
+fn test_a_sponsor_may_be_the_only_decider() {
+    let f = setup();
+    f.env.mock_all_auths();
+
+    let none = Vec::new(&f.env);
+    let id = f
+        .client
+        .create_engagement(&f.sponsor, &f.builder, &none, &three_milestones(&f));
+    f.client.fund(&id);
+
+    assert!(f.client.can_decide(&id, &f.sponsor));
+    assert!(!f.client.can_decide(&id, &f.builder));
+
+    f.client
+        .submit_evidence(&id, &0, &f.hash(11), &f.uri("https://example.com"));
+    f.client.approve(&f.sponsor, &id, &0);
+    f.client.release(&f.sponsor, &id, &0);
+    assert_eq!(f.balance(&f.builder), 500 * UNIT);
 }
 
 /// Indexing past the end of the milestone list.
@@ -261,7 +358,7 @@ fn test_unknown_milestone_index() {
     let f = setup();
     let id = funded_engagement(&f);
     assert_eq!(
-        f.client.try_approve(&id, &9),
+        f.client.try_approve(&f.reviewer, &id, &9),
         Err(Ok(Error::MilestoneNotFound))
     );
 }
@@ -272,7 +369,7 @@ fn test_unknown_engagement() {
     let f = setup();
     f.env.mock_all_auths();
     assert_eq!(
-        f.client.try_approve(&404, &0),
+        f.client.try_approve(&f.reviewer, &404, &0),
         Err(Ok(Error::EngagementNotFound))
     );
 }

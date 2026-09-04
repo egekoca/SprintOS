@@ -37,8 +37,7 @@ export interface SponsorDraft {
   planSummary: string;
   grantTotal: string;
   builder: string;
-  reviewer: string;
-  selfReview: boolean;
+  extraReviewers: string[];
   repository: GitHubRepositorySnapshot | null;
   milestones: MilestoneForm[];
 }
@@ -122,8 +121,9 @@ export function loadDraft(): SponsorDraft | null {
     planSummary: typeof draft.planSummary === "string" ? draft.planSummary : "",
     grantTotal: typeof draft.grantTotal === "string" ? draft.grantTotal : "",
     builder: typeof draft.builder === "string" ? draft.builder : "",
-    reviewer: typeof draft.reviewer === "string" ? draft.reviewer : "",
-    selfReview: draft.selfReview === true,
+    extraReviewers: Array.isArray(draft.extraReviewers)
+      ? draft.extraReviewers.filter((who: unknown): who is string => typeof who === "string")
+      : [],
     repository: isRepository(draft.repository) ? draft.repository : null,
     milestones,
   };

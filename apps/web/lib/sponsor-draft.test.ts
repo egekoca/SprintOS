@@ -86,8 +86,7 @@ test("a saved draft comes back as it went in", () => {
     planSummary: "",
     grantTotal: "6000",
     builder: "GABC",
-    reviewer: "",
-    selfReview: true,
+    extraReviewers: [],
     repository: null,
     milestones: [milestone(), milestone({ title: "Escrow" })],
   };
@@ -97,7 +96,7 @@ test("a saved draft comes back as it went in", () => {
   assert.ok(restored);
   assert.equal(restored.step, 2);
   assert.equal(restored.brief, "Build the thing");
-  assert.equal(restored.selfReview, true);
+  assert.deepEqual(restored.extraReviewers, []);
   assert.deepEqual(restored.milestones, draft.milestones);
 });
 
@@ -105,7 +104,7 @@ test("an untouched form is not offered back as restored work", () => {
   installStorage();
   saveDraft({
     step: 1, scopeMode: "ai", brief: "   ", planSummary: "", grantTotal: "",
-    builder: "", reviewer: "", selfReview: false, repository: null, milestones: [],
+    builder: "", extraReviewers: [], repository: null, milestones: [],
   });
   assert.equal(loadDraft(), null);
 });
@@ -114,7 +113,7 @@ test("a draft older than two weeks is dropped instead of restored", () => {
   const entries = installStorage();
   saveDraft({
     step: 2, scopeMode: "manual", brief: "old", planSummary: "", grantTotal: "",
-    builder: "", reviewer: "", selfReview: false, repository: null, milestones: [milestone()],
+    builder: "", extraReviewers: [], repository: null, milestones: [milestone()],
   });
   const stored = JSON.parse(entries.get("sprintos.sponsor.draft.v1")!) as { savedAt: number };
   stored.savedAt = Date.now() - 15 * 24 * 60 * 60 * 1000;
@@ -154,7 +153,7 @@ test("discarding a draft leaves nothing behind to restore", () => {
   const entries = installStorage();
   saveDraft({
     step: 2, scopeMode: "manual", brief: "x", planSummary: "", grantTotal: "",
-    builder: "", reviewer: "", selfReview: false, repository: null, milestones: [milestone()],
+    builder: "", extraReviewers: [], repository: null, milestones: [milestone()],
   });
   clearDraft();
   assert.equal(entries.size, 0);
@@ -168,7 +167,7 @@ test("a browser that refuses storage does not break the form", () => {
   assert.equal(loadDraft(), null);
   assert.doesNotThrow(() => saveDraft({
     step: 1, scopeMode: "ai", brief: "", planSummary: "", grantTotal: "",
-    builder: "", reviewer: "", selfReview: false, repository: null, milestones: [],
+    builder: "", extraReviewers: [], repository: null, milestones: [],
   }));
   assert.doesNotThrow(clearDraft);
 });

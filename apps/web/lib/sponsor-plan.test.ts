@@ -96,21 +96,21 @@ test("a title the sponsor wrote is never renumbered", () => {
 });
 
 test("the three roles must be three different accounts", () => {
-  assert.equal(roleProblemOf({ sponsor: SPONSOR, builder: BUILDER, reviewer: REVIEWER }), null);
+  assert.equal(roleProblemOf({ sponsor: SPONSOR, builder: BUILDER, extraReviewers: [REVIEWER] }), null);
   assert.match(
-    roleProblemOf({ sponsor: SPONSOR, builder: SPONSOR, reviewer: REVIEWER }) ?? "",
+    roleProblemOf({ sponsor: SPONSOR, builder: SPONSOR, extraReviewers: [REVIEWER] }) ?? "",
     /cannot be the sponsor/,
   );
   assert.match(
-    roleProblemOf({ sponsor: SPONSOR, builder: BUILDER, reviewer: BUILDER }) ?? "",
-    /cannot also be the reviewer/,
+    roleProblemOf({ sponsor: SPONSOR, builder: BUILDER, extraReviewers: [BUILDER] }) ?? "",
+    /builder can never decide/i,
   );
 });
 
 test("an unconnected wallet and a malformed account are reported separately", () => {
-  assert.match(roleProblemOf({ sponsor: null, builder: BUILDER, reviewer: REVIEWER }) ?? "", /Connect/);
+  assert.match(roleProblemOf({ sponsor: null, builder: BUILDER, extraReviewers: [REVIEWER] }) ?? "", /Connect/);
   assert.match(
-    roleProblemOf({ sponsor: SPONSOR, builder: "not-an-account", reviewer: REVIEWER }) ?? "",
+    roleProblemOf({ sponsor: SPONSOR, builder: "not-an-account", extraReviewers: [REVIEWER] }) ?? "",
     /valid G… account for the builder/,
   );
 });
@@ -169,22 +169,45 @@ test("an account is shortened at both ends, and short values are left alone", ()
   assert.equal(shortAccount("short"), "short");
 });
 
-/* The contract refuses all three role collisions. This was the one the form
-   never checked, so "I'll review it myself" built a transaction that was always
-   rejected on chain — after the sponsor had signed it and paid the fee. */
-test("the sponsor cannot also be the reviewer", () => {
-  const problem = roleProblemOf({ sponsor: SPONSOR, builder: BUILDER, reviewer: SPONSOR });
-  assert.match(problem ?? "", /reviewer cannot be the sponsor/i);
+/* The sponsor already decides every payout, so listing them again is a no-op
+   the form should point out rather than quietly accept. */
+test("adding your own wallet is refused as unnecessary", () => {
+  const problem = roleProblemOf({ sponsor: SPONSOR, builder: BUILDER, extraReviewers: [SPONSOR] });
+  assert.match(problem ?? "", /already decides/i);
+});
+
+/* The case the whole contract change was for: nobody else authorised, and the
+   sponsor decides alone. */
+test("authorising nobody is the normal case, not an error", () => {
+  assert.equal(roleProblemOf({ sponsor: SPONSOR, builder: BUILDER, extraReviewers: [] }), null);
+});
+
+test("a blank row the sponsor has not filled in yet is not an error", () => {
+  assert.equal(roleProblemOf({ sponsor: SPONSOR, builder: BUILDER, extraReviewers: ["", "  "] }), null);
+});
+
+test("the same wallet listed twice is caught", () => {
+  const problem = roleProblemOf({ sponsor: SPONSOR, builder: BUILDER, extraReviewers: [REVIEWER, REVIEWER] });
+  assert.match(problem ?? "", /listed twice/i);
+});
+
+test("a malformed authorised wallet is caught", () => {
+  const problem = roleProblemOf({ sponsor: SPONSOR, builder: BUILDER, extraReviewers: ["nope"] });
+  assert.match(problem ?? "", /valid G… account/);
 });
 
 test("every collision the contract rejects is refused by the form first", () => {
-  const collisions: Array<[string, string, string]> = [
-    [SPONSOR, SPONSOR, REVIEWER],
-    [SPONSOR, BUILDER, SPONSOR],
-    [SPONSOR, BUILDER, BUILDER],
+  const collisions: Array<[string, string, string[]]> = [
+    [SPONSOR, SPONSOR, [REVIEWER]],
+    [SPONSOR, BUILDER, [SPONSOR]],
+    [SPONSOR, BUILDER, [BUILDER]],
   ];
-  for (const [sponsor, builder, reviewer] of collisions) {
-    assert.notEqual(roleProblemOf({ sponsor, builder, reviewer }), null, `${sponsor}/${builder}/${reviewer}`);
+  for (const [sponsor, builder, extraReviewers] of collisions) {
+    assert.notEqual(
+      roleProblemOf({ sponsor, builder, extraReviewers }),
+      null,
+      `${sponsor}/${builder}/${extraReviewers.join()}`,
+    );
   }
-  assert.equal(roleProblemOf({ sponsor: SPONSOR, builder: BUILDER, reviewer: REVIEWER }), null);
+  assert.equal(roleProblemOf({ sponsor: SPONSOR, builder: BUILDER, extraReviewers: [REVIEWER] }), null);
 });

@@ -3,21 +3,33 @@
   "networkPassphrase": "Test SDF Network ; September 2015",
   "rpcUrl": "https://soroban-testnet.stellar.org",
   "horizonUrl": "https://horizon-testnet.stellar.org",
-  "settlementContractId": "CAJUEUOEP6UUNLQ65XOINCUNVBXYPOGNWZC2XZQE7HRV66KTLERPHLND",
+  "settlementContractId": "CBOC76VCX3BR2UYOWQQNHRPKG27PSPE7X42YAQEDI3ZTKNL53U2CYGS6",
   "usdcSacId": "CAR6QZIC7NTQ4PFLOTD2434YZ6PRDHVJHL5GZIRT62VAJJBRL5IYUIU3",
   "usdcAsset": "USDC:GDZZXFY56X2OALF2VUAX4BM4IB4Q6KTMREKDSMEAQ3M33LRHDDRTSHFG",
   "usdcIssuer": "GDZZXFY56X2OALF2VUAX4BM4IB4Q6KTMREKDSMEAQ3M33LRHDDRTSHFG",
-  "deployedAt": "2026-08-25T12:00:50Z",
+  "deployedAt": "2026-09-04T15:05:00Z",
   "features": {
-    "builderClaim": true
+    "builderClaim": true,
+    "reviewerList": true
   },
   "explorer": {
-    "contract": "https://stellar.expert/explorer/testnet/contract/CAJUEUOEP6UUNLQ65XOINCUNVBXYPOGNWZC2XZQE7HRV66KTLERPHLND",
+    "contract": "https://stellar.expert/explorer/testnet/contract/CBOC76VCX3BR2UYOWQQNHRPKG27PSPE7X42YAQEDI3ZTKNL53U2CYGS6",
     "usdc": "https://stellar.expert/explorer/testnet/contract/CAR6QZIC7NTQ4PFLOTD2434YZ6PRDHVJHL5GZIRT62VAJJBRL5IYUIU3"
   },
   "demoAccounts": {
     "sponsor": "GCBSZV7G3Z27TJTUDMD3TNMXD5LSM3IN5VADGIB4ZPLE63CZSUGZQVXI",
     "builder": "GDKBTJDF6HQRE4JHLBSKV5K7EY5BKCY2H2LCHXHDOFBBG6MBHQV3HWPK",
     "reviewer": "GBIFJZC2QVNDKDJQEBC247BF5URT4T24FXCRC53527P3TXUUIEIRZSMA"
+  },
+  "firstEngagementId": 1000,
+  "wasmSha256": "c40b9cd7130fe1c56ad54f57f6c8d4d452494237c80fff6a365d9569b65daab2",
+  "previousDeployment": {
+    "settlementContractId": "CAJUEUOEP6UUNLQ65XOINCUNVBXYPOGNWZC2XZQE7HRV66KTLERPHLND",
+    "deployedAt": "2026-08-25T12:00:50Z",
+    "wasmSha256": "3f8f93abe9f2ce9917f85472a41bc3175bc665363410f2373fa8ad9ac8fbb4ff",
+    "source": "contracts/settlement-v1",
+    "engagementIds": "0-4",
+    "explorer": "https://stellar.expert/explorer/testnet/contract/CAJUEUOEP6UUNLQ65XOINCUNVBXYPOGNWZC2XZQE7HRV66KTLERPHLND",
+    "note": "Engagements 0-4, including the first-month evidence records, settled here."
   }
 }

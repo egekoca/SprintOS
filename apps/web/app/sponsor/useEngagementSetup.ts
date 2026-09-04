@@ -21,6 +21,7 @@ import {
   autoTitle,
   planProblemOf,
   renumber,
+  cleanReviewers,
   roleProblemOf,
   splitEvenly,
 } from "@/lib/sponsor-plan";
@@ -46,10 +47,9 @@ export function useEngagementSetup() {
   const [planNotice, setPlanNotice] = useState<string | null>(null);
   const [planning, setPlanning] = useState(false);
   const [builder, setBuilder] = useState("");
-  const [reviewer, setReviewer] = useState("");
-  /* The sponsor may keep the decision themselves. The contract still records a
-     reviewer address — it is simply the sponsor's own. */
-  const [selfReview, setSelfReview] = useState(false);
+  /* The sponsor decides payouts. This is who else may — usually nobody, which
+     is why it starts empty and the step can be walked past without touching it. */
+  const [extraReviewers, setExtraReviewers] = useState<string[]>([]);
   /* The award as a single figure. Sponsors think in "we granted 5,000", so let
      them enter that and spread it, while per-milestone amounts stay editable. */
   const [grantTotal, setGrantTotal] = useState("");
@@ -80,8 +80,7 @@ export function useEngagementSetup() {
       setPlanSummary(draft.planSummary);
       setGrantTotal(draft.grantTotal);
       setBuilder(draft.builder);
-      setReviewer(draft.reviewer);
-      setSelfReview(draft.selfReview);
+      setExtraReviewers(draft.extraReviewers);
       setRepository(draft.repository);
       setMilestones(draft.milestones);
       setRestored(draft.savedAt);
@@ -97,8 +96,8 @@ export function useEngagementSetup() {
       clearDraft();
       return;
     }
-    saveDraft({ step, scopeMode, brief, planSummary, grantTotal, builder, reviewer, selfReview, repository, milestones });
-  }, [step, scopeMode, brief, planSummary, grantTotal, builder, reviewer, selfReview, repository, milestones, created]);
+    saveDraft({ step, scopeMode, brief, planSummary, grantTotal, builder, extraReviewers, repository, milestones });
+  }, [step, scopeMode, brief, planSummary, grantTotal, builder, extraReviewers, repository, milestones, created]);
 
   /* Any edit to the plan invalidates a signature that has not happened yet and
      un-ticks the "I have read all of this" box, so the sponsor cannot approve
@@ -119,8 +118,7 @@ export function useEngagementSetup() {
     setPlanNotice(null);
     setGrantTotal("");
     setBuilder("");
-    setReviewer("");
-    setSelfReview(false);
+    setExtraReviewers([]);
     setRepository(null);
     setMilestones([]);
     setError(null);
@@ -130,10 +128,7 @@ export function useEngagementSetup() {
   const sourceReady = Boolean(repository);
   const planProblem = planProblemOf(milestones);
   const milestonesReady = planProblem === null;
-  /* The reviewer is whoever will sign the decision: the sponsor themselves, or
-     a separate address they nominate. */
-  const effectiveReviewer = selfReview ? (address ?? "") : reviewer.trim();
-  const roleProblem = roleProblemOf({ sponsor: address, builder, reviewer: effectiveReviewer });
+  const roleProblem = roleProblemOf({ sponsor: address, builder, extraReviewers });
   const rolesReady = roleProblem === null;
   const progress = completedThrough({ sourceReady, milestonesReady, rolesReady, signed: Boolean(created) });
 
@@ -190,6 +185,23 @@ export function useEngagementSetup() {
   function addMilestone() {
     invalidateSignature();
     setMilestones((current) => [...current, emptyMilestone(current.length)]);
+  }
+
+  /* An empty row rather than a prompt for one: the sponsor asked for another
+     wallet, so give them somewhere to put it. */
+  function addReviewer() {
+    invalidateSignature();
+    setExtraReviewers((current) => [...current, ""]);
+  }
+
+  function updateReviewer(index: number, value: string) {
+    invalidateSignature();
+    setExtraReviewers((current) => current.map((who, i) => (i === index ? value : who)));
+  }
+
+  function removeReviewer(index: number) {
+    invalidateSignature();
+    setExtraReviewers((current) => current.filter((_, i) => i !== index));
   }
 
   function startManualPlan() {
@@ -299,7 +311,7 @@ export function useEngagementSetup() {
           deadline: deadlineSeconds(milestone),
         };
       }));
-      const transaction = await createEngagement(address, builder.trim(), effectiveReviewer, drafts);
+      const transaction = await createEngagement(address, builder.trim(), cleanReviewers(extraReviewers), drafts);
       setCreated(transaction);
       setEngagementId(String(transaction.engagementId));
     } catch (createError) {
@@ -330,7 +342,7 @@ export function useEngagementSetup() {
     brief, setBrief, readBriefFile, analyzeBrief, planning, planSummary, planNotice,
     milestones, update, addMilestone, removeMilestone, importMilestones,
     grantTotal, setGrantTotal, grantTarget, distributeEvenly, total, remaining,
-    builder, setBuilder, reviewer, setReviewer, selfReview, setSelfReview, effectiveReviewer,
+    builder, setBuilder, extraReviewers, addReviewer, updateReviewer, removeReviewer,
     planProblem, milestonesReady, roleProblem, rolesReady,
     readEverything, setReadEverything, confirming, setConfirming,
     handleCreate, handleFund, busy, created, funded, engagementId,

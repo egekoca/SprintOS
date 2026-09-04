@@ -79,13 +79,13 @@ fn test_ai_score_100_cannot_release() {
 
     // Attempt 1: approve on the strength of the score.
     assert!(
-        f.client.try_approve(&id, &0).is_err(),
+        f.client.try_approve(&f.reviewer, &id, &0).is_err(),
         "a 100/100 score must not be able to approve a milestone"
     );
 
     // Attempt 2: skip the reviewer entirely and go straight for the money.
     assert!(
-        f.client.try_release(&id, &0).is_err(),
+        f.client.try_release(&f.reviewer, &id, &0).is_err(),
         "a 100/100 score must not be able to release funds"
     );
 
@@ -102,7 +102,7 @@ fn test_ai_score_100_cannot_release() {
                     sub_invokes: &[],
                 },
             }])
-            .try_release(&id, &0)
+            .try_release(&f.reviewer, &id, &0)
             .is_err(),
         "a signature from anyone other than the reviewer must be refused"
     );
@@ -119,14 +119,14 @@ fn test_ai_score_100_cannot_release() {
     // And now the human. Same milestone, same evidence, same report — the only
     // thing that changed is that the configured reviewer wallet signed.
     f.env.mock_all_auths();
-    f.client.approve(&id, &0);
+    f.client.approve(&f.reviewer, &id, &0);
     f.env.set_auths(&[]);
     assert!(
         f.client.try_claim(&id, &0).is_err(),
         "the advisory service cannot claim an approved payment without the builder"
     );
     f.env.mock_all_auths();
-    f.client.release(&id, &0);
+    f.client.release(&f.reviewer, &id, &0);
 
     assert_eq!(f.balance(&f.builder), builder_before + 500 * UNIT);
     assert_eq!(
@@ -157,8 +157,8 @@ fn test_ai_score_zero_does_not_block_human_approval() {
 
     // The reviewer looked at the evidence themselves and disagreed with the
     // module. Their judgement is the one that counts.
-    f.client.approve(&id, &0);
-    f.client.release(&id, &0);
+    f.client.approve(&f.reviewer, &id, &0);
+    f.client.release(&f.reviewer, &id, &0);
 
     assert_eq!(f.balance(&f.builder), 500 * UNIT);
 }
@@ -175,8 +175,8 @@ fn test_settlement_works_with_no_advisory_report_at_all() {
 
     f.client
         .submit_evidence(&id, &0, &f.hash(11), &f.uri("https://example.com"));
-    f.client.approve(&id, &0);
-    f.client.release(&id, &0);
+    f.client.approve(&f.reviewer, &id, &0);
+    f.client.release(&f.reviewer, &id, &0);
 
     assert_eq!(f.balance(&f.builder), 500 * UNIT);
 }

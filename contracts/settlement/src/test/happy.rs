@@ -24,7 +24,7 @@ fn test_happy_path_release() {
         MilestoneStatus::EvidenceSubmitted
     );
 
-    f.client.approve(&id, &0);
+    f.client.approve(&f.reviewer, &id, &0);
     assert_eq!(
         f.client.get_milestone(&id, &0).status,
         MilestoneStatus::Approved
@@ -32,7 +32,7 @@ fn test_happy_path_release() {
     // Approving is a judgement, not a payment. Nothing has moved yet.
     assert_eq!(f.balance(&f.builder), 0);
 
-    f.client.release(&id, &0);
+    f.client.release(&f.reviewer, &id, &0);
     assert_eq!(
         f.client.get_milestone(&id, &0).status,
         MilestoneStatus::Released
@@ -50,7 +50,7 @@ fn test_builder_can_claim_approved_payment() {
 
     f.client
         .submit_evidence(&id, &0, &f.hash(11), &f.uri("https://example.com"));
-    f.client.approve(&id, &0);
+    f.client.approve(&f.reviewer, &id, &0);
     f.client.claim(&id, &0);
 
     assert_eq!(
@@ -68,7 +68,7 @@ fn test_hold_then_resubmit() {
 
     f.client
         .submit_evidence(&id, &0, &f.hash(11), &f.uri("https://example.com/v1"));
-    f.client.hold(&id, &0);
+    f.client.hold(&f.reviewer, &id, &0);
     assert_eq!(
         f.client.get_milestone(&id, &0).status,
         MilestoneStatus::Held
@@ -83,8 +83,8 @@ fn test_hold_then_resubmit() {
         MilestoneStatus::EvidenceSubmitted
     );
 
-    f.client.approve(&id, &0);
-    f.client.release(&id, &0);
+    f.client.approve(&f.reviewer, &id, &0);
+    f.client.release(&f.reviewer, &id, &0);
     assert_eq!(f.balance(&f.builder), 500 * UNIT);
 }
 
@@ -101,8 +101,8 @@ fn test_all_milestones_release_closes_engagement() {
             &f.hash(20 + idx as u8),
             &f.uri("https://example.com"),
         );
-        f.client.approve(&id, &idx);
-        f.client.release(&id, &idx);
+        f.client.approve(&f.reviewer, &id, &idx);
+        f.client.release(&f.reviewer, &id, &idx);
     }
 
     assert_eq!(f.balance(&f.builder), TOTAL);
@@ -122,12 +122,12 @@ fn test_milestones_are_independent() {
 
     f.client
         .submit_evidence(&id, &0, &f.hash(11), &f.uri("https://example.com/a"));
-    f.client.hold(&id, &0);
+    f.client.hold(&f.reviewer, &id, &0);
 
     f.client
         .submit_evidence(&id, &1, &f.hash(12), &f.uri("https://example.com/b"));
-    f.client.approve(&id, &1);
-    f.client.release(&id, &1);
+    f.client.approve(&f.reviewer, &id, &1);
+    f.client.release(&f.reviewer, &id, &1);
 
     assert_eq!(f.balance(&f.builder), 300 * UNIT);
     assert_eq!(

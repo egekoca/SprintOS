@@ -72,7 +72,7 @@ fn test_refund_works_on_held_milestone() {
     let id = funded_engagement(&f);
     f.client
         .submit_evidence(&id, &0, &f.hash(11), &f.uri("https://example.com"));
-    f.client.hold(&id, &0);
+    f.client.hold(&f.reviewer, &id, &0);
 
     f.warp(8 * DAY);
     f.client.refund(&id, &0);
@@ -90,13 +90,13 @@ fn test_cannot_refund_approved_milestone() {
     let id = funded_engagement(&f);
     f.client
         .submit_evidence(&id, &0, &f.hash(11), &f.uri("https://example.com"));
-    f.client.approve(&id, &0);
+    f.client.approve(&f.reviewer, &id, &0);
 
     f.warp(30 * DAY);
     assert_eq!(f.client.try_refund(&id, &0), Err(Ok(Error::InvalidState)));
 
     // And it still pays out normally afterwards.
-    f.client.release(&id, &0);
+    f.client.release(&f.reviewer, &id, &0);
     assert_eq!(f.balance(&f.builder), 500 * UNIT);
 }
 
@@ -107,8 +107,8 @@ fn test_cannot_refund_released_milestone() {
     let id = funded_engagement(&f);
     f.client
         .submit_evidence(&id, &0, &f.hash(11), &f.uri("https://example.com"));
-    f.client.approve(&id, &0);
-    f.client.release(&id, &0);
+    f.client.approve(&f.reviewer, &id, &0);
+    f.client.release(&f.reviewer, &id, &0);
 
     f.warp(30 * DAY);
     assert_eq!(
@@ -138,8 +138,8 @@ fn test_mixed_release_and_refund_closes_engagement() {
 
     f.client
         .submit_evidence(&id, &0, &f.hash(11), &f.uri("https://example.com"));
-    f.client.approve(&id, &0);
-    f.client.release(&id, &0);
+    f.client.approve(&f.reviewer, &id, &0);
+    f.client.release(&f.reviewer, &id, &0);
 
     f.warp(22 * DAY);
     f.client.refund(&id, &1);

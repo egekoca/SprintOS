@@ -29,7 +29,7 @@ fn test_builder_cannot_approve() {
                 sub_invokes: &[],
             },
         }])
-        .approve(&id, &0);
+        .approve(&f.reviewer, &id, &0);
 }
 
 /// The sponsor cannot approve their own engagement's milestone either. Funding
@@ -52,7 +52,7 @@ fn test_sponsor_cannot_approve() {
                 sub_invokes: &[],
             },
         }])
-        .approve(&id, &0);
+        .approve(&f.reviewer, &id, &0);
 }
 
 /// 05 — an unrelated address signs `release`.
@@ -63,7 +63,7 @@ fn test_stranger_cannot_release() {
     let id = funded_engagement(&f);
     f.client
         .submit_evidence(&id, &0, &f.hash(11), &f.uri("https://example.com"));
-    f.client.approve(&id, &0);
+    f.client.approve(&f.reviewer, &id, &0);
 
     f.client
         .mock_auths(&[MockAuth {
@@ -75,7 +75,7 @@ fn test_stranger_cannot_release() {
                 sub_invokes: &[],
             },
         }])
-        .release(&id, &0);
+        .release(&f.reviewer, &id, &0);
 }
 
 /// The builder cannot pay themselves, even on an approved milestone.
@@ -86,7 +86,7 @@ fn test_builder_cannot_release_to_self() {
     let id = funded_engagement(&f);
     f.client
         .submit_evidence(&id, &0, &f.hash(11), &f.uri("https://example.com"));
-    f.client.approve(&id, &0);
+    f.client.approve(&f.reviewer, &id, &0);
 
     f.client
         .mock_auths(&[MockAuth {
@@ -98,7 +98,7 @@ fn test_builder_cannot_release_to_self() {
                 sub_invokes: &[],
             },
         }])
-        .release(&id, &0);
+        .release(&f.reviewer, &id, &0);
 }
 
 /// A stranger cannot submit evidence on the builder's behalf.
@@ -151,9 +151,9 @@ fn test_unsigned_release_rejected() {
     let id = funded_engagement(&f);
     f.client
         .submit_evidence(&id, &0, &f.hash(11), &f.uri("https://example.com"));
-    f.client.approve(&id, &0);
+    f.client.approve(&f.reviewer, &id, &0);
 
-    f.client.mock_auths(&[]).release(&id, &0);
+    f.client.mock_auths(&[]).release(&f.reviewer, &id, &0);
 }
 
 /// Claim is a recovery path for the assigned builder, not a permissionless
@@ -165,7 +165,7 @@ fn test_stranger_cannot_claim() {
     let id = funded_engagement(&f);
     f.client
         .submit_evidence(&id, &0, &f.hash(11), &f.uri("https://example.com"));
-    f.client.approve(&id, &0);
+    f.client.approve(&f.reviewer, &id, &0);
 
     f.client
         .mock_auths(&[MockAuth {

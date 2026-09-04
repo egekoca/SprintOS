@@ -50,7 +50,7 @@ export interface Engagement {
   id: bigint;
   sponsor: string;
   builder: string;
-  reviewer: string;
+  reviewers: string[];
   token: string;
   total_amount: bigint;
   status: EngagementStatus;
@@ -72,8 +72,21 @@ export function roleOf(engagement: Engagement, address: string | null): Role {
   if (!address) return "observer";
   if (address === engagement.sponsor) return "sponsor";
   if (address === engagement.builder) return "builder";
-  if (address === engagement.reviewer) return "reviewer";
+  if (engagement.reviewers.includes(address)) return "reviewer";
   return "observer";
+}
+
+/**
+ * Whether this wallet may approve, hold or release on this engagement.
+ *
+ * The sponsor always may — they defined the milestones and funded them. Anyone
+ * they authorised may too. The builder never may, whatever else is true, and
+ * the contract enforces that independently of this function.
+ */
+export function canDecide(engagement: Engagement, address: string | null): boolean {
+  if (!address) return false;
+  if (address === engagement.builder) return false;
+  return address === engagement.sponsor || engagement.reviewers.includes(address);
 }
 
 function contract(): Contract {
@@ -137,7 +150,7 @@ function toEngagement(value: unknown): Engagement {
     id: asBigInt(field(raw, "id"), "engagement id"),
     sponsor: asAddress(field(raw, "sponsor")),
     builder: asAddress(field(raw, "builder")),
-    reviewer: asAddress(field(raw, "reviewer")),
+    reviewers: (field(raw, "reviewers") as unknown[]).map(asAddress),
     token: asAddress(field(raw, "token")),
     total_amount: asBigInt(field(raw, "total_amount"), "total amount"),
     status: decodeStatus(field(raw, "status"), ENGAGEMENT_STATUSES),
@@ -254,7 +267,7 @@ const ERROR_MESSAGES: Record<number, string> = {
   2: "This contract has not been initialized.",
   3: "No engagement with that id exists.",
   4: "No milestone at that index.",
-  5: "That action belongs to a different role. Check which wallet is connected.",
+  5: "This wallet is not authorised to decide payouts on this engagement.",
   6: "The milestone is not in a state where that action is allowed.",
   7: "This milestone has already been released.",
   8: "The engagement has not been funded yet.",
@@ -265,7 +278,11 @@ const ERROR_MESSAGES: Record<number, string> = {
   13: "An engagement can hold at most three milestones.",
   14: "An engagement needs at least one milestone.",
   15: "The deadline must be in the future.",
-  16: "The sponsor, builder and reviewer must be three different addresses.",
+  16: "The sponsor cannot also be the builder.",
+  20: "You can authorise at most ten extra wallets on one engagement.",
+  21: "That wallet already decides payouts on this engagement.",
+  22: "That wallet was not authorised on this engagement.",
+  23: "The builder can never decide their own payout.",
   17: "The requested amounts are too large.",
   18: "Milestone titles must contain 1–200 bytes.",
   19: "Evidence pointers must contain 1–2048 bytes.",
@@ -399,7 +416,7 @@ export interface MilestoneDraft {
 export async function createEngagement(
   sponsor: string,
   builder: string,
-  reviewer: string,
+  reviewers: string[],
   milestones: MilestoneDraft[],
 ): Promise<SubmittedTx & { engagementId: bigint }> {
   const list = xdr.ScVal.scvVec(
@@ -412,7 +429,8 @@ export async function createEngagement(
       ]),
     ),
   );
-  const tx = await invoke(sponsor, "create_engagement", [addr(sponsor), addr(builder), addr(reviewer), list]);
+  const reviewerList = xdr.ScVal.scvVec(reviewers.map((r) => addr(r)));
+  const tx = await invoke(sponsor, "create_engagement", [addr(sponsor), addr(builder), reviewerList, list]);
   if (typeof tx.result !== "bigint") {
     throw new Error(
       "The engagement was created, but its id could not be decoded. Use the transaction link to recover it.",
@@ -443,11 +461,22 @@ export const claimApprovedMilestone = (builder: string, id: bigint | number, idx
 
 // ----------------------------------------------------------- reviewer
 
-export const approveMilestone = (reviewer: string, id: bigint | number, idx: number) =>
-  invokeFor(id, reviewer, "approve", [u64(id), u32(idx)]);
+/* Each of these names its caller. Soroban cannot require "one of these
+   addresses", so the caller says who they are and the contract checks the
+   claim against the engagement before anything moves. */
+export const approveMilestone = (caller: string, id: bigint | number, idx: number) =>
+  invokeFor(id, caller, "approve", [addr(caller), u64(id), u32(idx)]);
 
-export const holdMilestone = (reviewer: string, id: bigint | number, idx: number) =>
-  invokeFor(id, reviewer, "hold", [u64(id), u32(idx)]);
+export const holdMilestone = (caller: string, id: bigint | number, idx: number) =>
+  invokeFor(id, caller, "hold", [addr(caller), u64(id), u32(idx)]);
 
-export const releaseMilestone = (reviewer: string, id: bigint | number, idx: number) =>
-  invokeFor(id, reviewer, "release", [u64(id), u32(idx)]);
+export const releaseMilestone = (caller: string, id: bigint | number, idx: number) =>
+  invokeFor(id, caller, "release", [addr(caller), u64(id), u32(idx)]);
+
+// ------------------------------------------------- authorised wallets
+
+export const addReviewer = (sponsor: string, id: bigint | number, who: string) =>
+  invokeFor(id, sponsor, "add_reviewer", [u64(id), addr(who)]);
+
+export const removeReviewer = (sponsor: string, id: bigint | number, who: string) =>
+  invokeFor(id, sponsor, "remove_reviewer", [u64(id), addr(who)]);
