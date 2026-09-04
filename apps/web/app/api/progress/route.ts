@@ -82,6 +82,27 @@ async function repositoryRoot(
  * inside that folder. Five links is the whole budget, so each one has to carry
  * content rather than an index.
  */
+/** One directory listing, or an empty list when it cannot be read. */
+async function listPath(
+  owner: string,
+  repo: string,
+  branch: string,
+  path: string,
+  headers: Record<string, string>,
+): Promise<Array<{ name?: string; type?: string; path?: string }>> {
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`,
+      { headers, signal: AbortSignal.timeout(8_000) },
+    );
+    if (!res.ok) return [];
+    const body = await res.json();
+    return Array.isArray(body) ? body : [];
+  } catch {
+    return [];
+  }
+}
+
 async function openDirectories(
   owner: string,
   repo: string,
@@ -118,12 +139,29 @@ async function openDirectories(
         out.push(link);
         continue;
       }
-      /* Prefer prose over configuration: a README or a dated write-up says what
-         was built, where a lockfile says nothing a reviewer can use. */
+
+      /* One level deeper when the folder is an index rather than the thing:
+         `.github` holds `workflows`, and a `docs` folder often keeps the run
+         write-ups in `evidence`. Stopping at the first listing picked
+         `dependabot.yml` over the CI definition, which is the wrong file by a
+         wide margin. */
+      const deeper = inside.find(
+        (e) => e.type === "dir" && /^(workflows|evidence|proofs?|reports?|src)$/i.test(e.name ?? ""),
+      );
+      const candidates = deeper?.path ? await listPath(owner, repo, branch, deeper.path, headers) : inside;
+
+      const pick = (re: RegExp) =>
+        candidates.find((e) => e.type === "file" && re.test(e.name ?? ""));
+
+      /* Prose first: a write-up says what was built. Then source, which at
+         least shows it exists. Configuration last — a lockfile tells a
+         reviewer nothing they can use. */
       const best =
-        inside.find((e) => e.type === "file" && /^readme\.mdx?$/i.test(e.name ?? "")) ??
-        inside.find((e) => e.type === "file" && /\.(md|markdown)$/i.test(e.name ?? "")) ??
-        inside.find((e) => e.type === "file" && /\.(ya?ml|toml|json)$/i.test(e.name ?? ""));
+        pick(/^readme\.mdx?$/i) ??
+        pick(/\.(md|markdown)$/i) ??
+        pick(/\.(sol|rs|ts|tsx|go|py)$/i) ??
+        pick(/^(ci|main|build|test)\.ya?ml$/i) ??
+        pick(/\.(ya?ml|toml|json)$/i);
 
       out.push(
         best?.path
