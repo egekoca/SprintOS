@@ -13,6 +13,7 @@ import {
 import { EngagementPill, StatusPill } from "@/components/StatusPill";
 import { FoxLoader } from "@/components/FoxLoader";
 import { MilestoneFlow } from "@/components/MilestoneFlow";
+import { ProgressCheck } from "@/components/ProgressCheck";
 import { ProductIcon } from "@/components/ProductIcon";
 import { MilestoneCriteria, MilestoneEvidence } from "@/components/MilestoneDocuments";
 import { SettlementLog } from "@/components/SettlementLog";
@@ -128,6 +129,15 @@ export default function EngagementPage({ params }: { params: Promise<{ id: strin
         engagementId={engagement.id}
         index={selected}
         milestone={engagement.milestones[selected]}
+      />
+
+      {/* Anyone can ask this. It reads a public repository and decides nothing,
+          so gating it behind a wallet would protect nothing and hide the one
+          question most visitors actually have. */}
+      <ProgressCheck
+        engagementId={engagement.id}
+        milestoneIdx={selected}
+        criteriaHash={engagement.milestones[selected]?.criteria_hash ?? ""}
       />
 
       <SettlementLog engagementId={engagement.id} />

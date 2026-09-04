@@ -496,3 +496,57 @@
   padding: 0.45rem 0.8rem;
 }
 .decider-add:hover { color: var(--orange); border-color: var(--orange-hi); }
+
+/* ------------------------------------------------------- progress check */
+.progress-check .field { margin-top: 0.25rem; }
+
+.progress-criteria {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.progress-criteria li {
+  display: grid;
+  grid-template-columns: 8.5rem 1fr;
+  gap: 0.75rem;
+  padding: 0.7rem 0;
+  border-top: 1px dashed var(--advisory-edge);
+}
+.progress-criteria strong {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--chalk-dim);
+  line-height: 1.45;
+}
+.progress-criteria small {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.8125rem;
+  color: var(--chalk-faint);
+  line-height: 1.45;
+}
+
+/* The verdict carries the colour, and it is the dial's scale rather than the
+   brand's — a criterion that looks met is still not a permission to pay. */
+.progress-verdict {
+  font-size: 0.6875rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+  padding-top: 0.1rem;
+}
+.progress-verdict.is-met { color: var(--dial-high); }
+.progress-verdict.is-partially_met { color: var(--dial-mid); }
+.progress-verdict.is-not_met { color: var(--dial-low); }
+
+.progress-missing {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.8125rem;
+  color: var(--chalk-faint);
+  line-height: 1.5;
+}
+.progress-missing li { margin-bottom: 0.25rem; }
