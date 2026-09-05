@@ -10,7 +10,7 @@ import {
   documentHash,
   ActivityEntry,
 } from "@sprintos/schemas";
-import type { z } from "zod";
+import { z } from "zod";
 
 /**
  * Content-addressed off-chain document store.
@@ -74,6 +74,11 @@ function reportKey(engagementId: string, idx: number, evidenceHash: string): str
   return `reports/${engagementId}-${idx}-${normalizeDocumentHash(evidenceHash)}.json`;
 }
 
+function projectKey(engagementId: string): string {
+  validateEngagementId(engagementId);
+  return `data/projects/${engagementId}.json`;
+}
+
 /* Criteria, evidence and reports are named by their own content. Activity
    entries are named by their transaction hash, so concurrent serverless writes
    cannot overwrite one another. */
@@ -92,7 +97,23 @@ function sortActivityEntries(entries: readonly ActivityEntry[]): ActivityEntry[]
   return [...entries].sort((a, b) => a.at.localeCompare(b.at) || a.tx_hash.localeCompare(b.tx_hash));
 }
 
+/**
+ * The repository an engagement's milestones are judged against.
+ *
+ * The contract does not record it, and it should not — a repository URL is not
+ * a term of the agreement, and pinning one on chain would fix something that
+ * legitimately moves. But the sponsor names it when they set the engagement up,
+ * so there is no reason to ask them a second time.
+ */
+export const Project = z.object({
+  engagement_id: z.string().regex(/^(0|[1-9]\d*)$/),
+  repository: z.string().url().max(200),
+});
+export type Project = z.infer<typeof Project>;
+
 export interface DocumentStore {
+  putProject(project: Project): Promise<void>;
+  getProject(engagementId: string): Promise<Project | null>;
   putCriteria(doc: CriteriaDocument): Promise<string>;
   getCriteria(hash: string): Promise<CriteriaDocument | null>;
   putEvidence(doc: EvidenceBundle): Promise<string>;
@@ -141,6 +162,11 @@ async function readFileDoc<T>(key: string, schema: z.ZodType<T>): Promise<T | nu
 }
 
 export const fileStore: DocumentStore = {
+  async putProject(project) {
+    await writeFileDoc(projectKey(project.engagement_id), project);
+  },
+  getProject: (engagementId) => readFileDoc(projectKey(engagementId), Project),
+
   async putCriteria(doc) {
     const hash = documentHash(doc);
     await writeFileDoc(documentKey("criteria", hash), doc);
@@ -201,6 +227,11 @@ async function readBlobDoc<T>(key: string, schema: z.ZodType<T>): Promise<T | nu
 }
 
 export const blobStore: DocumentStore = {
+  async putProject(project) {
+    await writeBlobDoc(projectKey(project.engagement_id), project);
+  },
+  getProject: (engagementId) => readBlobDoc(projectKey(engagementId), Project),
+
   async putCriteria(doc) {
     const hash = documentHash(doc);
     await writeBlobDoc(documentKey("criteria", hash), doc);

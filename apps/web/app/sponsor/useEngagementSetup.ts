@@ -314,6 +314,23 @@ export function useEngagementSetup() {
       const transaction = await createEngagement(address, builder.trim(), cleanReviewers(extraReviewers), drafts);
       setCreated(transaction);
       setEngagementId(String(transaction.engagementId));
+
+      /* Remember the repository against the engagement now that it has an id.
+         The sponsor named it in step one; asking for it again on the detail
+         page would be asking them to repeat themselves. */
+      if (repository) {
+        void fetch("/api/project", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            engagement_id: String(transaction.engagementId),
+            repository: `https://github.com/${repository.repository.full_name}`,
+          }),
+        }).catch(() => {
+          /* A progress check can still be run by naming the repository by hand,
+             so a failure here is not worth interrupting a signed engagement. */
+        });
+      }
     } catch (createError) {
       setError(createError instanceof Error ? createError.message : String(createError));
     } finally {
