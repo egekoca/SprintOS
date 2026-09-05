@@ -627,3 +627,24 @@
   .project-card { grid-template-columns: 2.5rem 1fr auto; }
   .project-go { display: none; }
 }
+
+/* ------------------------------------------------------- submit proof */
+.submit-proof {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin-top: 0.7rem;
+  padding-top: 0.85rem;
+  border-top: 1px dashed var(--edge-bright);
+}
+.submit-rows { display: flex; flex-direction: column; gap: 0.5rem; }
+.submit-row { display: flex; gap: 0.5rem; align-items: center; }
+.submit-row input { flex: 1 1 auto; }
+.submit-row select { flex: 0 0 auto; }
+.submit-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
+
+@media (max-width: 640px) {
+  .submit-row { flex-wrap: wrap; }
+  .submit-row input { flex: 1 1 100%; }
+}

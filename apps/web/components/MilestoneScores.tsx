@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { AdvisoryReport } from "@sprintos/schemas/report";
 import type { Engagement } from "@/lib/stellar/contract";
 import { MilestoneActions } from "./MilestoneActions";
+import { SubmitProof } from "./SubmitProof";
 import { formatUsdc } from "@/lib/stellar/config";
 import { FoxSculpture } from "./FoxSculpture";
 import { ScoreDial } from "./ScoreDial";
@@ -25,15 +26,20 @@ type Scored = { report: AdvisoryReport } | { error: string } | "loading" | undef
 export function MilestoneScores({
   engagement,
   address,
+  onChanged,
 }: {
   engagement: Engagement;
   address: string | null;
+  /** Called after a signature changes a milestone, so the page re-reads it. */
+  onChanged?: () => void;
 }) {
   const engagementId = engagement.id;
   const milestones = engagement.milestones;
   const [repository, setRepository] = useState<string | null>(null);
   const [scores, setScores] = useState<Record<number, Scored>>({});
   const [open, setOpen] = useState<number | null>(null);
+  /* Which row has the evidence form open, if any. */
+  const [proving, setProving] = useState<number | null>(null);
 
   useEffect(() => {
     fetch(`/api/project?engagement_id=${engagementId}`)
@@ -90,6 +96,7 @@ export function MilestoneScores({
                 milestone={milestone}
                 index={idx}
                 address={address}
+                onSubmitProof={setProving}
               />
 
               {done ? (
@@ -113,6 +120,19 @@ export function MilestoneScores({
                 >
                   Get score
                 </button>
+              )}
+
+              {proving === idx && (
+                <SubmitProof
+                  engagementId={engagementId}
+                  milestoneIdx={idx}
+                  builder={engagement.builder}
+                  onCancel={() => setProving(null)}
+                  onDone={() => {
+                    setProving(null);
+                    onChanged?.();
+                  }}
+                />
               )}
 
               {open === idx && state && state !== "loading" && (

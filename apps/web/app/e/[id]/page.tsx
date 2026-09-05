@@ -1,8 +1,7 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
-import Link from "next/link";
-import { getBalance, getEngagement, type Engagement, type Milestone } from "@/lib/stellar/contract";
+import { getBalance, getEngagement, type Engagement } from "@/lib/stellar/contract";
 import {
   SETTLEMENT_CONTRACT_ID,
   explorerAccount,
@@ -10,13 +9,10 @@ import {
   formatUsdc,
   shortAddress,
 } from "@/lib/stellar/config";
-import { EngagementPill, StatusPill } from "@/components/StatusPill";
+import { EngagementPill } from "@/components/StatusPill";
 import { FoxLoader } from "@/components/FoxLoader";
-import { MilestoneFlow } from "@/components/MilestoneFlow";
 import { MilestoneScores } from "@/components/MilestoneScores";
 import { useWallet } from "@/components/WalletProvider";
-import { ProductIcon } from "@/components/ProductIcon";
-import { MilestoneCriteria, MilestoneEvidence } from "@/components/MilestoneDocuments";
 import { SettlementLog } from "@/components/SettlementLog";
 
 /**
@@ -34,10 +30,7 @@ export default function EngagementPage({ params }: { params: Promise<{ id: strin
   const [locked, setLocked] = useState<bigint | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  /* Which milestone the detail panel is showing. Defaults to the first one
-     still waiting on a decision, because that is what a visitor came to see. */
   const { address } = useWallet();
-  const [selected, setSelected] = useState(0);
   /* Bumped by the retry button; the read effect depends on it. */
   const [attempt, setAttempt] = useState(0);
 
@@ -58,8 +51,6 @@ export default function EngagementPage({ params }: { params: Promise<{ id: strin
       .then(([e, b]) => {
         setEngagement(e);
         setLocked(b);
-        const waiting = e.milestones.findIndex((m) => m.status === "EvidenceSubmitted" || m.status === "Approved");
-        setSelected(waiting >= 0 ? waiting : 0);
       })
       .catch((err) => setError(err instanceof Error ? err.message : String(err)))
       .finally(() => setLoading(false));
@@ -99,9 +90,7 @@ export default function EngagementPage({ params }: { params: Promise<{ id: strin
         </div>
         <h2>Engagement #{String(engagement.id)}</h2>
         <p className="lede">
-          Every milestone, amount and status below is read from Stellar testnet rather than
-          reported by the application. The transaction index further down is the one thing the
-          application keeps, and each of its rows links to the explorer so it can be checked.
+          Read from Stellar testnet, not reported by the application.
         </p>
       </div>
 
@@ -115,28 +104,19 @@ export default function EngagementPage({ params }: { params: Promise<{ id: strin
       <div className="panel stack-s">
         <p className="eyebrow">Parties</p>
         <div className="grid-3">
-          <Party party="Sponsor" address={engagement.sponsor} />
-          <Party party="Builder" address={engagement.builder} />
-          <Party party="Decides payouts" address={engagement.sponsor}
-            note="the sponsor decides; the builder never can" />
+          <Party party="Builds it" address={engagement.builder} />
+          <Party party="Decides payouts" address={engagement.sponsor} />
           {engagement.reviewers.map((r) => (
-            <Party key={r} party="Also authorised" address={r} />
+            <Party key={r} party="Also decides" address={r} />
           ))}
         </div>
       </div>
 
-      <MilestoneFlow milestones={engagement.milestones} activeIndex={selected} onSelect={setSelected} />
-
-      <MilestoneDetail
-        engagementId={engagement.id}
-        index={selected}
-        milestone={engagement.milestones[selected]}
-      />
-
-      {/* One row per milestone, one button each. Anyone can ask — it reads a
-          public repository and decides nothing, so a wallet gate would protect
-          nothing and hide the question most visitors actually have. */}
-      <MilestoneScores engagement={engagement} address={address} />
+      {/* One row per milestone: what it is, what it is worth, where it stands,
+          what you can do about it, and what the repository looks like against
+          it. A separate flow strip and a full-width detail panel said the same
+          things again, one milestone at a time. */}
+      <MilestoneScores engagement={engagement} address={address} onChanged={() => setAttempt((n) => n + 1)} />
 
       <SettlementLog engagementId={engagement.id} />
 
@@ -146,8 +126,8 @@ export default function EngagementPage({ params }: { params: Promise<{ id: strin
           Settlement contract {shortAddress(SETTLEMENT_CONTRACT_ID, 8, 6)} ↗
         </a>
         <p className="faint" style={{ fontSize: "0.8125rem" }}>
-          Every state change on this page emitted a contract event. The explorer shows them in
-          order, with the transaction that caused each one and the wallet that signed it.
+          Every state change here emitted a contract event, and the explorer shows each one with
+          the transaction that caused it and the wallet that signed it.
         </p>
       </div>
     </section>
@@ -162,86 +142,6 @@ export default function EngagementPage({ params }: { params: Promise<{ id: strin
  * of them to answer "what was promised, what arrived, and who decided". This
  * shows one milestone fully instead.
  */
-function MilestoneDetail({
-  engagementId,
-  index,
-  milestone,
-}: {
-  engagementId: bigint;
-  index: number;
-  milestone: Milestone | undefined;
-}) {
-  if (!milestone) return null;
-
-  const decisive = milestone.status === "EvidenceSubmitted" || milestone.status === "Approved";
-  const overdue = milestone.status === "Pending" && Number(milestone.deadline) * 1000 < Date.now();
-
-  return (
-    <section className="mdetail" aria-live="polite">
-      <header className="mdetail-head">
-        <div>
-          <p className="eyebrow">Milestone {String(index + 1).padStart(2, "0")}</p>
-          <h3>{milestone.title}</h3>
-        </div>
-        <div className="mdetail-head-right">
-          <StatusPill status={milestone.status} />
-          <span className="amount mdetail-amount">
-            {formatUsdc(milestone.amount)} <small>USDC</small>
-          </span>
-        </div>
-      </header>
-
-      <div className="mdetail-timeline">
-        <TimelineMark
-          label="Due"
-          value={new Date(Number(milestone.deadline) * 1000).toLocaleDateString()}
-          state={overdue ? "warn" : "idle"}
-        />
-        <TimelineMark
-          label="Proof submitted"
-          value={milestone.submitted_at > 0n ? new Date(Number(milestone.submitted_at) * 1000).toLocaleDateString() : "Not yet"}
-          state={milestone.submitted_at > 0n ? "done" : "idle"}
-        />
-        <TimelineMark
-          label="Decided"
-          value={milestone.decided_at > 0n ? new Date(Number(milestone.decided_at) * 1000).toLocaleDateString() : "Not yet"}
-          state={milestone.decided_at > 0n ? "done" : "idle"}
-        />
-      </div>
-
-      <div className="mdetail-grid">
-        <div className="mdetail-block">
-          <p className="eyebrow">What was promised</p>
-          <MilestoneCriteria criteriaHash={milestone.criteria_hash} />
-        </div>
-
-        <div className="mdetail-block">
-          <p className="eyebrow">What arrived</p>
-          <MilestoneEvidence
-            evidenceHash={milestone.evidence_hash}
-            evidenceUri={milestone.evidence_uri}
-          />
-        </div>
-      </div>
-
-      {decisive && (
-        <Link href={`/review/${engagementId}/${index}`} className="btn btn-primary mdetail-action">
-          <ProductIcon name="signature" size={18} /> Open the reviewer desk
-        </Link>
-      )}
-    </section>
-  );
-}
-
-function TimelineMark({ label, value, state }: { label: string; value: string; state: "idle" | "done" | "warn" }) {
-  return (
-    <div className={`mdetail-mark is-${state}`}>
-      <span className="eyebrow">{label}</span>
-      <strong>{value}</strong>
-    </div>
-  );
-}
-
 function Figure({ label, value, accent }: { label: string; value: string; accent?: string }) {
   return (
     <div className="panel panel-tight stack-s" style={{ gap: "0.25rem" }}>

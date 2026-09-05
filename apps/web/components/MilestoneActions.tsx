@@ -20,11 +20,14 @@ export function MilestoneActions({
   milestone,
   index,
   address,
+  onSubmitProof,
 }: {
   engagement: Engagement;
   milestone: Milestone;
   index: number;
   address: string | null;
+  /** Opens the evidence form on this row rather than sending them elsewhere. */
+  onSubmitProof?: (index: number) => void;
 }) {
   if (!address) return null;
 
@@ -33,9 +36,9 @@ export function MilestoneActions({
 
   if (isBuilder && (milestone.status === "Pending" || milestone.status === "Held")) {
     return (
-      <Link href="/builder" className="btn btn-primary btn-sm">
+      <button type="button" className="btn btn-primary btn-sm" onClick={() => onSubmitProof?.(index)}>
         Submit proof
-      </Link>
+      </button>
     );
   }
 
