@@ -503,7 +503,7 @@
 
 .score-row {
   display: grid;
-  grid-template-columns: 2rem 1fr auto auto;
+  grid-template-columns: 2rem 1fr auto auto auto;
   align-items: center;
   gap: 0.9rem;
   padding: 0.85rem 1rem;
@@ -580,6 +580,50 @@
 .score-note { margin: 0; font-size: 0.8125rem; color: var(--chalk-faint); }
 
 @media (max-width: 640px) {
-  .score-row { grid-template-columns: 2rem 1fr auto; }
+  .score-row { grid-template-columns: 2rem 1fr auto; grid-auto-flow: row; }
   .score-detail { flex-direction: column; align-items: flex-start; }
+}
+
+/* ------------------------------------------------------------ projects */
+.projects-head { align-items: flex-end; }
+.projects-empty { padding: 2rem 0; display: grid; gap: 0.4rem; }
+.projects-empty p { margin: 0; }
+
+.project-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+
+.project-card {
+  display: grid;
+  grid-template-columns: 3.5rem 1fr auto auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-lg);
+  background: var(--concrete);
+  color: inherit;
+  text-decoration: none;
+}
+.project-card:hover { border-color: var(--edge-bright); background: var(--concrete-2); }
+
+.project-id { font-family: var(--font-display); color: var(--chalk-faint); font-size: 0.9375rem; }
+.project-main strong { display: block; font-size: 0.9375rem; font-weight: 500; }
+.project-main small { color: var(--chalk-faint); font-size: 0.75rem; }
+
+/* Which role you hold here, so the list answers it instead of a tab. */
+.project-role {
+  font-size: 0.6875rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+  border: 1px solid var(--edge);
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  white-space: nowrap;
+}
+.project-role.is-sponsor { color: var(--orange); border-color: var(--orange-hi); }
+.project-go { color: var(--chalk-faint); }
+
+@media (max-width: 640px) {
+  .project-card { grid-template-columns: 2.5rem 1fr auto; }
+  .project-go { display: none; }
 }

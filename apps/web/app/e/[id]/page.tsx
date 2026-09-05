@@ -14,6 +14,7 @@ import { EngagementPill, StatusPill } from "@/components/StatusPill";
 import { FoxLoader } from "@/components/FoxLoader";
 import { MilestoneFlow } from "@/components/MilestoneFlow";
 import { MilestoneScores } from "@/components/MilestoneScores";
+import { useWallet } from "@/components/WalletProvider";
 import { ProductIcon } from "@/components/ProductIcon";
 import { MilestoneCriteria, MilestoneEvidence } from "@/components/MilestoneDocuments";
 import { SettlementLog } from "@/components/SettlementLog";
@@ -35,6 +36,7 @@ export default function EngagementPage({ params }: { params: Promise<{ id: strin
   const [loading, setLoading] = useState(true);
   /* Which milestone the detail panel is showing. Defaults to the first one
      still waiting on a decision, because that is what a visitor came to see. */
+  const { address } = useWallet();
   const [selected, setSelected] = useState(0);
   /* Bumped by the retry button; the read effect depends on it. */
   const [attempt, setAttempt] = useState(0);
@@ -134,7 +136,7 @@ export default function EngagementPage({ params }: { params: Promise<{ id: strin
       {/* One row per milestone, one button each. Anyone can ask — it reads a
           public repository and decides nothing, so a wallet gate would protect
           nothing and hide the question most visitors actually have. */}
-      <MilestoneScores engagementId={engagement.id} milestones={engagement.milestones} />
+      <MilestoneScores engagement={engagement} address={address} />
 
       <SettlementLog engagementId={engagement.id} />
 

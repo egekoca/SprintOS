@@ -7,12 +7,16 @@ import { useWallet } from "./WalletProvider";
 import { explorerAccount, shortAddress } from "@/lib/stellar/config";
 import { FoxSpinner } from "./FoxLoader";
 
+/**
+ * Three destinations, named after things rather than roles.
+ *
+ * There were seven: Overview, Awards, Sponsor, Builder, Review, Board, Docs.
+ * Four of those were the same projects seen through a different role, and the
+ * roles are already recorded on chain — the app can work out which one you are
+ * instead of making you pick a tab and find out you picked the wrong one.
+ */
 const NAV = [
-  { href: "/app", label: "Overview" },
-  { href: "/awards", label: "Awards" },
-  { href: "/sponsor", label: "Sponsor" },
-  { href: "/builder", label: "Builder" },
-  { href: "/review", label: "Review" },
+  { href: "/projects", label: "Projects" },
   { href: "/board", label: "Board" },
   { href: "/docs", label: "Docs" },
 ];
@@ -33,7 +37,7 @@ export function SiteHeader() {
             <a href="#solution">Solution</a>
             <a href="#trust">Trust</a>
           </nav>
-          <Link href="/app" className="enter-app">
+          <Link href="/projects" className="enter-app">
             <span className="enter-app-label">Enter app</span>
             <span className="enter-app-arrow" aria-hidden="true">↗</span>
           </Link>

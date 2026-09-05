@@ -68,7 +68,7 @@ export default function LandingPage() {
               Fund a milestone. Prove the work. <span className="rec-hot">A person releases the payment.</span>
             </p>
             <div className="rec-cta">
-              <Link href="/app" className="btn btn-primary rec-cta-primary">Open SprintOS</Link>
+              <Link href="/projects" className="btn btn-primary rec-cta-primary">Open SprintOS</Link>
             </div>
           </div>
         </div>
@@ -157,7 +157,7 @@ export default function LandingPage() {
           </article>
         </div>
 
-        <Link href="/app" className="btn btn-primary rec-cta-primary">Enter SprintOS</Link>
+        <Link href="/projects" className="btn btn-primary rec-cta-primary">Enter SprintOS</Link>
       </section>
     </div>
   );

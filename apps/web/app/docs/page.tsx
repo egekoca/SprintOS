@@ -68,7 +68,7 @@ export default function DocsPage() {
               cannot approve, sign, or move funds.
             </p>
             <div className="row docs-hero-links">
-              <Link href="/sponsor" className="btn btn-primary"><ProductIcon name="milestone" size={17} /> Open the app</Link>
+              <Link href="/projects" className="btn btn-primary"><ProductIcon name="milestone" size={17} /> Open the app</Link>
               <Link href="/evidence" className="btn btn-ghost"><ProductIcon name="eye" size={17} /> Evidence pack</Link>
             </div>
           </header>

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import type { AdvisoryReport } from "@sprintos/schemas/report";
-import type { Milestone } from "@/lib/stellar/contract";
+import type { Engagement } from "@/lib/stellar/contract";
+import { MilestoneActions } from "./MilestoneActions";
 import { formatUsdc } from "@/lib/stellar/config";
 import { FoxSculpture } from "./FoxSculpture";
 import { ScoreDial } from "./ScoreDial";
@@ -22,12 +23,14 @@ import { StatusPill } from "./StatusPill";
 type Scored = { report: AdvisoryReport } | { error: string } | "loading" | undefined;
 
 export function MilestoneScores({
-  engagementId,
-  milestones,
+  engagement,
+  address,
 }: {
-  engagementId: bigint;
-  milestones: readonly Milestone[];
+  engagement: Engagement;
+  address: string | null;
 }) {
+  const engagementId = engagement.id;
+  const milestones = engagement.milestones;
   const [repository, setRepository] = useState<string | null>(null);
   const [scores, setScores] = useState<Record<number, Scored>>({});
   const [open, setOpen] = useState<number | null>(null);
@@ -81,6 +84,13 @@ export function MilestoneScores({
               </div>
 
               <StatusPill status={milestone.status} />
+
+              <MilestoneActions
+                engagement={engagement}
+                milestone={milestone}
+                index={idx}
+                address={address}
+              />
 
               {done ? (
                 <button
