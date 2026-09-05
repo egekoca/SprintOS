@@ -82,7 +82,15 @@ export default function ProjectsPage() {
         </Link>
       </div>
 
-      <WalletGate eyebrow="Projects" title="Connect a wallet to see your projects">
+      {/* WalletGate is the connect screen itself, not a wrapper — so it stands
+          in for the list rather than around it. */}
+      {!address ? (
+        <WalletGate eyebrow="Projects" title="Connect a wallet to see your projects">
+          Your projects are read from the ledger by address, so there is nothing to show until a
+          wallet is connected.
+        </WalletGate>
+      ) : (
+      <>
         {loading && <FoxLoader label="Reading the ledger" />}
 
         {error && (
@@ -131,7 +139,8 @@ export default function ProjectsPage() {
             })}
           </ol>
         )}
-      </WalletGate>
+      </>
+      )}
     </section>
   );
 }
