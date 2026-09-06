@@ -13,6 +13,8 @@ import { StoreUnavailableError, store } from "@/lib/store";
 import { takeRateLimit } from "@/lib/rate-limit";
 import { isSameOrigin, requestBodyIsTooLarge, requestClientKey } from "@/lib/request-security";
 import { parseGitHubRepository } from "@/lib/github";
+import { cookies } from "next/headers";
+import { GITHUB_SESSION_COOKIE, decryptGitHubSession } from "@/lib/github-auth";
 import type { CriteriaDocument } from "@sprintos/schemas";
 
 /**
@@ -55,13 +57,8 @@ class RateLimited extends Error {
 async function repositoryRoot(
   owner: string,
   repo: string,
+  headers: Record<string, string>,
 ): Promise<{ entries: RepositoryEntry[]; branch: string } | null> {
-  const headers: Record<string, string> = {
-    accept: "application/vnd.github+json",
-    "user-agent": "sprintos-progress-check",
-  };
-  if (process.env.GITHUB_TOKEN) headers.authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
-
   const meta = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
     headers,
     signal: AbortSignal.timeout(10_000),
@@ -130,13 +127,8 @@ async function openDirectories(
   branch: string,
   repository: string,
   links: EvidenceLink[],
+  headers: Record<string, string>,
 ): Promise<EvidenceLink[]> {
-  const headers: Record<string, string> = {
-    accept: "application/vnd.github+json",
-    "user-agent": "sprintos-progress-check",
-  };
-  if (process.env.GITHUB_TOKEN) headers.authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
-
   const out: EvidenceLink[] = [];
   for (const link of links) {
     const path = link.url.includes(`/tree/${branch}/`)
@@ -247,17 +239,40 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Those criteria belong to a different milestone." }, { status: 400 });
   }
 
+  /**
+   * Read GitHub as whoever is signed in.
+   *
+   * Sixty calls an hour is the unauthenticated ceiling, shared across everyone
+   * arriving from the same address — on a hosted deployment that is everyone at
+   * once, and a handful of scores exhausts it. A signed-in visitor brings their
+   * own five thousand, which is the limit that should be spent on reading their
+   * own repository anyway.
+   *
+   * The token is read from the encrypted session cookie the OAuth flow already
+   * sets, never from anything the caller can put in the request.
+   */
+  const jar = await cookies();
+  const sessionToken = decryptGitHubSession(jar.get(GITHUB_SESSION_COOKIE)?.value)?.accessToken;
+  const token = sessionToken ?? process.env.GITHUB_TOKEN;
+  const headers: Record<string, string> = {
+    accept: "application/vnd.github+json",
+    "user-agent": "sprintos-progress-check",
+    ...(token ? { authorization: `Bearer ${token}` } : {}),
+  };
+
   let root: Awaited<ReturnType<typeof repositoryRoot>>;
   try {
-    root = await repositoryRoot(owner, repo);
+    root = await repositoryRoot(owner, repo, headers);
   } catch (error) {
     if (error instanceof RateLimited) {
       const minutes = error.resetAt ? Math.max(1, Math.ceil((error.resetAt - Date.now()) / 60_000)) : null;
       return NextResponse.json(
         {
           error:
-            `GitHub is rate limiting this deployment${minutes ? `, and resets in about ${minutes} minutes` : ""}. ` +
-            "Set GITHUB_TOKEN to raise the limit from sixty requests an hour to five thousand.",
+            (sessionToken
+              ? `GitHub is rate limiting your account${minutes ? `, and resets in about ${minutes} minutes` : ""}.`
+              : `GitHub is rate limiting this deployment${minutes ? `, and resets in about ${minutes} minutes` : ""}. ` +
+                "Sign in to GitHub and the check runs against your own allowance instead."),
         },
         { status: 503 },
       );
@@ -272,7 +287,7 @@ export async function POST(request: Request) {
   }
 
   const chosen = chooseEvidencePaths(repository, root.entries, root.branch);
-  const links = await openDirectories(owner, repo, root.branch, repository, chosen);
+  const links = await openDirectories(owner, repo, root.branch, repository, chosen, headers);
   const evidence = repositoryEvidence(parsed.engagement_id, parsed.milestone_idx, links);
 
   try {

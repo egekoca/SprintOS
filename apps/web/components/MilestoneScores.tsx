@@ -132,7 +132,19 @@ export function MilestoneScores({
               {open === idx && state && state !== "loading" && (
                 <div className="score-detail">
                   {"error" in state ? (
-                    <p className="notice">{state.error}</p>
+                    <p className="notice">
+                      {state.error}
+                      {/* The way out costs nothing and is one click away, so
+                          offer it rather than describing it. */}
+                      {/rate limiting this deployment/i.test(state.error) && (
+                        <>
+                          {" "}
+                          <a href={`/api/github/auth?returnTo=${encodeURIComponent(`/e/${engagementId}`)}`} className="badge-link">
+                            Sign in to GitHub →
+                          </a>
+                        </>
+                      )}
+                    </p>
                   ) : (
                     <>
                       <ScoreDial score={state.report.advisory_score} size={140} />
