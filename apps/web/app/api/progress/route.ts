@@ -38,6 +38,19 @@ const Body = z.object({
   repository: z.string().min(1).max(200),
 });
 
+/**
+ * GitHub allows sixty unauthenticated calls an hour per address, and one
+ * progress check spends several. Set GITHUB_TOKEN and the ceiling is five
+ * thousand.
+ */
+class RateLimited extends Error {
+  readonly resetAt: number | null;
+  constructor(reset: string | null) {
+    super("rate limited");
+    this.resetAt = reset ? Number(reset) * 1000 : null;
+  }
+}
+
 /** Read the repository's root listing so the paths offered actually exist. */
 async function repositoryRoot(
   owner: string,
@@ -53,6 +66,14 @@ async function repositoryRoot(
     headers,
     signal: AbortSignal.timeout(10_000),
   });
+  /* Rate limiting is not "repository not found", and the difference matters: a
+     check that quietly proceeds with no evidence produces a score of zero, and
+     a reviewer reading 0/100 concludes the work is missing rather than that we
+     never looked. */
+  if (meta.status === 403 || meta.status === 429) {
+    const remaining = meta.headers.get("x-ratelimit-remaining");
+    if (remaining === "0") throw new RateLimited(meta.headers.get("x-ratelimit-reset"));
+  }
   if (!meta.ok) return null;
   const branch = ((await meta.json()) as { default_branch?: string }).default_branch ?? "main";
 
@@ -226,7 +247,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Those criteria belong to a different milestone." }, { status: 400 });
   }
 
-  const root = await repositoryRoot(owner, repo);
+  let root: Awaited<ReturnType<typeof repositoryRoot>>;
+  try {
+    root = await repositoryRoot(owner, repo);
+  } catch (error) {
+    if (error instanceof RateLimited) {
+      const minutes = error.resetAt ? Math.max(1, Math.ceil((error.resetAt - Date.now()) / 60_000)) : null;
+      return NextResponse.json(
+        {
+          error:
+            `GitHub is rate limiting this deployment${minutes ? `, and resets in about ${minutes} minutes` : ""}. ` +
+            "Set GITHUB_TOKEN to raise the limit from sixty requests an hour to five thousand.",
+        },
+        { status: 503 },
+      );
+    }
+    throw error;
+  }
   if (!root) {
     return NextResponse.json(
       { error: "That repository could not be read. Private repositories are never opened." },
