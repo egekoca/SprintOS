@@ -3,6 +3,12 @@ export type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue
 
 interface OpenAIResponseBody {
   status?: string;
+  usage?: {
+    input_tokens?: number;
+    output_tokens?: number;
+    input_tokens_details?: { cached_tokens?: number };
+    output_tokens_details?: { reasoning_tokens?: number };
+  };
   error?: {
     message?: string;
     type?: string;
@@ -17,6 +23,16 @@ interface OpenAIResponseBody {
     }>;
   }>;
 }
+
+/** What one report actually cost, so the bill is not a surprise at month end. */
+export interface Usage {
+  inputTokens: number;
+  cachedInputTokens: number;
+  outputTokens: number;
+  reasoningTokens: number;
+}
+
+export let lastUsage: Usage | null = null;
 
 export interface StructuredOutputRequest {
   model: string;
@@ -128,6 +144,23 @@ export async function requestStructuredJson(request: StructuredOutputRequest): P
   if (body.status && body.status !== "completed") {
     const message = body.error?.message ?? `status ${body.status}`;
     throw new Error(`OpenAI response did not complete: ${message}`);
+  }
+
+  /* Record what it cost. Reasoning tokens bill as output and are invisible in
+     the response, so without this the only place the bill shows up is the
+     provider's dashboard a day later. */
+  lastUsage = {
+    inputTokens: body.usage?.input_tokens ?? 0,
+    cachedInputTokens: body.usage?.input_tokens_details?.cached_tokens ?? 0,
+    outputTokens: body.usage?.output_tokens ?? 0,
+    reasoningTokens: body.usage?.output_tokens_details?.reasoning_tokens ?? 0,
+  };
+  if (process.env.SPRINTOS_LOG_USAGE) {
+    console.info(
+      `[advisory] ${request.model} in=${lastUsage.inputTokens} ` +
+        `(cached ${lastUsage.cachedInputTokens}) out=${lastUsage.outputTokens} ` +
+        `(reasoning ${lastUsage.reasoningTokens})`,
+    );
   }
 
   const outputText = body.output_text ?? extractOutputText(body.output);

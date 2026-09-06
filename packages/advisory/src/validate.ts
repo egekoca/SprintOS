@@ -87,12 +87,16 @@ export function checkCriteriaCoverage(draft: Draft, criteria: CriteriaDocument):
   const got = draft.criteria.map((c) => normalizeCriterionId(c.id));
   const problems: string[] = [];
 
-  for (const [i, id] of expected.entries()) {
-    if (!got.includes(id)) problems.push(`Criterion ${criteria.criteria[i].id} was not assessed.`);
+  /* Iterate the documents themselves so each problem can quote the id its
+     author actually wrote, rather than the normalised form used to compare. */
+  for (const criterion of criteria.criteria) {
+    if (!got.includes(normalizeCriterionId(criterion.id))) {
+      problems.push(`Criterion ${criterion.id} was not assessed.`);
+    }
   }
-  for (const [i, id] of got.entries()) {
-    if (!expected.includes(id)) {
-      problems.push(`Report assesses ${draft.criteria[i].id}, which is not a criterion of this milestone.`);
+  for (const assessed of draft.criteria) {
+    if (!expected.includes(normalizeCriterionId(assessed.id))) {
+      problems.push(`Report assesses ${assessed.id}, which is not a criterion of this milestone.`);
     }
   }
   const duplicates = got.filter((id, i) => got.indexOf(id) !== i);

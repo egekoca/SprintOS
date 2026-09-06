@@ -18,7 +18,11 @@ import { isIP } from "node:net";
  */
 
 /** A hard ceiling on what any single source may contribute to the prompt. */
-const MAX_CHARS_PER_SOURCE = 6_000;
+/* Five sources at 6,000 characters was 30,000 characters of prompt for a
+   judgement that reads the first page of each. Trimming to 3,500 keeps the part
+   that carries the claim — a README's opening, a run record's summary — and
+   drops the tail nobody was reading. */
+const MAX_CHARS_PER_SOURCE = 3_500;
 const MAX_BYTES_PER_RESPONSE = 1_000_000;
 const FETCH_TIMEOUT_MS = 10_000;
 

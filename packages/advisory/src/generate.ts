@@ -16,6 +16,27 @@ import { requestStructuredJson } from "./openai.ts";
 export const DEFAULT_MODEL = process.env.OPENAI_MODEL?.trim() || "gpt-5.6";
 
 /**
+ * How hard the model thinks, and how much it may write.
+ *
+ * Measured on this workload, the bill is almost entirely output: the input runs
+ * around 3,800 tokens a report, while a ceiling of 16,000 output tokens let
+ * reasoning run for as long as it liked and reasoning bills as output.
+ *
+ * The task does not need much of it. Read five sources, judge four written
+ * criteria against them, cite the links used, and emit JSON — structured
+ * extraction rather than a problem to solve. `low` is the right default and
+ * `medium` remains one environment variable away if a harder milestone ever
+ * needs it.
+ *
+ * The cap is the safety net rather than the lever: a full report is well under
+ * 2,000 tokens, so 4,000 leaves room for reasoning without leaving room for a
+ * runaway.
+ */
+const REASONING_EFFORT = (process.env.OPENAI_REASONING_EFFORT?.trim() ||
+  "low") as "low" | "medium" | "high";
+const MAX_OUTPUT_TOKENS = Number(process.env.OPENAI_MAX_OUTPUT_TOKENS) || 4_000;
+
+/**
  * What the model is asked to return.
  *
  * Narrower than the stored report on purpose: `binding`, `disclaimer`,
@@ -124,8 +145,8 @@ export async function generateReport(options: GenerateOptions): Promise<Advisory
   try {
     const response = await requestStructuredJson({
       model,
-      maxOutputTokens: 16000,
-      reasoningEffort: "medium",
+      maxOutputTokens: MAX_OUTPUT_TOKENS,
+      reasoningEffort: REASONING_EFFORT,
       instructions: SYSTEM_PROMPT,
       input: buildUserPrompt(criteria, fetched),
       name: "advisory_report",
