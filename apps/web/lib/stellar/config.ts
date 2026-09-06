@@ -37,6 +37,15 @@ export const EXPLORER_BASE = "https://stellar.expert/explorer/testnet";
  * silently anchored `http://localhost:3000/...` whenever the flow was run
  * locally. Set `NEXT_PUBLIC_APP_URL` on every deployment.
  */
+/**
+ * The first engagement id this deployment issued.
+ *
+ * Set past the previous contract's range so an id names exactly one engagement
+ * across both deployments — and so listing them does not have to ask about a
+ * thousand ids that were never issued.
+ */
+export const FIRST_ENGAGEMENT_ID = deployment.firstEngagementId ?? 0;
+
 export const PUBLIC_APP_URL = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/+$/, "");
 
 /** Whether an origin is one a third party could resolve. */

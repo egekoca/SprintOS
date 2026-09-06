@@ -648,3 +648,67 @@
   .submit-row { flex-wrap: wrap; }
   .submit-row input { flex: 1 1 100%; }
 }
+
+/* -------------------------------------------------------- score button */
+
+/* Raised, and it presses. The one control on the row that does something worth
+   waiting for, so it is the one that looks like it. */
+.score-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.85rem 0.4rem 0.5rem;
+  border: 1px solid var(--edge-bright);
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--concrete-3), var(--concrete));
+  color: var(--chalk-dim);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.06) inset,
+    0 2px 0 var(--ink),
+    0 4px 10px rgba(0, 0, 0, 0.45);
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+}
+.score-button:hover:not(:disabled) {
+  border-color: var(--orange-hi);
+  color: var(--chalk);
+  transform: translateY(-1px);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.08) inset,
+    0 3px 0 var(--ink),
+    0 8px 18px var(--orange-glow);
+}
+.score-button:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 var(--ink), 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+.score-button:disabled { opacity: 0.45; }
+
+.score-button-fox {
+  display: grid;
+  place-items: center;
+  width: 1.55rem;
+  height: 1.55rem;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
+}
+.score-button-fox svg { display: block; }
+.score-button-label { font-variant-numeric: tabular-nums; }
+
+/* While it reads, the fox on the button is what moves — the thing you pressed
+   is the thing that is thinking. */
+.score-button.is-busy { border-color: var(--orange-hi); color: var(--chalk); }
+.score-button.is-busy .score-button-fox { animation: score-think 1.3s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .score-button,
+  .score-button:hover:not(:disabled),
+  .score-button:active:not(:disabled) { transform: none; transition: none; }
+  .score-button.is-busy .score-button-fox { animation: none; opacity: 0.85; }
+}
+
+/* The currency mark sits on the baseline of the amount beside it. */
+.usdc-mark { vertical-align: -0.15em; margin-right: 0.15rem; }
+.score-row-name small { display: inline-flex; align-items: center; gap: 0.1rem; }
+.figure-unit { font-size: 0.6875rem; display: inline-flex; align-items: center; gap: 0.15rem; }

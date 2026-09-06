@@ -35,3 +35,23 @@ test("the simulation source account can build a transaction source", async () =>
   const readSource = await readSourceConstant();
   assert.doesNotThrow(() => new Account(readSource, "0"));
 });
+
+/* The counter is the next id, not a length. This deployment starts it past the
+   previous contract's range, so treating it as a count made the projects page
+   ask the network about a thousand ids that were never issued — a thousand
+   failing simulations before one row could render. */
+test("listing walks only the ids this deployment actually issued", async () => {
+  const { FIRST_ENGAGEMENT_ID } = await import("./config.ts");
+  const deployment = (await import("./deployment.json", { with: { type: "json" } })).default;
+
+  assert.equal(FIRST_ENGAGEMENT_ID, deployment.firstEngagementId ?? 0);
+
+  /* The range the listing walks, expressed the way the code computes it. */
+  const range = (next: number) => Math.max(0, next - Math.min(FIRST_ENGAGEMENT_ID, next));
+
+  assert.equal(range(FIRST_ENGAGEMENT_ID), 0);
+  assert.equal(range(FIRST_ENGAGEMENT_ID + 1), 1);
+  assert.equal(range(FIRST_ENGAGEMENT_ID + 7), 7);
+  /* A counter below the first id cannot ask for a negative number of reads. */
+  assert.equal(range(0), 0);
+});

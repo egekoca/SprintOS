@@ -42,3 +42,40 @@ test("reasoning requests omit temperature unless explicitly supplied", async () 
     else process.env.OPENAI_API_KEY = previousKey;
   }
 });
+
+/* The provider quotes the API key back inside its own error message. Passing
+   that through put the first characters of the deployment's secret on a
+   reviewer's screen. */
+test("an upstream failure never carries the provider's text to the caller", async () => {
+  const leaky = JSON.stringify({
+    error: { message: "Incorrect API key provided: sk-52141****1707. You can find your API key at …" },
+  });
+
+  for (const status of [401, 403, 429, 500]) {
+    const originalFetch = globalThis.fetch;
+    const originalError = console.error;
+    console.error = () => {};
+    globalThis.fetch = (async () =>
+      new Response(leaky, { status, headers: { "content-type": "application/json" } })) as typeof fetch;
+
+    try {
+      await requestStructuredJson({
+        model: "gpt-5.6",
+        name: "advisory_report",
+        schema: { type: "object" },
+        instructions: "x",
+        input: "y",
+        maxOutputTokens: 16,
+      });
+      assert.fail(`HTTP ${status} should have thrown`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      assert.doesNotMatch(message, /sk-/, `HTTP ${status} leaked a key fragment: ${message}`);
+      assert.doesNotMatch(message, /Incorrect API key/i, `HTTP ${status} leaked provider text`);
+      assert.ok(message.length > 0);
+    } finally {
+      globalThis.fetch = originalFetch;
+      console.error = originalError;
+    }
+  }
+});

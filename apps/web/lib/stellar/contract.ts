@@ -18,7 +18,7 @@ import {
   type EngagementStatus,
   type MilestoneStatus,
 } from "./status.ts";
-import { NETWORK, SETTLEMENT_CONTRACT_ID } from "./config.ts";
+import { FIRST_ENGAGEMENT_ID, NETWORK, SETTLEMENT_CONTRACT_ID } from "./config.ts";
 import { signTransaction } from "./wallet.ts";
 
 /**
@@ -251,9 +251,19 @@ export async function getBalance(id: bigint | number): Promise<bigint> {
   return BigInt(await simulateRead<bigint>("get_balance", [nativeToScVal(BigInt(id), { type: "u64" })]));
 }
 
+/**
+ * Every engagement on this deployment, newest first.
+ *
+ * The counter is the *next* id, and this contract was deployed with it already
+ * set past the previous deployment's range so an id names one engagement across
+ * both. Walking from zero therefore asked the network about a thousand ids that
+ * were never issued — a thousand simulations, all of them failing, before the
+ * projects page could render one row.
+ */
 export async function listEngagements(): Promise<Engagement[]> {
-  const count = await getEngagementCount();
-  const ids = Array.from({ length: count }, (_, i) => i);
+  const next = await getEngagementCount();
+  const first = Math.min(FIRST_ENGAGEMENT_ID, next);
+  const ids = Array.from({ length: Math.max(0, next - first) }, (_, i) => first + i);
   const results = await Promise.allSettled(ids.map((i) => getEngagement(i)));
   return results
     .filter((r): r is PromiseFulfilledResult<Engagement> => r.status === "fulfilled")

@@ -6,7 +6,8 @@ import type { Engagement } from "@/lib/stellar/contract";
 import { MilestoneActions } from "./MilestoneActions";
 import { SubmitProof } from "./SubmitProof";
 import { formatUsdc } from "@/lib/stellar/config";
-import { FoxSculpture } from "./FoxSculpture";
+import { ScoreButton } from "./ScoreButton";
+import { UsdcMark } from "./UsdcMark";
 import { ScoreDial } from "./ScoreDial";
 import { StatusPill } from "./StatusPill";
 
@@ -86,7 +87,7 @@ export function MilestoneScores({
 
               <div className="score-row-name">
                 <strong>{milestone.title}</strong>
-                <small>{formatUsdc(milestone.amount)} USDC</small>
+                <small><UsdcMark /> {formatUsdc(milestone.amount)} USDC</small>
               </div>
 
               <StatusPill status={milestone.status} />
@@ -107,19 +108,12 @@ export function MilestoneScores({
                 >
                   {done.advisory_score}
                 </button>
-              ) : state === "loading" ? (
-                <span className="score-waiting">
-                  <FoxSculpture size={34} idPrefix={`scoring-${idx}`} />
-                </span>
               ) : (
-                <button
-                  type="button"
-                  className="btn btn-ghost btn-sm"
-                  onClick={() => score(idx, milestone.criteria_hash)}
+                <ScoreButton
+                  busy={state === "loading"}
                   disabled={!repository}
-                >
-                  Get score
-                </button>
+                  onClick={() => score(idx, milestone.criteria_hash)}
+                />
               )}
 
               {proving === idx && (

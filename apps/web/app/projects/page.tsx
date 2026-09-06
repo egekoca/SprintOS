@@ -8,6 +8,7 @@ import { ProductIcon } from "@/components/ProductIcon";
 import { WalletGate } from "@/components/WalletGate";
 import { listEngagements, roleOf, type Engagement, type Role } from "@/lib/stellar/contract";
 import { formatUsdc } from "@/lib/stellar/config";
+import { UsdcMark } from "@/components/UsdcMark";
 
 /**
  * Everything this wallet is part of, in one list.
@@ -124,7 +125,7 @@ export default function ProjectsPage() {
                     <span className="project-main">
                       <strong>
                         {engagement.milestones.length} milestone
-                        {engagement.milestones.length === 1 ? "" : "s"} · {formatUsdc(engagement.total_amount)} USDC
+                        {engagement.milestones.length === 1 ? "" : "s"} · <UsdcMark /> {formatUsdc(engagement.total_amount)} USDC
                       </strong>
                       <small>
                         {paid} paid

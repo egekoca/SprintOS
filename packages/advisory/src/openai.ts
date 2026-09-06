@@ -98,8 +98,27 @@ export async function requestStructuredJson(request: StructuredOutputRequest): P
   const body = parseResponseBody(bodyText);
 
   if (!response.ok) {
-    const message = body?.error?.message ?? (bodyText.trim() || `HTTP ${response.status}`);
-    throw new Error(`OpenAI request failed (HTTP ${response.status}): ${message}`);
+    /* The provider's own message is written for whoever holds the key, and it
+       quotes that key back — a browser showed a reviewer the first characters
+       of the deployment's secret because this text was passed straight
+       through. What reaches the caller says what happened and what to do; the
+       detail goes to the server log, where the operator can actually act on it.
+
+       Anything with a body is logged, including a 401. A wrong key is exactly
+       the failure an operator needs told about, and the log is not the place
+       the leak was. */
+    console.error(
+      `[advisory] OpenAI request failed (HTTP ${response.status}):`,
+      body?.error?.message ?? bodyText.slice(0, 500),
+    );
+
+    if (response.status === 401 || response.status === 403) {
+      throw new Error("The advisory service rejected this deployment's credentials.");
+    }
+    if (response.status === 429) {
+      throw new Error("The advisory service is rate limiting this deployment. Try again shortly.");
+    }
+    throw new Error(`The advisory service could not be reached (HTTP ${response.status}).`);
   }
 
   if (!body) {

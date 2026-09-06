@@ -12,6 +12,7 @@ import {
 import { EngagementPill } from "@/components/StatusPill";
 import { FoxLoader } from "@/components/FoxLoader";
 import { MilestoneScores } from "@/components/MilestoneScores";
+import { UsdcMark } from "@/components/UsdcMark";
 import { useWallet } from "@/components/WalletProvider";
 import { SettlementLog } from "@/components/SettlementLog";
 
@@ -147,7 +148,7 @@ function Figure({ label, value, accent }: { label: string; value: string; accent
     <div className="panel panel-tight stack-s" style={{ gap: "0.25rem" }}>
       <span className="eyebrow">{label}</span>
       <span className="amount" style={{ fontSize: "1.625rem", color: accent ?? "var(--chalk)" }}>
-        {value} <span className="faint mono" style={{ fontSize: "0.6875rem" }}>USDC</span>
+        {value} <span className="faint mono figure-unit"><UsdcMark size={12} /> USDC</span>
       </span>
     </div>
   );
