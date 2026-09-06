@@ -134,16 +134,9 @@ export function MilestoneScores({
                   {"error" in state ? (
                     <p className="notice">
                       {state.error}
-                      {/* The way out costs nothing and is one click away, so
-                          offer it rather than describing it. */}
-                      {/rate limiting this deployment/i.test(state.error) && (
-                        <>
-                          {" "}
-                          <a href={`/api/github/auth?returnTo=${encodeURIComponent(`/e/${engagementId}`)}`} className="badge-link">
-                            Sign in to GitHub →
-                          </a>
-                        </>
-                      )}
+                      {/* The server decides whether signing in is even possible
+                          on this deployment, and says so in the message. Adding
+                          a link here would offer a door that may not exist. */}
                     </p>
                   ) : (
                     <>

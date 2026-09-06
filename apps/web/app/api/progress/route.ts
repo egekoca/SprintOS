@@ -14,7 +14,7 @@ import { takeRateLimit } from "@/lib/rate-limit";
 import { isSameOrigin, requestBodyIsTooLarge, requestClientKey } from "@/lib/request-security";
 import { parseGitHubRepository } from "@/lib/github";
 import { cookies } from "next/headers";
-import { GITHUB_SESSION_COOKIE, decryptGitHubSession } from "@/lib/github-auth";
+import { GITHUB_SESSION_COOKIE, decryptGitHubSession, githubOAuthConfigured } from "@/lib/github-auth";
 import type { CriteriaDocument } from "@sprintos/schemas";
 
 /**
@@ -269,10 +269,15 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error:
+            /* Only offer the sign-in where there is one to offer. A deployment
+               without an OAuth app would send the reader to a page that tells
+               them the feature does not exist. */
             (sessionToken
               ? `GitHub is rate limiting your account${minutes ? `, and resets in about ${minutes} minutes` : ""}.`
               : `GitHub is rate limiting this deployment${minutes ? `, and resets in about ${minutes} minutes` : ""}. ` +
-                "Sign in to GitHub and the check runs against your own allowance instead."),
+                (githubOAuthConfigured()
+                  ? "Sign in to GitHub and the check runs against your own allowance instead."
+                  : "Set GITHUB_TOKEN to raise the limit from sixty requests an hour to five thousand.")),
         },
         { status: 503 },
       );
