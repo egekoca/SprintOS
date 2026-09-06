@@ -156,8 +156,7 @@ export async function requestStructuredJson(request: StructuredOutputRequest): P
     reasoningTokens: body.usage?.output_tokens_details?.reasoning_tokens ?? 0,
   };
   if (process.env.SPRINTOS_LOG_USAGE) {
-    // biome-ignore lint/suspicious/noConsole: opt-in cost diagnostic. It is off
-    // unless an operator asks for it, and the server log is where they read it.
+    // biome-ignore lint/suspicious/noConsole: opt-in cost diagnostic, off unless an operator asks for it
     console.info(
       `[advisory] ${request.model} in=${lastUsage.inputTokens} ` +
         `(cached ${lastUsage.cachedInputTokens}) out=${lastUsage.outputTokens} ` +
