@@ -288,7 +288,11 @@ export default function ReviewDeskPage({ params }: { params: Promise<{ id: strin
 
       {error && <p className="notice">{error}</p>}
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1rem", alignItems: "start" }}>
+      {/* What was agreed and what arrived, side by side — they are read against
+          each other. The report goes underneath at full width: as a third column
+          it was a narrow strip of prose several screens tall, and a reviewer had
+          to scroll past the decision to finish reading it. */}
+      <div className="desk-documents">
         {/* ── what was agreed ───────────────────────────────────────── */}
         <div className="panel stack-s">
           <div className="spread">
@@ -367,9 +371,10 @@ export default function ReviewDeskPage({ params }: { params: Promise<{ id: strin
           )}
         </div>
 
-        {/* ── what the module thinks ────────────────────────────────── */}
-        <AdvisoryPanel report={report} loading={advisoryLoading} error={advisoryError} onGenerate={generate} />
       </div>
+
+      {/* ── what the module thinks ────────────────────────────────────── */}
+      <AdvisoryPanel report={report} loading={advisoryLoading} error={advisoryError} onGenerate={generate} />
 
       {/* ── the decision ─────────────────────────────────────────────── */}
       <div className="panel panel-marked stack">

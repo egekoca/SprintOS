@@ -81,36 +81,25 @@ export function AdvisoryPanel({
             </div>
           </div>
 
-          <ol className="stack-s" style={{ listStyle: "none", padding: 0, margin: 0 }}>
+          {/* A grid rather than a column. Four assessments stacked vertically in
+              a narrow panel ran several screens deep; side by side they can be
+              compared, which is what a reviewer is actually doing. */}
+          <ol className="advisory-criteria">
             {report.criteria.map((c) => (
-              <li
-                key={c.id}
-                style={{
-                  borderTop: "1px dashed var(--advisory-edge)",
-                  paddingTop: "0.625rem",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "0.25rem",
-                }}
-              >
-                <div className="row" style={{ gap: "0.5rem" }}>
-                  <span
-                    className="mono"
-                    style={{ fontSize: "0.6875rem", color: VERDICT_COLOR[c.verdict], letterSpacing: "0.06em", textTransform: "uppercase" }}
-                  >
+              <li key={c.id}>
+                <div className="advisory-verdict">
+                  <span style={{ color: VERDICT_COLOR[c.verdict] }}>
                     {VERDICT_LABEL[c.verdict] ?? c.verdict}
                   </span>
-                  <span className="faint mono" style={{ fontSize: "0.6875rem" }}>
-                    {c.confidence} confidence
-                  </span>
+                  <small>{c.confidence} confidence</small>
                 </div>
-                <p style={{ fontSize: "0.875rem", color: "var(--chalk-dim)" }}>{c.text}</p>
-                <p style={{ fontSize: "0.8125rem" }}>{c.rationale}</p>
+                <p className="advisory-criterion">{c.text}</p>
+                <p className="advisory-rationale">{c.rationale}</p>
                 {c.supporting_links.length > 0 && (
-                  <div className="row" style={{ gap: "0.5rem" }}>
+                  <div className="advisory-links">
                     {c.supporting_links.map((link) => (
                       <a key={link} href={link} target="_blank" rel="noreferrer" className="badge-link">
-                        {new URL(link).pathname.slice(0, 28) || new URL(link).hostname} ↗
+                        {new URL(link).pathname.split("/").slice(-1)[0] || new URL(link).hostname} ↗
                       </a>
                     ))}
                   </div>
