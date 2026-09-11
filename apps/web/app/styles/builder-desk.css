@@ -158,3 +158,17 @@
 }
 .advisory-links { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.1rem; }
 .advisory-links a { font-size: 0.6875rem; }
+
+/* One link per row: what it is, then what kind of thing it is. The URL lives in
+   the title attribute, where it can be read in full rather than cut to fit. */
+.evidence-links { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.45rem; }
+.evidence-links li { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; }
+.evidence-links a { font-size: 0.875rem; overflow-wrap: anywhere; }
+.evidence-links small {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+  white-space: nowrap;
+}

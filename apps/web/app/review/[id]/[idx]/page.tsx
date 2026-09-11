@@ -33,6 +33,16 @@ import { EvidenceBundle as EvidenceBundleSchema } from "@sprintos/schemas/milest
  * not the control — the contract independently requires the reviewer's
  * signature and would refuse anyone else regardless of what this page allows.
  */
+/** The six evidence kinds, in words rather than schema identifiers. */
+const EVIDENCE_TYPE_LABEL: Record<string, string> = {
+  repo: "Repository",
+  commit: "Commit",
+  pull_request: "Pull request",
+  test_result: "Test result",
+  docs: "Documentation",
+  demo: "Demo",
+};
+
 function DocumentBadge({ state }: { state: DocumentState }) {
   if (state === "verified") return <span className="pill pill-approved">matches chain</span>;
   if (state === "mismatch") return <span className="pill pill-held">hash differs</span>;
@@ -331,13 +341,18 @@ export default function ReviewDeskPage({ params }: { params: Promise<{ id: strin
           </div>
           {evidence ? (
             <>
-              <ul className="stack-s" style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              {/* The builder's own label, or the file they pointed at. Cutting
+                  the URL at a fixed width left every link reading
+                  "…/blob/main/contr", which names nothing and cannot be
+                  followed by eye — on the one page where a reviewer is
+                  checking exactly which file was submitted. */}
+              <ul className="evidence-links">
                 {evidence.links.map((l) => (
                   <li key={l.url}>
-                    <a href={l.url} target="_blank" rel="noreferrer" className="badge-link" style={{ fontSize: "0.8125rem" }}>
-                      {l.url.replace(/^https:\/\//, "").slice(0, 46)} ↗
+                    <a href={l.url} target="_blank" rel="noreferrer" title={l.url}>
+                      {l.label ?? l.url.split("/").filter(Boolean).pop() ?? l.url} ↗
                     </a>
-                    <span className="faint mono" style={{ fontSize: "0.6875rem", marginLeft: "0.5rem" }}>{l.type}</span>
+                    <small>{EVIDENCE_TYPE_LABEL[l.type] ?? l.type}</small>
                   </li>
                 ))}
               </ul>
