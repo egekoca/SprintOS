@@ -1,6 +1,7 @@
 "use client";
 
-import { use, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import type { AdvisoryReport } from "@sprintos/schemas/report";
 import type { CriteriaDocument, EvidenceBundle } from "@sprintos/schemas/milestone";
@@ -14,6 +15,7 @@ import {
   getEngagement,
   holdMilestone,
   releaseMilestone,
+  canDecide as mayDecideOn,
   roleOf,
   type Engagement,
 } from "@/lib/stellar/contract";
@@ -84,8 +86,12 @@ async function recoverEvidenceFromPointer(
   }
 }
 
-export default function ReviewDeskPage({ params }: { params: Promise<{ id: string; idx: string }> }) {
-  const { id, idx: idxParam } = use(params);
+/* See the note on the engagement page: `use(params)` left this desk suspended
+   on its loading state forever. */
+export default function ReviewDeskPage() {
+  const routeParams = useParams();
+  const id = String(routeParams.id ?? "");
+  const idxParam = String(routeParams.idx ?? "");
   const idx = Number(idxParam);
   const validId = /^(0|[1-9]\d*)$/.test(id);
   const validIdx = /^\d+$/.test(idxParam) && Number.isSafeInteger(idx);
@@ -252,7 +258,11 @@ export default function ReviewDeskPage({ params }: { params: Promise<{ id: strin
   }
 
   const role = roleOf(engagement, address);
-  const isReviewer = role === "reviewer";
+  /* Ask the same question the contract asks. Checking for the "reviewer" role
+     locked the sponsor out of their own engagement — they decide payouts in
+     this contract, and the page was telling them they could not while naming
+     them as the one who does. */
+  const isReviewer = mayDecideOn(engagement, address);
   const canDecide = milestone.status === "EvidenceSubmitted";
   const canRelease = milestone.status === "Approved";
   /* A real comparison: the hash of the document on screen against the hash the
@@ -403,10 +413,9 @@ export default function ReviewDeskPage({ params }: { params: Promise<{ id: strin
 
         {address && !isReviewer && (
           <p className="notice">
-            This wallet is the {role} on this engagement and cannot decide payouts here.
-            The sponsor <span className="mono">{shortAddress(engagement.sponsor)}</span> decides,
-            along with any wallet they authorised — and the contract enforces that
-            independently of this page.
+            This wallet is the {role} on this engagement and cannot decide payouts.{" "}
+            <span className="mono">{shortAddress(engagement.sponsor)}</span> decides, along with
+            any wallet they authorised. The contract enforces that independently of this page.
           </p>
         )}
 

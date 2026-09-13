@@ -1,5 +1,10 @@
 "use client";
 
+/* The authorization rules live in their own module so they can be tested
+   without a browser or an SDK; re-exported here so callers import one thing. */
+export { canDecide, roleOf } from "./authority";
+export type { Role } from "./authority";
+
 import {
   Account,
   Address,
@@ -58,36 +63,8 @@ export interface Engagement {
   milestones: Milestone[];
 }
 
-export type Role = "sponsor" | "builder" | "reviewer" | "observer";
 
-/**
- * Which role an address plays in an engagement.
- *
- * This is the entire authorization model of the web app: no accounts, no
- * passwords, no sessions. What you may do follows from which key you hold, and
- * the contract independently enforces the same thing — the UI hiding a button
- * is a convenience, not the control.
- */
-export function roleOf(engagement: Engagement, address: string | null): Role {
-  if (!address) return "observer";
-  if (address === engagement.sponsor) return "sponsor";
-  if (address === engagement.builder) return "builder";
-  if (engagement.reviewers.includes(address)) return "reviewer";
-  return "observer";
-}
 
-/**
- * Whether this wallet may approve, hold or release on this engagement.
- *
- * The sponsor always may — they defined the milestones and funded them. Anyone
- * they authorised may too. The builder never may, whatever else is true, and
- * the contract enforces that independently of this function.
- */
-export function canDecide(engagement: Engagement, address: string | null): boolean {
-  if (!address) return false;
-  if (address === engagement.builder) return false;
-  return address === engagement.sponsor || engagement.reviewers.includes(address);
-}
 
 function contract(): Contract {
   return new Contract(SETTLEMENT_CONTRACT_ID);
