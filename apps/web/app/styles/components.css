@@ -105,14 +105,19 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* The line that says the AI cannot release money is the most important
+   sentence on the page, and it was set in 11px letter-spaced capitals — the
+   treatment used for throwaway labels, and the hardest thing on the site to
+   actually read. Set as a sentence, at a size meant for reading. */
 .advisory-banner {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--chalk-faint);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--chalk-dim);
   border-top: 1px dashed var(--advisory-edge);
-  padding-top: 0.625rem;
+  padding-top: 0.75rem;
+  max-width: 62ch;
 }
 
 .advisory-fox-loading,

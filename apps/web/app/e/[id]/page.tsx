@@ -1,6 +1,7 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { getBalance, getEngagement, type Engagement } from "@/lib/stellar/contract";
 import {
   SETTLEMENT_CONTRACT_ID,
@@ -24,8 +25,16 @@ import { SettlementLog } from "@/components/SettlementLog";
  * every state, and the contract it all lives on — read straight from the ledger
  * rather than from a screenshot or a claim.
  */
-export default function EngagementPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+/* `useParams`, not `use(params)`.
+ *
+ * Unwrapping the params promise with `use()` suspends the component, and on
+ * this client component the promise never settled after hydration: the server
+ * HTML stayed on screen, no effect ever ran, and no read was ever sent. The
+ * page sat on "Reading the ledger" forever with nothing in the console and
+ * nothing on the network to explain it. `useParams` is the client-side
+ * reader for exactly this, and it returns without suspending. */
+export default function EngagementPage() {
+  const id = String(useParams().id ?? "");
   const validId = /^(0|[1-9]\d*)$/.test(id);
   const [engagement, setEngagement] = useState<Engagement | null>(null);
   const [locked, setLocked] = useState<bigint | null>(null);
