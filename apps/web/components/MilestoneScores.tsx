@@ -22,7 +22,12 @@ import { StatusPill } from "./StatusPill";
  * left to do is press the button and see a number.
  */
 
-type Scored = { report: AdvisoryReport } | { error: string } | "loading" | undefined;
+type Scored =
+  /** `stored` distinguishes the report the reviewer decided on from a repository sweep. */
+  | { report: AdvisoryReport; stored?: boolean }
+  | { error: string }
+  | "loading"
+  | undefined;
 
 export function MilestoneScores({
   engagement,
@@ -48,6 +53,37 @@ export function MilestoneScores({
       .then((body) => setRepository(body.project?.repository ?? null))
       .catch(() => setRepository(null));
   }, [engagementId]);
+
+  /* Show the score that was already produced.
+   *
+   * A milestone the reviewer read a report on — and paid against — still
+   * offered nothing but "Get score", as though nobody had ever looked. The
+   * report is stored against the evidence hash the contract recorded, so the
+   * one that informed the decision can be read straight back. */
+  useEffect(() => {
+    let cancelled = false;
+    for (const [idx, milestone] of milestones.entries()) {
+      if (!milestone.evidence_hash) continue;
+      fetch(
+        `/api/advisory?engagement_id=${engagementId}&milestone_idx=${idx}` +
+          `&evidence_hash=${encodeURIComponent(milestone.evidence_hash)}`,
+      )
+        .then((r) => r.json())
+        .then((body) => {
+          if (cancelled || !body.report) return;
+          setScores((current) =>
+            /* Never overwrite a fresh check the visitor just ran. */
+            current[idx] ? current : { ...current, [idx]: { report: body.report, stored: true } },
+          );
+        })
+        .catch(() => {
+          /* No stored report is the normal case, not a failure worth showing. */
+        });
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [engagementId, milestones]);
 
   async function score(idx: number, criteriaHash: string) {
     setScores((s) => ({ ...s, [idx]: "loading" }));
@@ -101,13 +137,32 @@ export function MilestoneScores({
               />
 
               {done ? (
-                <button
-                  type="button"
-                  className={`score-badge is-${band(done.advisory_score)}`}
-                  onClick={() => setOpen(open === idx ? null : idx)}
-                >
-                  {done.advisory_score}
-                </button>
+                <span className="score-done">
+                  <button
+                    type="button"
+                    className={`score-badge is-${band(done.advisory_score)}`}
+                    onClick={() => setOpen(open === idx ? null : idx)}
+                    title={
+                      state && state !== "loading" && "stored" in state && state.stored
+                        ? "The report the reviewer decided on"
+                        : "Read from the repository just now"
+                    }
+                  >
+                    {done.advisory_score}
+                  </button>
+                  {/* Small on purpose: the score is the answer, and running it
+                      again is a second thought rather than the main action. */}
+                  <button
+                    type="button"
+                    className="score-again"
+                    onClick={() => score(idx, milestone.criteria_hash)}
+                    disabled={!repository}
+                    aria-label="Score this milestone again"
+                    title="Score again from the repository"
+                  >
+                    ↻
+                  </button>
+                </span>
               ) : (
                 <ScoreButton
                   busy={state === "loading"}

@@ -372,7 +372,7 @@
   letter-spacing: -0.02em;
 }
 .score-dial-unit {
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--chalk-faint);
@@ -382,7 +382,7 @@
 .score-dial-verdict {
   position: absolute;
   bottom: -0.15rem;
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--chalk-faint);
@@ -447,7 +447,7 @@
   line-height: 1.25;
   color: var(--chalk);
 }
-.milestone-score-card header small { color: var(--chalk-faint); font-size: 0.75rem; }
+.milestone-score-card header small { color: var(--chalk-dim); font-size: 0.8125rem; }
 /* Pushed to the bottom so the line sits level across cards whose titles wrapped
    to different depths. */
 .milestone-score-note { font-size: 0.8125rem; color: var(--chalk-dim); margin: auto 0 0; }
@@ -513,7 +513,7 @@
 }
 .score-row-index { font-family: var(--font-display); color: var(--chalk-faint); }
 .score-row-name strong { display: block; font-size: 0.9375rem; font-weight: 500; line-height: 1.3; }
-.score-row-name small { color: var(--chalk-faint); font-size: 0.75rem; }
+.score-row-name small { color: var(--chalk-dim); font-size: 0.8125rem; }
 
 /* The score itself, and the only place a number this size appears in a row. */
 .score-badge {
@@ -607,11 +607,11 @@
 
 .project-id { font-family: var(--font-display); color: var(--chalk-faint); font-size: 0.9375rem; }
 .project-main strong { display: block; font-size: 0.9375rem; font-weight: 500; }
-.project-main small { color: var(--chalk-faint); font-size: 0.75rem; }
+.project-main small { color: var(--chalk-dim); font-size: 0.8125rem; }
 
 /* Which role you hold here, so the list answers it instead of a tab. */
 .project-role {
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--chalk-faint);
@@ -712,3 +712,31 @@
 .usdc-mark { vertical-align: -0.15em; margin-right: 0.15rem; }
 .score-row-name small { display: inline-flex; align-items: center; gap: 0.1rem; }
 .figure-unit { font-size: 0.6875rem; display: inline-flex; align-items: center; gap: 0.15rem; }
+
+/* The score, and a quieter way to ask again. */
+.score-done { display: inline-flex; align-items: center; gap: 0.35rem; }
+.score-again {
+  width: 1.75rem;
+  height: 1.75rem;
+  display: grid;
+  place-items: center;
+  font-size: 0.9rem;
+  line-height: 1;
+  color: var(--chalk-faint);
+  background: none;
+  border: 1px solid var(--edge);
+  border-radius: 999px;
+}
+.score-again:hover:not(:disabled) { color: var(--orange); border-color: var(--orange-hi); }
+.score-again:disabled { opacity: 0.35; }
+
+/* Room to read.
+ *
+ * The detail page packed every panel to the same tight rhythm, so a page with
+ * eight sections read as one long block of small print with no way in. Giving
+ * paragraphs a measure and the sections air costs nothing and is the whole
+ * difference between scanning and squinting. */
+.project-main p,
+.desk-documents p { max-width: 68ch; line-height: 1.6; }
+.project-main > section + section { margin-top: 1.75rem; }
+.project-main .card { padding: 1.25rem 1.375rem; }
