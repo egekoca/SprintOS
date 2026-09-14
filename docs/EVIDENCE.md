@@ -11,9 +11,9 @@ Every requirement the Statement of Work names, what satisfies it, and where to c
 | | |
 | --- | --- |
 | Network | Stellar testnet |
-| Settlement contract | [`CAJUEUOEP6UUNLQ65XOINCUNVBXYPOGNWZC2XZQE7HRV66KTLERPHLND`](https://stellar.expert/explorer/testnet/contract/CAJUEUOEP6UUNLQ65XOINCUNVBXYPOGNWZC2XZQE7HRV66KTLERPHLND) |
+| Settlement contract | [`CBOC76VCX3BR2UYOWQQNHRPKG27PSPE7X42YAQEDI3ZTKNL53U2CYGS6`](https://stellar.expert/explorer/testnet/contract/CBOC76VCX3BR2UYOWQQNHRPKG27PSPE7X42YAQEDI3ZTKNL53U2CYGS6) |
 | Settlement asset | Testnet USDC — [`CAR6QZIC7NTQ4PFLOTD2434YZ6PRDHVJHL5GZIRT62VAJJBRL5IYUIU3`](https://stellar.expert/explorer/testnet/contract/CAR6QZIC7NTQ4PFLOTD2434YZ6PRDHVJHL5GZIRT62VAJJBRL5IYUIU3) |
-| Deployed | 2026-08-25T12:00:50Z |
+| Deployed | 2026-09-04T15:05:00Z |
 | Source | https://github.com/egekoca/SprintOS |
 
 ## Deliverable 1 — Milestone settlement on Stellar testnet
@@ -48,19 +48,19 @@ Every value-moving entrypoint calls require_auth on the role recorded in contrac
 
 ### **Delivered** — The contract running on testnet is the contract in this repository, and anyone can check that for themselves.
 
-Building this source produces WASM that is byte-identical to what is deployed: sha256 3f8f93abe9f2ce9917f85472a41bc3175bc665363410f2373fa8ad9ac8fbb4ff. Two commands prove it — build locally, then fetch the deployed contract off the network and compare. Nothing in the evidence below rests on trusting that the published source is what actually runs.
+Building this source produces WASM that is byte-identical to what is deployed, for both contracts the evidence touches. `contracts/settlement` is the current deployment, sha256 c40b9cd7130fe1c56ad54f57f6c8d4d452494237c80fff6a365d9569b65daab2. `contracts/settlement-v1` is the earlier deployment that engagements 0–4 settled on, sha256 3f8f93abe9f2ce9917f85472a41bc3175bc665363410f2373fa8ad9ac8fbb4ff, kept in the repository precisely so the transaction trail below stays checkable. Two commands prove either one — build locally, then fetch the deployed contract off the network and compare. Nothing in the evidence below rests on trusting that the published source is what actually runs.
 
-[How to check it](https://github.com/egekoca/SprintOS/blob/main/docs/ARCHITECTURE.md) · [Deployed contract](https://stellar.expert/explorer/testnet/contract/CAJUEUOEP6UUNLQ65XOINCUNVBXYPOGNWZC2XZQE7HRV66KTLERPHLND)
+[How to check it](https://github.com/egekoca/SprintOS/blob/main/docs/ARCHITECTURE.md) · [Deployed contract](https://stellar.expert/explorer/testnet/contract/CBOC76VCX3BR2UYOWQQNHRPKG27PSPE7X42YAQEDI3ZTKNL53U2CYGS6)
 
 ### **Delivered** — Tests cover successful transactions, unauthorized calls, invalid states, duplicate release attempts, incorrect amounts, and early refunds.
 
-44 tests, all six categories: test_happy_path_release · test_stranger_cannot_release and test_unsigned_release_rejected · test_release_on_pending_rejected · test_double_release_rejected · test_zero_amount_rejected and test_total_amount_overflow_is_typed · test_early_refund_rejected. Run with `cargo test --package sprintos-settlement`.
+65 tests, all six categories: test_happy_path_release · test_stranger_cannot_release and test_unsigned_release_rejected · test_release_on_pending_rejected · test_double_release_rejected · test_zero_amount_rejected and test_total_amount_overflow_is_typed · test_early_refund_rejected. Run with `cargo test --package sprintos-settlement`.
 
 [test suite](https://github.com/egekoca/SprintOS/tree/main/contracts/settlement/src/test)
 
 ### **Delivered** — Evidence showing engagement creation, funding, evidence submission, human approval, Hold, release, and refund on testnet, with transaction hashes and explorer links.
 
-Two live testnet engagements are recorded and indexed from the network: #2 covers create, fund, evidence submission, human approval and release; #3 covers create, fund, evidence submission, Hold and deadline refund. Every hash below opens the corresponding Stellar Explorer transaction.
+Two live testnet engagements are recorded and indexed from the network: #2 covers create, fund, evidence submission, human approval and release; #3 covers create, fund, evidence submission, Hold and deadline refund. Every hash below opens the corresponding Stellar Explorer transaction. Both settled on the earlier deployment CAJUEUOEP6UUNLQ65XOINCUNVBXYPOGNWZC2XZQE7HRV66KTLERPHLND, which is why that contract and its source are still published — the trail has to remain checkable, so it was never discarded when the current contract went up.
 
 [Engagement #2 public record](https://sprintos-ai.vercel.app/e/2) · [create #2 · 0ef5bdb8](https://stellar.expert/explorer/testnet/tx/0ef5bdb8334f5c84853a4e346f5dc51f9693257c29fbd03f4997e6ad70fb5708) · [fund #2 · e5c18614](https://stellar.expert/explorer/testnet/tx/e5c1861463277b2d2408d18faecdd3fde1976d0576a91b7bcf8e520b8d1f1e02) · [evidence #2 · 2775cd29](https://stellar.expert/explorer/testnet/tx/2775cd295697ba001d5ccdfcbcc60f1b4b9c5444197ae94aeb6ac8fa717030ca) · [approve #2 · 9085da84](https://stellar.expert/explorer/testnet/tx/9085da84d543a32695089604e5fbf3a0449ebe97bb1f796061d8a10f4434ca9b) · [release #2 · 8e368dcf](https://stellar.expert/explorer/testnet/tx/8e368dcf2c2886aa3149cdb70794c954da9d2fd81a963c7d58ce8ab9eafbeb55) · [Engagement #3 public record](https://sprintos-ai.vercel.app/e/3) · [create #3 · 186b71a7](https://stellar.expert/explorer/testnet/tx/186b71a79c773d7baf0aefbc152ceb0c67ae9de0a3f063edb8702749012d26e2) · [fund #3 · 36e54c1b](https://stellar.expert/explorer/testnet/tx/36e54c1b72554c802700a13046957df78f29f07f4e867ab8fd01d8fa11fa230e) · [evidence #3 · ea436df2](https://stellar.expert/explorer/testnet/tx/ea436df2a395f673418e7bbf16b809b037f1c873d09865be5d0cd6b07730d824) · [hold #3 · 83227424](https://stellar.expert/explorer/testnet/tx/832274244add7e071985ba4f48bd65aa0eb45f2462cee70d0ee3422c281a511d) · [refund #3 · ae54c14c](https://stellar.expert/explorer/testnet/tx/ae54c14cba2dcf21148e5e4fe328531cb10fc4da4881042c009ace8063fd4b64) · [demo scripts](https://github.com/egekoca/SprintOS/tree/main/scripts)
 
