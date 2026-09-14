@@ -12,7 +12,7 @@ Every requirement the Statement of Work names, what satisfies it, and where to c
 | --- | --- |
 | Network | Stellar testnet |
 | Settlement contract | [`CBOC76VCX3BR2UYOWQQNHRPKG27PSPE7X42YAQEDI3ZTKNL53U2CYGS6`](https://stellar.expert/explorer/testnet/contract/CBOC76VCX3BR2UYOWQQNHRPKG27PSPE7X42YAQEDI3ZTKNL53U2CYGS6) |
-| Settlement asset | Testnet USDC — [`CAR6QZIC7NTQ4PFLOTD2434YZ6PRDHVJHL5GZIRT62VAJJBRL5IYUIU3`](https://stellar.expert/explorer/testnet/contract/CAR6QZIC7NTQ4PFLOTD2434YZ6PRDHVJHL5GZIRT62VAJJBRL5IYUIU3) |
+| Settlement asset | Testnet USDC issued for this demonstration, through the standard SAC — [`CAR6QZIC7NTQ4PFLOTD2434YZ6PRDHVJHL5GZIRT62VAJJBRL5IYUIU3`](https://stellar.expert/explorer/testnet/contract/CAR6QZIC7NTQ4PFLOTD2434YZ6PRDHVJHL5GZIRT62VAJJBRL5IYUIU3) |
 | Deployed | 2026-09-04T15:05:00Z |
 | Source | https://github.com/egekoca/SprintOS |
 
@@ -42,7 +42,7 @@ create_engagement, fund, submit_evidence, approve, hold, release, refund. Approv
 
 ### **Delivered** — Protected actions use Soroban account authorization and the standard Stellar Asset Contract interface. No custom token, wallet, or signature system.
 
-Every value-moving entrypoint calls require_auth on the role recorded in contract storage. Settlement uses the testnet USDC SAC directly; nothing custom is minted or signed.
+Every value-moving entrypoint calls require_auth on the role recorded in contract storage. Settlement goes through the standard Stellar Asset Contract interface: there is no token contract in this repository, no custom transfer semantics and no signature scheme of our own — the settlement crate's only dependency is soroban-sdk. The asset itself is a testnet USDC issued by this demonstration (issuer GDZZXFY56X2OALF2VUAX4BM4IB4Q6KTMREKDSMEAQ3M33LRHDDRTSHFG) rather than Circle's testnet USDC, so the demo can mint test balances and stay self-contained. A mainnet pilot would use the canonical USDC SAC; that is named as a precondition in the architecture notes, not left implicit.
 
 [Security model](https://github.com/egekoca/SprintOS/blob/main/docs/SECURITY.md)
 

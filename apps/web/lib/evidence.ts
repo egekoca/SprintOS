@@ -101,7 +101,7 @@ export const SECTIONS: EvidenceSection[] = [
           "Protected actions use Soroban account authorization and the standard Stellar Asset Contract interface. No custom token, wallet, or signature system.",
         status: "done",
         detail:
-          "Every value-moving entrypoint calls require_auth on the role recorded in contract storage. Settlement uses the testnet USDC SAC directly; nothing custom is minted or signed.",
+          "Every value-moving entrypoint calls require_auth on the role recorded in contract storage. Settlement goes through the standard Stellar Asset Contract interface: there is no token contract in this repository, no custom transfer semantics and no signature scheme of our own — the settlement crate's only dependency is soroban-sdk. The asset itself is a testnet USDC issued by this demonstration (issuer GDZZXFY56X2OALF2VUAX4BM4IB4Q6KTMREKDSMEAQ3M33LRHDDRTSHFG) rather than Circle's testnet USDC, so the demo can mint test balances and stay self-contained. A mainnet pilot would use the canonical USDC SAC; that is named as a precondition in the architecture notes, not left implicit.",
         refs: [{ label: "Security model", href: file("docs/SECURITY.md") }],
       },
       {

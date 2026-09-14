@@ -53,7 +53,7 @@ w("| | |");
 w("| --- | --- |");
 w(`| Network | ${DEPLOYMENT.network} |`);
 w(`| Settlement contract | [\`${DEPLOYMENT.contractId}\`](${DEPLOYMENT.contractExplorer}) |`);
-w(`| Settlement asset | Testnet USDC — [\`${DEPLOYMENT.usdcSacId}\`](${DEPLOYMENT.usdcExplorer}) |`);
+w(`| Settlement asset | Testnet USDC issued for this demonstration, through the standard SAC — [\`${DEPLOYMENT.usdcSacId}\`](${DEPLOYMENT.usdcExplorer}) |`);
 w(`| Deployed | ${DEPLOYMENT.deployedAt} |`);
 w(`| Source | ${DEPLOYMENT.repository} |`);
 w();

@@ -76,6 +76,10 @@ export default function EvidencePage() {
             <a href={DEPLOYMENT.usdcExplorer} target="_blank" rel="noreferrer">
               Testnet USDC · {DEPLOYMENT.usdcSacId}
             </a>
+            <p className="faint" style={{ fontSize: "0.75rem", marginTop: "0.25rem" }}>
+              Issued for this demonstration and reached through the standard Stellar Asset
+              Contract, not Circle&rsquo;s testnet USDC. A mainnet pilot would use the canonical one.
+            </p>
           </dd>
         </div>
         <div>
