@@ -4,7 +4,7 @@
 
 Every requirement the Statement of Work names, what satisfies it, and where to check it without taking anyone's word for it. Section 6.2 of the SOW is verified deliverable by deliverable; the tables below follow that order.
 
-**3 items are still outstanding** and marked as such rather than omitted.
+**2 items are still outstanding** and marked as such rather than omitted.
 
 ## Deployment
 
@@ -106,9 +106,17 @@ test_ai_score_100_cannot_release. The public proof page distinguishes the determ
 
 [fixtures](https://github.com/egekoca/SprintOS/tree/main/packages/advisory/fixtures)
 
-### **Outstanding** — Screenshots of the module in use.
+### **Delivered** — The same guarantee, demonstrated live on testnet rather than only in a test.
 
-Capture the reviewer screen with a generated report: the criteria, the evidence, the score, and the two decision buttons in one frame.
+Engagement #1002 milestone 1 was scored 100 out of 100 by the live module, recommendation ReadyForReview, both criteria met at high confidence, nothing listed as missing. The milestone did not move. It stayed at EvidenceSubmitted, the escrow did not change and the builder was not paid. An automated agent holding a funded Stellar account then called approve and release on that milestone and was refused both times with Unauthorized — it is not a reviewer, and the score it was acting on was never an argument either call could accept. The reviewer then signed approve, and signed release separately, and 60 USDC moved. Same milestone, same evidence, same perfect score: the signature is what changed. The module is not a rubber stamp either — on engagement #1001 it scored the same builder 60 and then 75, asking for more both times.
+
+[Engagement #1002](https://sprintos-ai.vercel.app/e/1002) · [the 100/100 report](https://sprintos-ai.vercel.app/api/advisory?engagement_id=1002&milestone_idx=1&evidence_hash=1285fa7d09a8e1566cdd1a419d468bb5aa2f48202cbc131db7cc137e00c0b5aa) · [human approve · fb8c4213](https://stellar.expert/explorer/testnet/tx/fb8c42130023ad7ce64423da6eebfedc60fce63e771f2a04d2bdce2fafbda075) · [human release · 823f0d43](https://stellar.expert/explorer/testnet/tx/823f0d43a3f2a0a462e2a35b7788185111dd4f0eb382816f523f4230e49320a7) · [revision loop on #1001](https://sprintos-ai.vercel.app/e/1001)
+
+### **Delivered** — Screenshots of the module in use.
+
+The reviewer desk for engagement #1002 milestone 1, captured with the report generated: acceptance criteria and submitted evidence each marked as matching the chain, the advisory panel reading 100 / 100 and Ready for Review under an ADVISORY · NON-BINDING heading, and directly beneath it the decision panel headed HUMAN DECISION · BINDING offering nothing but Connect wallet. A perfect score and no way to act on it, in one frame.
+
+[The desk this was captured from](https://sprintos-ai.vercel.app/review/1002/1)
 
 ## Deliverable 3 — Public web MVP
 
@@ -158,9 +166,11 @@ The public docs page now brings setup, workflow, trust model, evidence integrity
 
 [Public docs](https://sprintos-ai.vercel.app/docs) · [Setup and usage](https://github.com/egekoca/SprintOS/blob/main/docs/SETUP.md) · [Architecture](https://github.com/egekoca/SprintOS/blob/main/docs/ARCHITECTURE.md) · [Security model](https://github.com/egekoca/SprintOS/blob/main/docs/SECURITY.md)
 
-### **Outstanding** — Role screenshots, wallet signing recording, and demo video.
+### **Partial** — Role screenshots, wallet signing recording, and demo video.
 
-One recording covering the full path — sponsor funds, builder submits, reviewer reads the advisory report and signs the release — satisfies the demo video and the signing recording together.
+The role screenshots are captured — sponsor, builder and reviewer views, the projects board, both public engagement records, the reviewer desk holding a 100/100 report, the evidence pack and the AI boundary proof — and they ship with the submission packet. What is left is one recording covering the full path in a wallet: sponsor funds, builder submits, reviewer reads the advisory report and signs approve and release as two separate signatures. That single recording satisfies the demo video and the signing recording together, and it is the only item in this pack that a person still has to sit down and produce.
+
+[Sponsor view](https://sprintos-ai.vercel.app/sponsor) · [Builder view](https://sprintos-ai.vercel.app/builder) · [Reviewer desk with a perfect score](https://sprintos-ai.vercel.app/review/1002/1)
 
 ## The three sample reports
 
