@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { getBalance, getEngagement, type Engagement } from "@/lib/stellar/contract";
+import { contractIdFor, getBalance, getEngagement, type Engagement } from "@/lib/stellar/contract";
 import {
-  SETTLEMENT_CONTRACT_ID,
   explorerAccount,
   explorerContract,
   formatUsdc,
@@ -130,10 +129,19 @@ export default function EngagementPage() {
 
       <SettlementLog engagementId={engagement.id} />
 
+      {/* The contract this engagement lives on, which is not always the one
+          new engagements are created on: earlier records stayed behind on the
+          previous deployment, and pointing a reviewer at the current contract
+          would send them somewhere this engagement has never existed. */}
       <div className="panel stack-s">
         <p className="eyebrow">Verify it yourself</p>
-        <a href={explorerContract(SETTLEMENT_CONTRACT_ID)} target="_blank" rel="noreferrer" className="badge-link">
-          Settlement contract {shortAddress(SETTLEMENT_CONTRACT_ID, 8, 6)} ↗
+        <a
+          href={explorerContract(contractIdFor(engagement.id))}
+          target="_blank"
+          rel="noreferrer"
+          className="badge-link"
+        >
+          Settlement contract {shortAddress(contractIdFor(engagement.id), 8, 6)} ↗
         </a>
         <p className="faint" style={{ fontSize: "0.8125rem" }}>
           Every state change here emitted a contract event, and the explorer shows each one with

@@ -82,7 +82,7 @@ function contract(contractId: string = SETTLEMENT_CONTRACT_ID): Contract {
  * alone says where its engagement lives: anything before the cutover is on the
  * previous contract and always will be.
  */
-function contractIdFor(id: bigint | number): string {
+export function contractIdFor(id: bigint | number): string {
   const numeric = typeof id === "bigint" ? id : BigInt(id);
   if (LEGACY_SETTLEMENT_CONTRACT_ID && numeric < BigInt(FIRST_ENGAGEMENT_ID)) {
     return LEGACY_SETTLEMENT_CONTRACT_ID;
