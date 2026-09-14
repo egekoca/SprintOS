@@ -24,7 +24,9 @@ test.describe("landing", () => {
   test("a reviewer can reach the evidence pack and the app from the landing page", async ({ page }) => {
     await page.goto("/");
     await expect(page.locator('a[href="/evidence"]').first()).toBeAttached();
-    await expect(page.locator('a[href="/app"]').first()).toBeAttached();
+    /* The app entry point is the projects board. `/app` still redirects there
+       for older links, but the landing page names the real destination. */
+    await expect(page.locator('a[href="/projects"]').first()).toBeAttached();
   });
 
   test("the docs are one click away once inside the app", async ({ page }) => {
@@ -100,8 +102,8 @@ test.describe("public engagement records", () => {
     await expect(page.getByText(/paid to builder/i).first()).toBeVisible();
 
     const body = await page.locator("body").innerText();
-    expect(body).toMatch(/PAID TO BUILDER\s*\n?\s*0 USDC/i);
-    expect(body).toMatch(/RECLAIMED BY SPONSOR\s*\n?\s*25 USDC/i);
+    expect(body).toMatch(/PAID TO BUILDER\s+0\s+USDC/i);
+    expect(body).toMatch(/RECLAIMED BY SPONSOR\s+25\s+USDC/i);
   });
 
   test("a public record links out to the ledger rather than asking to be believed", async ({ page }) => {

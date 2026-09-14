@@ -46,6 +46,21 @@ export const EXPLORER_BASE = "https://stellar.expert/explorer/testnet";
  */
 export const FIRST_ENGAGEMENT_ID = deployment.firstEngagementId ?? 0;
 
+/**
+ * The contract the engagements below `FIRST_ENGAGEMENT_ID` settled on.
+ *
+ * Redeploying moved new engagements to a new contract, but it did not move the
+ * old ones — engagements 0–4 still live on the contract they were created on,
+ * and that includes the two the Statement of Work cites as evidence: the
+ * approval-and-release record and the Hold-and-refund record. Reading every id
+ * from the current contract made those pages report that no such engagement
+ * exists, which was false: the ledger still holds them, we were asking the
+ * wrong contract. An evidence trail that stops resolving the moment you deploy
+ * again is not a trail, so ids below the cutover are read from here.
+ */
+export const LEGACY_SETTLEMENT_CONTRACT_ID: string | null =
+  deployment.previousDeployment?.settlementContractId ?? null;
+
 export const PUBLIC_APP_URL = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/+$/, "");
 
 /** Whether an origin is one a third party could resolve. */

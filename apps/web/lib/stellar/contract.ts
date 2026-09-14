@@ -23,7 +23,12 @@ import {
   type EngagementStatus,
   type MilestoneStatus,
 } from "./status.ts";
-import { FIRST_ENGAGEMENT_ID, NETWORK, SETTLEMENT_CONTRACT_ID } from "./config.ts";
+import {
+  FIRST_ENGAGEMENT_ID,
+  LEGACY_SETTLEMENT_CONTRACT_ID,
+  NETWORK,
+  SETTLEMENT_CONTRACT_ID,
+} from "./config.ts";
 import { signTransaction } from "./wallet.ts";
 
 /**
@@ -66,8 +71,23 @@ export interface Engagement {
 
 
 
-function contract(): Contract {
-  return new Contract(SETTLEMENT_CONTRACT_ID);
+function contract(contractId: string = SETTLEMENT_CONTRACT_ID): Contract {
+  return new Contract(contractId);
+}
+
+/**
+ * Which contract holds this engagement.
+ *
+ * Ids were issued in one unbroken sequence across both deployments, so the id
+ * alone says where its engagement lives: anything before the cutover is on the
+ * previous contract and always will be.
+ */
+function contractIdFor(id: bigint | number): string {
+  const numeric = typeof id === "bigint" ? id : BigInt(id);
+  if (LEGACY_SETTLEMENT_CONTRACT_ID && numeric < BigInt(FIRST_ENGAGEMENT_ID)) {
+    return LEGACY_SETTLEMENT_CONTRACT_ID;
+  }
+  return SETTLEMENT_CONTRACT_ID;
 }
 
 function bytesToHex(bytes: Uint8Array | Buffer): string {
@@ -127,13 +147,29 @@ function toEngagement(value: unknown): Engagement {
     id: asBigInt(field(raw, "id"), "engagement id"),
     sponsor: asAddress(field(raw, "sponsor")),
     builder: asAddress(field(raw, "builder")),
-    reviewers: (field(raw, "reviewers") as unknown[]).map(asAddress),
+    reviewers: toReviewers(raw),
     token: asAddress(field(raw, "token")),
     total_amount: asBigInt(field(raw, "total_amount"), "total amount"),
     status: decodeStatus(field(raw, "status"), ENGAGEMENT_STATUSES),
     created_at: asBigInt(field(raw, "created_at"), "creation time"),
     milestones: milestones.map(toMilestone),
   };
+}
+
+/**
+ * The reviewers on an engagement, whichever contract returned it.
+ *
+ * The previous contract stored a single `reviewer`; the current one stores a
+ * `reviewers` list, because a sponsor can now authorise more than one wallet.
+ * The older records are still read here, so both shapes have to decode — and
+ * one reviewer is simply a list of one.
+ */
+function toReviewers(raw: Record<string, unknown>): string[] {
+  const many = raw.reviewers;
+  if (Array.isArray(many)) return many.map(asAddress);
+  const one = raw.reviewer;
+  if (one !== undefined && one !== null) return [asAddress(one)];
+  throw new Error("The contract returned an engagement with no reviewer.");
 }
 
 function toMilestone(value: unknown): Milestone {
@@ -187,7 +223,11 @@ function withTimeout<T>(work: Promise<T>, ms: number, message: string): Promise<
   });
 }
 
-async function simulateRead<T>(method: string, args: xdr.ScVal[]): Promise<T> {
+async function simulateRead<T>(
+  method: string,
+  args: xdr.ScVal[],
+  contractId: string = SETTLEMENT_CONTRACT_ID,
+): Promise<T> {
   /* No account lookup. Simulation never submits, so the sequence number is
      never checked — and this placeholder account has never been funded, so
      fetching it was a guaranteed 404 in front of every single read. Listing
@@ -198,7 +238,7 @@ async function simulateRead<T>(method: string, args: xdr.ScVal[]): Promise<T> {
     fee: BASE_FEE,
     networkPassphrase: NETWORK.passphrase,
   })
-    .addOperation(contract().call(method, ...args))
+    .addOperation(contract(contractId).call(method, ...args))
     .setTimeout(30)
     .build();
 
@@ -215,7 +255,11 @@ async function simulateRead<T>(method: string, args: xdr.ScVal[]): Promise<T> {
 }
 
 export async function getEngagement(id: bigint | number): Promise<Engagement> {
-  const raw = await simulateRead<unknown>("get_engagement", [nativeToScVal(BigInt(id), { type: "u64" })]);
+  const raw = await simulateRead<unknown>(
+    "get_engagement",
+    [nativeToScVal(BigInt(id), { type: "u64" })],
+    contractIdFor(id),
+  );
   return toEngagement(raw);
 }
 
@@ -225,7 +269,13 @@ export async function getEngagementCount(): Promise<number> {
 }
 
 export async function getBalance(id: bigint | number): Promise<bigint> {
-  return BigInt(await simulateRead<bigint>("get_balance", [nativeToScVal(BigInt(id), { type: "u64" })]));
+  return BigInt(
+    await simulateRead<bigint>(
+      "get_balance",
+      [nativeToScVal(BigInt(id), { type: "u64" })],
+      contractIdFor(id),
+    ),
+  );
 }
 
 /**
