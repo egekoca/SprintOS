@@ -169,50 +169,40 @@ Title: Stellar milestone settlement contract
 Outcome: The Stellar testnet flow works from engagement creation and USDC
 funding through evidence submission, human approval, separate release and
 deadline refund.
-Acceptance criteria:
-1. The project admin and builder are different Stellar testnet wallets; the
-   project admin is the default reviewer.
-2. The engagement is funded with testnet USDC and contains no more than three
-   milestones.
-3. Builder evidence changes the milestone to EvidenceSubmitted.
-4. Human Approve changes the status to Approved without moving the money.
-5. A separate human Release signature transfers the milestone amount to the
-   builder and produces a public transaction hash.
+   Acceptance criteria:
+   1. The contract creates and funds a testnet-USDC engagement with separate
+      project-admin and builder roles and no more than three milestones.
+   2. After builder evidence, a human reviewer approves and a separate release
+      signature transfers the milestone amount to the builder.
 Amount: 500 USDC
 
 MILESTONE 2
 Title: AI assisted advisory review and security boundary
 Outcome: A public evidence review report is generated, while the security
 boundary proves that AI cannot move money.
-Acceptance criteria:
-1. The report contains a score, criterion checklist, missing information and
-   recommendation.
-2. The report contains binding:false and a report_hash.
-3. The report runs only when a reviewer requests it; the repository is not
-   monitored in the background and submitted code is not executed.
-4. The advisory package has no wallet, signing key, Stellar SDK or payment
-   endpoint.
-5. A 100/100 score or an unauthorized account cannot call approve or release.
+   Acceptance criteria:
+   1. The advisory report returns a score, criterion checklist, missing
+      information, recommendation, binding:false and a report_hash.
+   2. The advisory package has no wallet or signing/payment path; milestone
+      state and USDC movement change only after a human wallet signature.
 Amount: 300 USDC
 
 MILESTONE 3
 Title: Public SprintOS web MVP and verifiable evidence flow
 Outcome: The public web MVP connects the project admin, builder and reviewer
 flows with repository evidence, wallet signatures, hashes and explorer links.
-Acceptance criteria:
-1. The project admin can complete repository, milestone, role and final review
-   steps in /projects/new.
-2. The builder can read the criteria and submit up to five typed public links
-   from /builder.
-3. The reviewer can see criteria, evidence and the advisory report together;
-   decisions stay disabled until the hashes match the ledger.
-4. Approve and Release are two separate human wallet signatures and appear in
-   the public engagement record with transaction hashes.
-5. /e/:id shows status, amounts, deadlines, parties, the settlement log and the
-   correct deployment contract link.
+   Acceptance criteria:
+   1. The project admin can attach a public repository, define milestones, assign
+      the builder and fund the engagement in /projects/new.
+   2. The builder submits hashed public evidence; the reviewer reads the criteria
+      and evidence, signs approve and release, and /e/:id shows the public log.
 Amount: 200 USDC
 
-3. Set the start date to today and due dates to +7, +14 and +21 days.
+3. The first milestone may use a historical start date, but every due date must
+   still be in the future when you sign. Choose the first due date, add the next
+   milestones with “+ Add milestone”, and show that each new start date is
+   automatically one day after the previous due date. Keep all due dates in the
+   future for the demo.
 4. Enter `1000` in “Total award” and click “Split across 3 milestones”.
 5. Show the readout: 500 / 300 / 200 USDC, total 1,000 USDC.
 6. Click “Continue to roles”.
@@ -267,20 +257,30 @@ APP 6 - THE BUILDER SUBMITS EVIDENCE (03:00-03:20 / 20 seconds)
 Screen and actions:
 1. Switch the browser wallet to the separate builder testnet account.
 2. Open /builder.
-3. Select the new engagement and Milestone 1.
+3. For a short demo, select the new engagement and Milestone 1. To show all
+   three scores, repeat these steps for Milestones 2 and 3.
 4. Keep the full acceptance criteria visible.
-5. Add these public links and choose their types:
-   - https://github.com/egekoca/SprintOS - Repository
-   - https://github.com/egekoca/SprintOS/tree/main/contracts/settlement - Test result/source
-   - https://github.com/egekoca/SprintOS/blob/main/docs/SECURITY.md - Documentation
-6. Add this note: “Settlement and AI boundary proof are in the public repository
-   and documentation.”
+5. For a high advisory score, submit links that directly prove this milestone.
+   For Milestone 1 use:
+   - https://github.com/egekoca/SprintOS/blob/main/contracts/settlement/src/lib.rs - Repository
+   - https://github.com/egekoca/SprintOS/tree/main/contracts/settlement/src/test - Test result
+   - https://sprintos-ai.vercel.app/e/{NEW_ID} - Demo/public record
+   For Milestone 2 use:
+   - https://github.com/egekoca/SprintOS/blob/main/packages/advisory/src/generate.ts - Repository
+   - https://sprintos-ai.vercel.app/evidence/ai-boundary - Documentation
+   - https://sprintos-ai.vercel.app/api/advisory?... - Test result/report
+   For Milestone 3 use:
+   - https://github.com/egekoca/SprintOS/blob/main/apps/web/app/projects/new/steps.tsx - Repository
+   - https://github.com/egekoca/SprintOS/blob/main/apps/web/components/SubmitProof.tsx - Repository
+   - https://github.com/egekoca/SprintOS/blob/main/apps/web/app/review/[id]/[idx]/page.tsx - Documentation
+   Choose the type for each link.
+6. Add this note: “This bundle contains direct public evidence for this milestone.”
 7. Click “Sign: submit evidence” and confirm in the builder wallet.
 8. Show “Evidence recorded on chain”, the evidence hash and the transaction link.
 
 Read this:
 "The builder sees the exact criteria fixed by the project admin. The builder
-submits public links through a typed evidence form. SprintOS hashes the bundle,
+submits direct public links for the milestone through a typed evidence form. SprintOS hashes the bundle,
 and the builder wallet signs submit_evidence. The milestone is now
 EvidenceSubmitted. The reviewer will inspect this same bundle and this same hash."
 
@@ -366,4 +366,3 @@ RECORDING CHECKLIST
 - Approve and Release are shown as two separate human signatures.
 - The public engagement page shows the source repository, status and settlement log.
 - Hold/refund and the 100/100 AI boundary are shown as the closing proof.
-

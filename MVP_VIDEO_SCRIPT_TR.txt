@@ -185,31 +185,40 @@ URL ve hareket:
    Title: Stellar milestone settlement contract
    Outcome: Stellar testnet'te engagement creation, funding, evidence submission,
    human approval, ayri release ve deadline refund akisinin calismasi.
-   Criteria: project admin ve builder rolleri; project admin'in varsayilan
-   reviewer yetkisi; testnet USDC escrow;
-   EvidenceSubmitted status; Approve sonrasi Approved ve para hareketi yok;
-   ayri Release sonrasi builder'a miktar transferi.
+   Acceptance criteria:
+   1. Kontrat, project admin ve builder rolleriyle en fazla uc milestone'lu
+      testnet USDC engagement'i olusturup fund eder.
+   2. Builder kanitindan sonra human reviewer approve eder ve ayri release
+      imzasiyla USDC milestone miktarini builder'a aktarir.
    Amount: 500 USDC
 
    MILESTONE 2
    Title: AI assisted advisory review and security boundary
    Outcome: Public evidence icin advisory score/checklist/report ve AI'in para
    hareket ettiremedigini gosteren guvenlik kaniti.
-   Criteria: score/checklist/missing/recommendation alanlari; binding:false ve
-   report_hash; sadece reviewer isteyince generate; advisory paketinde wallet yok;
-   100/100 veya yetkisiz account approve/release yapamaz.
+   Acceptance criteria:
+   1. Advisory raporu score, criterion checklist, missing information,
+      recommendation, binding:false ve report_hash alanlarini doner.
+   2. Advisory paketinde wallet veya signing/payment yolu yoktur; milestone
+      state'i ve USDC hareketi yalnizca human wallet imzasiyla degisir.
    Amount: 300 USDC
 
    MILESTONE 3
    Title: Public SprintOS web MVP and verifiable evidence flow
    Outcome: Project admin, builder ve admin/reviewer ekranlarinda repo, evidence, decision,
    hash ve explorer dogrulamasini gosteren public MVP.
-   Criteria: project admin wizard; builder typed evidence formu; admin/reviewer
-   side-by-side
-   desk; iki ayri insan imzasi; public engagement ve settlement log.
+   Acceptance criteria:
+   1. Project admin /projects/new icinde public repo baglar, milestone planini
+      yazar, builder'i atar ve engagement'i fund eder.
+   2. Builder hashed public evidence gonderir; reviewer criteria/evidence'i
+      gorup approve ve release imzalar; /e/:id public transaction logunu gosterir.
    Amount: 200 USDC
 
-3) Start ve Due tarihlerini sirali olarak +7, +14, +21 gun yapin.
+3) Ilk milestone icin gecmis bir start tarihi secilebilir; ancak her Due tarihi
+   imza aninda gelecekte olmali. Ilk Due tarihini secin, sonraki milestone'lari
+   `+ Add milestone` ile ekleyin ve her yeni Start'in onceki Due'dan bir gun
+   sonrasina otomatik geldigini gosterin. Demo icin Due tarihlerini gelecekte
+   tutun.
 4) Total award alanina `1000` yazin; Split across 3 milestones'a basin.
 5) Readout'ta 500 / 300 / 200 ve toplam 1000 USDC oldugunu gosterin.
 6) Continue to roles'a basin.
@@ -267,20 +276,31 @@ APP 6 - BUILDER KANITI GONDERIYOR (03:00-03:20 / 20 saniye)
 URL ve hareket:
 1) Wallet extension'da Disconnect yapip builder testnet wallet'ine gecin.
 2) /builder sayfasini acin.
-3) Yeni engagement ID'sini ve Milestone 1'i secin.
+3) Kisa demoda Yeni engagement ID'sini ve Milestone 1'i secin. Uc skorun
+   tamamini gosterecekseniz bu adimlari her milestone icin tekrarlayin.
 4) Acceptance criteria listesini kadrajda tutun.
-5) Public links alaninda su uc linki girin ve tiplerini secin:
-   - https://github.com/egekoca/SprintOS (Repository)
-   - https://github.com/egekoca/SprintOS/tree/main/contracts/settlement (Test result/Source)
-   - https://github.com/egekoca/SprintOS/blob/main/docs/SECURITY.md (Documentation)
-6) Note alanina "Settlement ve AI boundary kanitlari public repository ve docs'ta."
+5) Yuksek advisory skoru icin her milestone'a o milestone'u dogrudan kanitlayan
+   linkleri verin. Milestone 1 icin:
+   - https://github.com/egekoca/SprintOS/blob/main/contracts/settlement/src/lib.rs (Repository)
+   - https://github.com/egekoca/SprintOS/tree/main/contracts/settlement/src/test (Test result)
+   - https://sprintos-ai.vercel.app/e/{YENI_ID} (Demo/public record)
+   Milestone 2 icin:
+   - https://github.com/egekoca/SprintOS/blob/main/packages/advisory/src/generate.ts (Repository)
+   - https://sprintos-ai.vercel.app/evidence/ai-boundary (Documentation)
+   - https://sprintos-ai.vercel.app/api/advisory?... (Test result/report)
+   Milestone 3 icin:
+   - https://github.com/egekoca/SprintOS/blob/main/apps/web/app/projects/new/steps.tsx (Repository)
+   - https://github.com/egekoca/SprintOS/blob/main/apps/web/components/SubmitProof.tsx (Repository)
+   - https://github.com/egekoca/SprintOS/blob/main/apps/web/app/review/[id]/[idx]/page.tsx (Documentation)
+   Her linkin tipini secin.
+6) Note alanina "This bundle contains direct public evidence for this milestone."
    yazin.
 7) Sign: submit evidence butonuna basin ve builder wallet'inde onaylayin.
 8) Evidence recorded on chain, evidence hash ve transaction linkini gosterin.
 
 Seslendirme:
 "Builder simdi project admin'in degistiremeyecegi acceptance criteria'yi goruyor.
-   Public linkleri typed evidence formuna giriyor. Uygulama bu bundle'i hash'liyor
+   Her milestone icin dogrudan ilgili public linkleri typed evidence formuna giriyor. Uygulama bu bundle'i hash'liyor
    ve builder wallet'i submit_evidence islemini imzaliyor. Status EvidenceSubmitted
    oluyor. Bundan sonra reviewer ayni kaniti ve ayni hash'i kontrol edecek."
 
