@@ -18,6 +18,15 @@ export function dateAfter(offsetDays: number): string {
   return date.toISOString().slice(0, 10);
 }
 
+/** Move a calendar date without letting the browser timezone change the day. */
+export function calendarDateAfter(value: string, offsetDays: number): string | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const date = new Date(`${value}T00:00:00Z`);
+  if (!Number.isFinite(date.getTime())) return null;
+  date.setUTCDate(date.getUTCDate() + offsetDays);
+  return date.toISOString().slice(0, 10);
+}
+
 /* Milestones get a number the moment they are created rather than only a grey
    placeholder. An untitled milestone is never what anyone wants, and
    "Milestone 3" is both a working answer and an obvious thing to type over. */
@@ -25,14 +34,17 @@ export function autoTitle(index: number): string {
   return `Milestone ${index + 1}`;
 }
 
-export function emptyMilestone(index = 0): MilestoneForm {
+export function emptyMilestone(index = 0, previousDeadline?: string): MilestoneForm {
+  const startDate = previousDeadline
+    ? (calendarDateAfter(previousDeadline, 1) ?? dateAfter(index * 14))
+    : dateAfter(index * 14);
   return {
     title: autoTitle(index),
     summary: "",
     criteria: [""],
     amount: "",
-    startDate: dateAfter(index * 14),
-    deadline: dateAfter(index * 14 + 13),
+    startDate,
+    deadline: calendarDateAfter(startDate, 13) ?? dateAfter(index * 14 + 13),
     startTime: "",
     deadlineTime: "",
   };

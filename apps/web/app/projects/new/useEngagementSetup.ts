@@ -184,7 +184,10 @@ export function useEngagementSetup() {
 
   function addMilestone() {
     invalidateSignature();
-    setMilestones((current) => [...current, emptyMilestone(current.length)]);
+    setMilestones((current) => [
+      ...current,
+      emptyMilestone(current.length, current.at(-1)?.deadline),
+    ]);
   }
 
   /* An empty row rather than a prompt for one: the sponsor asked for another

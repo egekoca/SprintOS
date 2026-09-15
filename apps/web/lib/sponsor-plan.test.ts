@@ -4,7 +4,9 @@ import { formatUsdc, parseUsdc } from "./stellar/config.ts";
 import type { MilestoneForm } from "./sponsor-draft.ts";
 import {
   allocatedTotal,
+  calendarDateAfter,
   completedThrough,
+  emptyMilestone,
   milestoneProblem,
   planProblemOf,
   renumber,
@@ -51,6 +53,22 @@ test("a due date in the past is refused before it reaches the contract", () => {
 test("a milestone cannot be due before it starts", () => {
   const problem = milestoneProblem(milestone({ startDate: "2099-03-01", deadline: "2099-02-01" }));
   assert.match(problem ?? "", /due before it starts/);
+});
+
+test("a new milestone starts one day after the previous milestone ends", () => {
+  const second = emptyMilestone(1, "2026-09-15");
+  const third = emptyMilestone(2, second.deadline);
+
+  assert.equal(second.startDate, "2026-09-16");
+  assert.equal(second.deadline, "2026-09-29");
+  assert.equal(third.startDate, "2026-09-30");
+});
+
+test("calendar date sequencing crosses month, year and leap-day boundaries", () => {
+  assert.equal(calendarDateAfter("2026-09-30", 1), "2026-10-01");
+  assert.equal(calendarDateAfter("2026-12-31", 1), "2027-01-01");
+  assert.equal(calendarDateAfter("2028-02-28", 1), "2028-02-29");
+  assert.equal(calendarDateAfter("not-a-date", 1), null);
 });
 
 test("a milestone with no filled criterion cannot be signed", () => {

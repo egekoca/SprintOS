@@ -157,8 +157,8 @@ function MilestoneDates({ index, milestone, update }: { index: number; milestone
 
       <p className="plan-dates-note">
         {exact
-          ? "Times are read in your own timezone and stored on chain as one exact moment."
-          : "Due at the end of the day, in your own timezone."}
+          ? "Times use your timezone. Start may be historical; the escrow deadline must still be in the future."
+          : "Start may be historical. Due is the end of that day and must still be in the future for escrow."}
       </p>
     </>
   );
