@@ -22,9 +22,9 @@ Budget: 1,700 USD
 
 *Evidence asked for:* GitHub repository, deployed contract ID, deployment scripts, testnet transaction hashes, explorer links, and automated test results.
 
-### **Delivered** — One sponsor, one builder, one assigned human reviewer, testnet USDC, up to three milestones per engagement.
+### **Delivered** — One project admin (the sponsoring wallet), one builder, optional additional admin/reviewer wallets, testnet USDC, and up to three milestones per engagement.
 
-The three roles are stored on the engagement and are required to be distinct. MAX_MILESTONES is 3 and create_engagement rejects a fourth.
+The sponsoring wallet is the first project admin and always has reviewer authority. The builder is the only separate required role; additional admin/reviewer wallets are optional. MAX_MILESTONES is 3 and create_engagement rejects a fourth.
 
 [types.rs](https://github.com/egekoca/SprintOS/blob/main/contracts/settlement/src/types.rs) · [test_max_three_milestones](https://github.com/egekoca/SprintOS/blob/main/contracts/settlement/src/test/happy.rs)
 
@@ -124,11 +124,11 @@ Budget: 1,200 USD
 
 *Evidence asked for:* Public testnet website, sample engagement pages, role screenshots, wallet signing recording, transaction links, documentation, and demo video.
 
-### **Delivered** — Sponsor view: wallet connection, engagement creation, milestone definition, testnet USDC funding, and balance tracking.
+### **Delivered** — Project admin view: wallet connection, engagement creation, milestone definition, testnet USDC funding, and balance tracking.
 
 A four-step setup that locks each step until the previous one is complete: repository, milestone plan, roles, then review and fund. Nothing is signed until a final screen that states the milestones can never be edited afterwards.
 
-[/sponsor](https://sprintos-ai.vercel.app/sponsor)
+[/projects/new](https://sprintos-ai.vercel.app/projects/new)
 
 ### **Delivered** — Builder view: assigned milestones and structured evidence submission.
 

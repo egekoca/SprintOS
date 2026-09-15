@@ -20,9 +20,9 @@ import { UsdcMark } from "@/components/UsdcMark";
  */
 
 const ROLE_LABEL: Record<Exclude<Role, "observer">, string> = {
-  sponsor: "You fund it",
+  sponsor: "Project admin",
   builder: "You build it",
-  reviewer: "You review it",
+  reviewer: "Admin reviewer",
 };
 
 /** What is actually waiting on this person, so the list can say so. */

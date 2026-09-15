@@ -98,9 +98,10 @@ export function accountIsValid(value: string): boolean {
 }
 
 export interface RoleCheck {
+  /** The project creator and first admin; contract calls this the sponsor. */
   sponsor: string | null;
   builder: string;
-  /** Wallets authorised to decide payouts alongside the sponsor. May be empty. */
+  /** Optional admin/reviewer wallets authorised alongside the first admin. */
   extraReviewers: readonly string[];
 }
 

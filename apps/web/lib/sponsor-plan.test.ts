@@ -95,7 +95,7 @@ test("a title the sponsor wrote is never renumbered", () => {
   assert.deepEqual(kept.map((m) => m.title), ["Escrow and settlement", "Milestone 2"]);
 });
 
-test("the three roles must be three different accounts", () => {
+test("the project admin and builder must differ; extra admins are optional", () => {
   assert.equal(roleProblemOf({ sponsor: SPONSOR, builder: BUILDER, extraReviewers: [REVIEWER] }), null);
   assert.match(
     roleProblemOf({ sponsor: SPONSOR, builder: SPONSOR, extraReviewers: [REVIEWER] }) ?? "",

@@ -23,7 +23,7 @@ pub enum Error {
     TooManyMilestones = 13,
     NoMilestones = 14,
     InvalidDeadline = 15,
-    /// sponsor, builder and reviewer must be three distinct addresses.
+    /// The project admin (sponsor) and builder must be distinct addresses.
     DuplicateRole = 16,
     ArithmeticOverflow = 17,
     InvalidTitle = 18,

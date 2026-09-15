@@ -1,0 +1,926 @@
+SPRINTOS AI REVIEWER - MVP VIDEO SENARYOSU
+Instawards teslim videosu icin Turkce cekim metni
+Tarih: 15.09.2026
+
+
+ANA VIDEO AKISI - SANIYE SANIYE OKUNACAK METIN
+
+Bu bolum, videoda kullanilacak ana metindir. Asagidaki uzun teknik notlar
+hazirlik ve kontrol icindir. Toplam hedef: landing 1:15-1:30 + app 2:30.
+Video boyunca yeni engagement icin ayni project admin wallet'ini kullanin. Bu
+ilk wallet ayni zamanda sponsor ve varsayilan reviewer'dir. Builder wallet'i
+ayri bir testnet hesabidir. Project admin, proje imzalanmadan once ek admin/reviewer
+wallet adresleri ekleyebilir. Boylece temel demoda iki wallet yeterlidir.
+
+KULLANILACAK DEMO PLAN'I
+- Repository: https://github.com/egekoca/SprintOS
+- Milestone 1: Stellar milestone settlement contract - 500 USDC
+- Milestone 2: AI assisted advisory review and security boundary - 300 USDC
+- Milestone 3: Public SprintOS web MVP and verifiable evidence flow - 200 USDC
+- Total award: 1000 USDC
+- Project admin: projeyi ve milestone'lari olusturan ilk wallet; sponsor ve
+  varsayilan human reviewer yetkisi bu wallet'tedir.
+- Builder: project admin'den farkli testnet wallet'i; evidence'i bu wallet gonderir.
+- Additional admins: istege bagli; proje imzalanmadan once project admin'in
+  yetkilendirdigi ek reviewer wallet adresleri. Builder bu listeye eklenemez.
+- Cekimden once OPENAI advisory, Blob storage ve /api/health hazir olmali.
+
+
+BOLUM A - LANDING PAGE (HEDEF 1:15-1:30)
+
+LANDING 1 - ACILIS HERO (00:00-00:15 / 15 saniye)
+
+URL ve hareket:
+1) https://sprintos-ai.vercel.app/ adresini acin.
+2) Sayfayi en ustte birakin; logo, Built. Proven. Paid. basligi ve Open SprintOS
+   butonu kadrajda olsun.
+3) Ilk 15 saniyede tiklamayin; sadece hero animasyonunun tamamlanmasini bekleyin.
+
+Seslendirme (aynen okuyun):
+"Merhaba, ben Ege. Bugun size SprintOS projesini anlatacagim. SprintOS,
+milestone bazli odeme ve inceleme akisini Stellar testnet uzerinde yoneten,
+yapay zeka destekli bir uygulama. Project admin isi ve kabul kosullarini belirliyor,
+builder yaptigi isi public kanitlarla gosteriyor, AI ise review icin advisory
+bir rapor hazirliyor. Para hareket ettiren karar her zaman insan wallet'ine ait."
+
+Ekranda okunacak:
+- Built. Proven. Paid.
+- Fund a milestone. Prove the work. A person releases the payment.
+
+
+LANDING 2 - PROBLEM (00:15-00:30 / 15 saniye)
+
+URL ve hareket:
+1) Mouse wheel ile bir tam section asagi kaydirin; #problem bolumu gorunsun.
+2) The target moves, The proof scatters, The money waits kartlarini soldan saga
+   yavasca okutun. Kartlara tiklamayin.
+
+Seslendirme:
+"Bugun grant, freelance ve contributor odemelerinde uc problem var. Once,
+teslim hedefi surec icinde degisebiliyor. Ikinci olarak proof GitHub, testler,
+documentation ve mesajlar arasinda dagiliyor. Son olarak odeme, kanit yerine
+guvene veya gecikmis manuel incelemeye baglaniyor. SprintOS bu uc sorunu tek
+bir kayit uzerinde birlestiriyor."
+
+Ekranda okunacak:
+- The target moves.
+- The proof scatters.
+- The money waits.
+
+
+LANDING 3 - SOLUTION (00:30-00:45 / 15 saniye)
+
+URL ve hareket:
+1) Bir section daha asagi kaydirin; #solution bolumune gelin.
+2) Soldan saga Scope is fixed -> Work is attached -> A person signs -> Money moves
+   ok akisini takip edin.
+
+Seslendirme:
+"SprintOS'un akisi dort adimdan olusuyor. Once scope sabitleniyor. Sonra is,
+GitHub reposuna baglaniyor. AI evidence'i okuyup reviewer'a rapor hazirliyor.
+En sonunda named human wallet approve veya hold karari veriyor ve ayri bir
+imzayla odeme serbest birakiliyor. Yani AI incelemeyi hizlandiriyor ama karari
+ve parayi kontrol etmiyor."
+
+Ekranda okunacak:
+- Scope is fixed.
+- Work is attached.
+- A person signs.
+- Money moves.
+
+
+LANDING 4 - ESCROW VE MILESTONE AGACI (00:45-01:00 / 15 saniye)
+
+URL ve hareket:
+1) #escrow bolumune kadar kaydirin.
+2) One budget, three proofs basligini ve tek escrow'dan uc milestone'a giden
+   agaci gosterin.
+3) 2,000 / 1,000 / 2,000 tutarlarini birer saniye gorunur birakin; bunlar
+   landing illustration'idir, birazdan app icinde 500/300/200 demo planini
+   kuracaginizi soyleyin.
+
+Seslendirme:
+"Burada tek bir butce, teslim edilecek parcalara ayriliyor. Her milestone'in
+   kendi basligi, acceptance criteria'si, deadline'i ve miktari var. Simdi
+   landing'deki illustration'dan gercek uygulamadaki 500, 300 ve 200 USDC'lik
+   SprintOS planina gececegim."
+
+
+LANDING 5 - CANLI TOPLAMLAR (01:00-01:12 / 12 saniye)
+
+URL ve hareket:
+1) Live totals bolumunu gosterin; sayilarin ledger'dan okunmasini bekleyin.
+2) Scroll'u yavas tutun; totals kartlarinin yenilenmesini kesin.
+
+Seslendirme:
+"Bu toplamlar uygulamanin yazdigi bir tahmin degil; Stellar testnet ledger'ina
+   gonderilen ve release edilmis milestone'larin canli ozetidir. Fund edilmis
+   olmak, paid olmak anlamina gelmiyor; odeme ancak insan release imzasindan
+   sonra toplamda gorunuyor."
+
+
+LANDING 6 - TRUST BOUNDARY VE APP'E GIRIS (01:12-01:30 / 18 saniye)
+
+URL ve hareket:
+1) #trust bolumune kaydirin.
+2) Soldaki The software / Reads and reports ve sagdaki A named person / Reads
+   and decides kolonlarini yukaridan asagi takip edin.
+3) No wallet. No signing key. ve The payment moves because they signed satirlarini
+   okutun.
+4) En alta gelince Enter SprintOS butonuna basin. Tiklama app bolumunun gecisidir.
+
+Seslendirme:
+"Trust boundary burada acik. Software evidence'i okur, criteria ile karsilastirir
+   ve score verir. Wallet'i, signing key'i ve payment method'u yoktur. Named
+   human reviewer ise ayni record'u okur; approve, hold veya refund kararini kendi
+   wallet'iyle verir. Simdi bu akis nasil kuruldugunu uygulama ekraninda
+   gosterecegim."
+
+
+BOLUM B - APP SAYFALARI (HEDEF 2:30)
+
+APP 1 - PROJECTS VE SPONSOR WALLET (01:30-01:42 / 12 saniye)
+
+URL ve hareket:
+1) /projects sayfasina gelin.
+2) Connect wallet butonuna basin.
+3) Wallet confirmation penceresinde testnet account'i onaylayin.
+4) Sayfada wallet'in kisa adresi gorununce New project butonuna basin.
+
+Seslendirme:
+"Projects sayfasi, bagli wallet'in ledger'da hangi engagement'larda rol aldigini
+   listeliyor. Wallet'i bagliyorum. Bu wallet sponsor olacak ve bu demoda ayni
+   zamanda yetkili human reviewer olarak karar verecek. Uygulama private key'i
+   saklamiyor; imza gerektiginde islemi wallet'e gonderiyor. Simdi New project'e
+   basiyorum."
+
+
+APP 2 - REPOSITORY BAGLAMA (01:42-01:57 / 15 saniye)
+
+URL ve hareket:
+1) /projects/new sayfasinda Step 01 Repository acik olur.
+2) Public repository sekmesini secin.
+3) URL alanina `https://github.com/egekoca/SprintOS` yazin.
+4) Scan repository butonuna basin.
+5) Sonucta SprintOS adini, default branch'i ve varsa milestone/open item
+   sayilarini gosterin.
+6) Attached to this engagement ibaresini kadrajda birakip Continue to scope'a
+   basin. Repo milestone'lari gelirse en fazla ucunu secip Use ... milestones'a
+   da basabilirsiniz; gelmezse Manual plan ile devam edin.
+
+Seslendirme:
+"Bu engagement'i SprintOS reposuna bagliyorum. Repo public oldugu icin GitHub
+   OAuth olmadan URL ile taranabiliyor. Bu baglanti, builder'in daha sonra hangi
+   public kaynaktan proof verecegini tanimliyor. Repository secildi; simdi bu
+   repo icin teslim planini yazacagim."
+
+
+APP 3 - MILESTONE 1, 2, 3 OLUSTURMA (01:57-02:27 / 30 saniye)
+
+URL ve hareket:
+1) Step 02 Scope ekraninda Manual sekmesini secin.
+2) Milestone Editor'da uc satir/card olusturun. Asagidaki degerleri girin:
+
+   MILESTONE 1
+   Title: Stellar milestone settlement contract
+   Outcome: Stellar testnet'te engagement creation, funding, evidence submission,
+   human approval, ayri release ve deadline refund akisinin calismasi.
+   Criteria: project admin ve builder rolleri; project admin'in varsayilan
+   reviewer yetkisi; testnet USDC escrow;
+   EvidenceSubmitted status; Approve sonrasi Approved ve para hareketi yok;
+   ayri Release sonrasi builder'a miktar transferi.
+   Amount: 500 USDC
+
+   MILESTONE 2
+   Title: AI assisted advisory review and security boundary
+   Outcome: Public evidence icin advisory score/checklist/report ve AI'in para
+   hareket ettiremedigini gosteren guvenlik kaniti.
+   Criteria: score/checklist/missing/recommendation alanlari; binding:false ve
+   report_hash; sadece reviewer isteyince generate; advisory paketinde wallet yok;
+   100/100 veya yetkisiz account approve/release yapamaz.
+   Amount: 300 USDC
+
+   MILESTONE 3
+   Title: Public SprintOS web MVP and verifiable evidence flow
+   Outcome: Project admin, builder ve admin/reviewer ekranlarinda repo, evidence, decision,
+   hash ve explorer dogrulamasini gosteren public MVP.
+   Criteria: project admin wizard; builder typed evidence formu; admin/reviewer
+   side-by-side
+   desk; iki ayri insan imzasi; public engagement ve settlement log.
+   Amount: 200 USDC
+
+3) Start ve Due tarihlerini sirali olarak +7, +14, +21 gun yapin.
+4) Total award alanina `1000` yazin; Split across 3 milestones'a basin.
+5) Readout'ta 500 / 300 / 200 ve toplam 1000 USDC oldugunu gosterin.
+6) Continue to roles'a basin.
+
+Seslendirme:
+"Burada SprintOS'un uc ana hedefini milestone'a ceviriyorum. Birinci hedef
+   settlement contract ve testnet odeme akisi. Ikinci hedef AI advisory raporu
+   ve guvenlik siniri. Ucuncu hedef ise bu ikisini birlestiren public web MVP.
+   Her birinin outcome'u, kabul kriterleri, deadline'i ve USDC miktari var.
+   Total award'i esit bolmuyor; SOW onemine gore 500, 300 ve 200 olarak dagitiyorum.
+Project admin bu ekranda tum planin sonradan degistirilemeyecegini bilerek ilerliyor."
+
+
+APP 4 - ROLLERI VE CUZDANLARI ATAMA (02:27-02:42 / 15 saniye)
+
+URL ve hareket:
+1) Step 03 Roles ekraninda Project admin / Your wallet altinda Connected ve
+   project admin adresini gosterin.
+2) Builder wallet address alanina ayri testnet builder adresini yapistirin.
+3) Additional admin wallets altinda "You are the first admin" satirini gosterin.
+   Bu demoda ekstra admin eklemeyin; ilk project admin wallet'i human reviewer'dir.
+4) Review engagement butonuna basin.
+
+Seslendirme:
+"Project admin wallet'i projeyi olusturur, fonlar ve payout kararini verir.
+   Builder wallet'i ayri; proof gonderecek ve release edilen milestone'i alacak
+   hesap bu. Bu demoda project admin ayni zamanda varsayilan human reviewer.
+   Istenirse Additional admin wallets alanindan baska reviewer/admin adresleri
+   eklenebilir. Builder karar verici olamaz; bu sadece arayuz kuralina degil,
+   Soroban authorization'a da bagli."
+
+
+APP 5 - FINAL REVIEW, CREATE VE FUND (02:42-03:00 / 18 saniye)
+
+URL ve hareket:
+1) Step 04 Final review ekraninda Repository, Builder, Decides payouts ve uc
+   milestone receipt satirlarini yukaridan asagi okutun.
+2) "I have read every milestone..." checkbox'ini isaretleyin.
+3) Continue to sign -> Yes, lock and sign butonlarina basin.
+4) Wallet confirmation penceresinde Create transaction'i onaylayin.
+5) Engagement created mesaji, engagement ID ve create hash gorunur gorunmez
+   Fund 1000 USDC butonuna basin.
+6) Ikinci wallet confirmation'i onaylayin; Escrow funded ve fund hash'i bekleyin.
+
+Seslendirme:
+"Final review'da repo, builder, project admin, tarihler, kriterler ve miktarlar tek
+   receipt'te. Checkbox, project admin'den gercek bir okuma attestasyonu istiyor.
+   Create imzasi milestone terms'lerini hash'leyip ledger'a yaziyor. Ardindan
+   ikinci imza 1000 testnet USDC'yi escrow'a koyuyor. Bu noktada para builder'a
+   gitmedi; sadece tanimli is icin kilitlendi."
+
+
+APP 6 - BUILDER KANITI GONDERIYOR (03:00-03:20 / 20 saniye)
+
+URL ve hareket:
+1) Wallet extension'da Disconnect yapip builder testnet wallet'ine gecin.
+2) /builder sayfasini acin.
+3) Yeni engagement ID'sini ve Milestone 1'i secin.
+4) Acceptance criteria listesini kadrajda tutun.
+5) Public links alaninda su uc linki girin ve tiplerini secin:
+   - https://github.com/egekoca/SprintOS (Repository)
+   - https://github.com/egekoca/SprintOS/tree/main/contracts/settlement (Test result/Source)
+   - https://github.com/egekoca/SprintOS/blob/main/docs/SECURITY.md (Documentation)
+6) Note alanina "Settlement ve AI boundary kanitlari public repository ve docs'ta."
+   yazin.
+7) Sign: submit evidence butonuna basin ve builder wallet'inde onaylayin.
+8) Evidence recorded on chain, evidence hash ve transaction linkini gosterin.
+
+Seslendirme:
+"Builder simdi project admin'in degistiremeyecegi acceptance criteria'yi goruyor.
+   Public linkleri typed evidence formuna giriyor. Uygulama bu bundle'i hash'liyor
+   ve builder wallet'i submit_evidence islemini imzaliyor. Status EvidenceSubmitted
+   oluyor. Bundan sonra reviewer ayni kaniti ve ayni hash'i kontrol edecek."
+
+
+APP 7 - REVIEWER VE AI SCORE (03:20-03:45 / 25 saniye)
+
+URL ve hareket:
+1) Wallet extension'da tekrar project admin wallet'ine gecin; bu wallet ayni
+   zamanda human reviewer yetkisine sahiptir.
+2) /review sayfasini acin.
+3) Waiting on you listesinden yeni engagement'in EvidenceSubmitted milestone'ini
+   acin; URL /review/{YENI_ID}/0 olur.
+4) Acceptance criteria ve Submitted evidence panellerindeki "matches chain"
+   rozetlerini gosterin.
+5) Advisory panel'de Generate report butonuna basin.
+6) Rapor yuklenince score, checklist, recommendation, missing information,
+   binding:false ve report hash alanlarini tek tek okuyun.
+
+Seslendirme:
+"Reviewer desk'te uc bilgi yan yana. Solda project admin'in anlasmasi, ortada builder'in
+   imzaladigi evidence, altta ise advisory rapor var. Iki belge de chain hash'iyle
+   uyusuyor. Generate report'e basiyorum. AI kaniti okuyup score, kriter bazli
+   checklist, eksik bilgi ve recommendation uretiyor. Bu rapor binding:false;
+   approve veya payment komutu degil."
+
+AI score icin tercih:
+- Yeni engagement raporu sonucu ne cikarsa onu oldugu gibi gosterebilirsiniz.
+- En guclu guvenlik cutaway'i icin hemen sonra /e/1002 veya
+  /evidence/ai-boundary acip 100/100, ReadyForReview ve EvidenceSubmitted
+  status'unu gosterin.
+
+
+APP 8 - INSAN APPROVE, AYRI RELEASE VE PUBLIC KAYIT (03:45-04:00 / 15 saniye)
+
+URL ve hareket:
+1) Reviewer desk'te "I read the evidence against the criteria myself" checkbox'ini
+   isaretleyin.
+2) Sign: approve butonuna basin; wallet onayini bekleyin.
+3) Approval recorded ve Approved status'u gosterin.
+4) Sign: release 500 USDC butonuna basin; ikinci wallet onayini bekleyin.
+5) Payment released to the builder ve release hash'i gosterin.
+6) Open engagement -> /e/{YENI_ID} linkine basin.
+7) Public sayfada Paid to builder, settlement log ve Verify it yourself contract
+   linkini gosterin.
+
+Seslendirme:
+"Simdi insan karari geliyor. Evidence'i kendim okudugumu attest edip Approve
+   imzaliyorum. Bu yalnizca judgement; para henuz hareket etmiyor. Status Approved
+   olduktan sonra Release 500 USDC butonu aciliyor. Ayni reviewer wallet'i ikinci
+   kez imzaliyorum ve odeme builder'a gidiyor. Public engagement sayfasinda iki
+   imza, miktar, status, transaction hash'i ve Stellar Explorer linki gorunuyor.
+   AI skoru degil, insan imzasi state'i degistirdi."
+
+
+APP 9 - HOLD/REFUND KAPANIS CUTAWAY (04:00-04:10 / 10 saniye)
+
+URL ve hareket:
+1) https://sprintos-ai.vercel.app/e/3 adresini acin.
+2) Held/Refunded status, deadline, Reclaimed by project admin ve settlement log'u
+   gosterin.
+3) Hemen ardindan /evidence/ai-boundary acip 100/100 ve Unauthorized satirlarini
+   birer saniye gosterin.
+
+Seslendirme:
+"Olumlu akis kadar Hold da kayitli. Yetersiz kanitta project admin veya ek admin
+   reviewer milestone'i hold eder; deadline sonrasinda project admin refund ile kalan escrow'u geri alir. Son
+   olarak 100/100 AI boundary kanitinda yetkisiz approve ve release cagrilarinin
+   Unauthorized oldugunu goruyoruz. AI review'a yardimci, ama karar ve para
+   her zaman insan wallet'inde."
+
+
+0. BU DOSYA NEYI KONTROL EDIYOR?
+
+Bu senaryo, SOW'un sonunda eklenen kanitlar ile mevcut SprintOS kodunu birlikte
+okuyarak hazirlandi. Amac tek bir 3-5 dakikalik kayitta su iddiayi gostermek:
+
+Sponsor bir GitHub reposuna bagli milestone'lar tanimlar ve testnet USDC'yi escrow'a
+koyar. Builder public kanit gonderir. AI bu kaniti okuyup non-binding bir rapor
+hazirlar. Yalnizca yetkili insan reviewer wallet'i Approve/Hold ve Release
+imzalar. AI skoru ne kadar yuksek olursa olsun para hareket ettiremez.
+
+Bu, pazarlama videosu degil; Ambassador Chapter Lead'in ekranda kontrol edebilecegi
+bir urun ve kanit walkthrough'udur. Cekimde adres, status, hash ve explorer linki
+gorunur kalmali; seed phrase, private key ve gizli token degeri kesinlikle
+gorunmemelidir.
+
+
+1. INCELENEN DURUM: NELER TAMAM?
+
+Deliverable 1 - Stellar testnet settlement: TAMAM
+- Guncel kontrat: CBOC76VCX3BR2UYOWQQNHRPKG27PSPE7X42YAQEDI3ZTKNL53U2CYGS6
+- Testnet USDC SAC: CAR6QZIC7NTQ4PFLOTD2434YZ6PRDHVJHL5GZIRT62VAJJBRL5IYUIU3
+- create_engagement, fund, submit_evidence, approve, hold, release, refund mevcut.
+- Up to 3 milestone, rol yetkilendirmesi, state kontrolleri ve typed errors mevcut.
+- SOW senaryolari canli kayitlarda mevcut: #2 approval/release, #3 hold/refund.
+- Kontrat testleri 65 adet; uygulama, advisory ve schema testleri toplam 178 adet.
+
+Deliverable 2 - AI assisted advisory review: TAMAM
+- Her milestone icin en fazla 5 criterion ve 5 evidence link.
+- Rapor score, criterion checklist, supporting links, missing information,
+  recommendation, binding:false ve report_hash tasiyor.
+- Rapor sadece reviewer Generate report isterse uretiliyor.
+- Advisory paketi Stellar SDK, wallet signing veya payment endpoint icermiyor.
+- test_ai_score_100_cannot_release ile 100 skorun tek basina para tasiyamadigi
+  gosteriliyor; canli #1002 kaydinda da ayni sinir goruluyor.
+- Sabit fixture raporlari: 94/100, 58/100, 8/100; hash'leri tekrar uretilebilir.
+
+Deliverable 3 - Public web MVP: ISLEVSEL; SON KANIT KAPATMASI VIDEO
+- / landing page, /projects proje listesi, /projects/new sponsor wizard'i.
+- /builder builder evidence formu.
+- /review ve /review/:id/:idx reviewer desk'i.
+- /e/:id public ledger kaydi, settlement log ve explorer linkleri.
+- /docs ve /evidence public dokumantasyon/kanit indeksi.
+- Kod ve screenshot kanitlari var. Ancak repo icindeki docs/EVIDENCE.md ve
+  FIRST-MONTH-EVIDENCE-RUNBOOK.md hala demo video/wallet kaydini outstanding veya
+  partial gosteriyor. Downloads/sprintos-instawards-evidence klasorunde de
+  18-sprintos-demo-video.mp4 dosyasi yok. Bu kayit o acigi kapatacak.
+
+Dikkat edilmesi gereken tutarlilikler:
+1) SOW ekindeki verification index video ve screenshot'lari varmis gibi listeliyor;
+   repo kanit dokumani ise videoyu henuz cekilmemis sayiyor. Video cekildikten sonra
+   dosya adini ve URL'sini EVIDENCE.md/runbook ile ayni hale getirin.
+2) #2 ve #3 eski v1 kontratinda (CAJUEUO...), #1000/#1001/#1002 guncel kontratta
+   (CBOC...). Public engagement sayfasindaki Verify it yourself linkini kullanin;
+   kontrat adresini elle degistirmeyin.
+3) Kullanilan USDC, bu disposable testnet demosu icin uretilmis issuer'dir; Circle
+   canonical USDC degildir. Videoda "Stellar testnet USDC" deyin, mainnet iddiasi
+   yapmayin.
+4) GitHub OAuth zorunlu degil. OAuth yoksa Repository adiminda Public repository
+   moduna gecip URL yapistirin. Bu, cekimde en guvenilir yoldur.
+
+
+2. HANGI REPOYU BAGLAYALIM?
+
+Onerilen repo:
+https://github.com/egekoca/SprintOS
+
+Neden:
+- SOW'un Deliverable 1 ve public MVP kanitinda adi gecen resmi repo bu.
+- Public oldugu icin OAuth olmadan URL ile taranabilir.
+- README, contracts, packages/advisory, docs ve testler ayni kanit zincirinde.
+- Reviewer, evidence linkini ve advisory raporunu bu repo uzerinden tekrar acabilir.
+
+Repository step'te su sirayla ilerleyin:
+1) /projects sayfasinda New project'e basin.
+2) Repository adiminda Public repository secenegini acin.
+3) URL alanina tam olarak https://github.com/egekoca/SprintOS yazin.
+4) Scan repository sonucunda repo adinin SprintOS oldugunu kontrol edin.
+5) Repo milestone'lari donerse en fazla 3 tanesini secin. Import, secilenleri
+   milestone planina tasir.
+6) Repo milestone'i yoksa bu hata degildir: Continue to scope ile ilerleyip
+   Manual plan veya AI from brief secin. Repo yine engagement'a bagli kalir.
+
+Yeni bir demo engagement icin repo secimi ile acceptance criteria ayni sey degildir:
+repo, kanitin nerede yasadigini belirtir; criteria ise sponsorun fonlamadan once
+hash'lenen teslim kosullaridir.
+
+
+2A. DEMO FORMUNA GIRILECEK GERCEK SPRINTOS MILESTONE PLAN'I
+
+Asagidaki plan SprintOS'un kendi repo ve SOW kapsamiyla uyumludur. Demo icin
+testnet'te kucuk ve gorunur bir toplam kullanin: 1,000 USDC. Bu miktar Instaward
+butcesi degildir; sadece canli MVP akisini gosteren testnet escrow tutaridir.
+Kontrat en fazla 3 milestone kabul ettigi icin bu uc milestone birlikte secilebilir.
+
+TARIHLER
+- Starts: cekim gunu
+- Milestone 1 due: cekim gunu + 7 gun
+- Milestone 2 due: cekim gunu + 14 gun
+- Milestone 3 due: cekim gunu + 21 gun
+Gercek tarihleri formdaki date picker ile girin. Tarihi gecmise almayin; kontrat
+gecmis deadline'i reddeder. Video icin exact time secmek zorunlu degil.
+
+MILESTONE 1
+Title:
+Stellar milestone settlement contract
+
+Outcome (What will be delivered?):
+SprintOS'un Stellar testnet uzerinde project admin ve builder olmak uzere iki temel
+rol, project admin'in varsayilan reviewer yetkisi ve istege bagli ek admin wallet'lariyla
+milestone escrow olusturmasi; fonlama, evidence submission, human approval, ayri
+release ve deadline refund akislarinin calismasi.
+
+Must be true at delivery (acceptance criteria):
+1. Project admin/sponsor ve builder iki farkli Stellar testnet wallet'i olarak
+   engagement'a atanmis olmali; project admin varsayilan reviewer'dir.
+2. Engagement testnet USDC ile fonlanmis olmali ve en fazla uc milestone icermeli.
+3. Builder evidence submit ettiginde milestone status'u EvidenceSubmitted olmali.
+4. Reviewer Approve imzasi status'u Approved yapmali; para bu imzada hareket
+   etmemeli.
+5. Reviewer'in ayri Release imzasi builder'a milestone miktarini gondermeli ve
+   public transaction hash'i uretilmis olmali.
+
+Amount:
+500 USDC
+
+Evidence links to submit later:
+- https://github.com/egekoca/SprintOS/tree/main/contracts/settlement
+- https://github.com/egekoca/SprintOS/blob/main/contracts/settlement/src/lib.rs
+- https://github.com/egekoca/SprintOS/tree/main/contracts/settlement/src/test
+- https://stellar.expert/explorer/testnet/contract/CBOC76VCX3BR2UYOWQQNHRPKG27PSPE7X42YAQEDI3ZTKNL53U2CYGS6
+
+MILESTONE 2
+Title:
+AI assisted advisory review and security boundary
+
+Outcome (What will be delivered?):
+Builder'in public proof'unu kriterlere karsi inceleyen, score/checklist/missing
+information/recommendation ureten advisory raporu; raporun non-binding oldugu ve
+AI skorunun tek basina settlement baslatamadigi guvenlik kaniti.
+
+Must be true at delivery (acceptance criteria):
+1. Advisory report score, criterion checklist, supporting links, missing
+   information ve recommendation alanlarini icermeli.
+2. Report binding:false ve report_hash alanlarini tasimali.
+3. Report yalnizca reviewer Generate report istediginde uretilmeli; repository
+   background'da izlenmemeli ve submitted code calistirilmamali.
+4. Advisory paketi wallet, signing key, Stellar SDK veya payment endpoint
+   icermemeli.
+5. 100/100 score ile bile yetkisiz account approve/release cagirinca Unauthorized
+   donmeli; escrow ve builder balance degismemeli.
+
+Amount:
+300 USDC
+
+Evidence links to submit later:
+- https://github.com/egekoca/SprintOS/tree/main/packages/advisory
+- https://github.com/egekoca/SprintOS/blob/main/packages/schemas/src/report.ts
+- https://github.com/egekoca/SprintOS/blob/main/contracts/settlement/src/test/ai_cannot_release.rs
+- https://sprintos-ai.vercel.app/evidence/ai-boundary
+- https://sprintos-ai.vercel.app/e/1002
+
+MILESTONE 3
+Title:
+Public SprintOS web MVP and verifiable evidence flow
+
+Outcome (What will be delivered?):
+Project admin, builder ve admin/reviewer ekranlarini tek public web akisi icinde birlestiren;
+repo baglama, milestone tanimlama, wallet signing, evidence hash, advisory review,
+human decision ve Stellar Explorer dogrulamasini gosteren MVP.
+
+Must be true at delivery (acceptance criteria):
+1. Sponsor /projects/new ekraninda repository, milestone plan, roller ve final
+   review adimlarini sirayla tamamlayabilmeli.
+2. Builder /builder ekraninda acceptance criteria'yi okuyup en fazla bes public
+   evidence linki typed form ile submit edebilmeli.
+3. Reviewer /review/:id/:idx ekraninda criteria, evidence ve advisory raporu
+   birlikte gorebilmeli; hash'ler uyusmadan karar butonlari acilmamali.
+4. Approve ve Release wallet tarafindan iki ayri insan imzasi olarak hazirlanip
+   public engagement sayfasinda transaction hash'leriyle gorunmeli.
+5. /e/:id sayfasinda status, amount, deadline, parties, settlement log ve dogru
+   deployment contract linki disaridan kontrol edilebilmeli.
+
+Amount:
+200 USDC
+
+Evidence links to submit later:
+- https://github.com/egekoca/SprintOS
+- https://sprintos-ai.vercel.app/docs
+- https://sprintos-ai.vercel.app/evidence
+- https://sprintos-ai.vercel.app/e/2
+- https://sprintos-ai.vercel.app/e/3
+
+FORMDA UYGULAMA SIRASI
+1) Repository step'te SprintOS'u scan edin ve Attached to this engagement ibaresini
+   kontrol edin.
+2) Scope step'te Manual secin ve yukaridaki uc milestone'i aynen girin. Alternatif
+   olarak AI from brief secip asagidaki brief'i yapistirin; cikan plan bu hedeflerle
+   uyusmuyorsa elle duzeltin.
+3) Total award alanina 1000 yazin ve Split across 3 milestones'a basin. Sonra
+   miktarlarin 500/300/200 oldugunu kontrol edin.
+4) Her milestone icin baslik, outcome, tarih, amount ve bes veya daha az criterion
+   dolu olmali. Bos veya tek kelimelik criterion birakmayin.
+5) Roller step'te project admin wallet'inizi ve ayri builder wallet'ini girin.
+   Isterseniz Additional admin wallets alanina baska admin/reviewer adresleri ekleyin.
+
+AI FROM BRIEF ICIN KOPYALANACAK BRIEF (OPSiyonel)
+"SprintOS is a Stellar testnet milestone settlement MVP. Milestone 1 must prove
+engagement creation, USDC funding, builder evidence submission, human approval,
+separate release and deadline refund. Milestone 2 must prove a non-binding AI
+advisory report with score, checklist, missing information, recommendation,
+binding:false and report hash; a perfect score must not authorize approve or
+release. Milestone 3 must prove the public web flow for repository selection,
+milestone setup, wallet roles, evidence submission, reviewer decision, transaction
+hashes, public engagement record and explorer verification. Use three milestones,
+clear checkable criteria, and sequential due dates."
+
+Bu brief plan uretse bile Generate milestones sonucunu oldugu gibi imzalamayin.
+Her criterion'i yukaridaki acceptance metniyle karsilastirin; tarih ve miktarlari
+formda tekrar kontrol ettikten sonra ilerleyin.
+
+
+3. CEKIM ONCESI PREFLIGHT
+
+Tarayici:
+- Chrome veya Firefox, temiz pencere, URL bar gorunur.
+- Wallet browser extension kurulu ve Stellar testnet secili.
+- Project admin ve builder iki farkli testnet account. Ek admin/reviewer wallet'i
+  kullanilacaksa onu da ayri testnet account olarak hazirlayin.
+- Uc wallet'ta transaction fee ve demo USDC hazir.
+
+Vercel / deployment:
+- https://sprintos-ai.vercel.app adresini acin.
+- /api/health sayfasinda RPC, contract, asset, storage ve public URL ready olmali.
+- BLOB_READ_WRITE_TOKEN aktif olmali; criteria/evidence belgeleri yeniden hash'leniyor.
+- NEXT_PUBLIC_APP_URL tam public HTTPS origin olmali.
+- Advisory raporu gostermek icin OPENAI_API_KEY configured olmali. Degilse video
+  advisory unavailable mesajinda kalir; settlement yine calisir ama bu SOW demosu
+  icin once key/storage durumunu duzeltin.
+- Testnet disi wallet uyarisi gorurseniz wallet icinden testnet'e gecin ve
+  "I switched it" kontrolunu kullanin.
+
+Kamera notu:
+- Wallet onay penceresi gorunebilir; seed phrase/private key gorunemez.
+- Her sign'dan sonra hash ve status'un sayfada yenilendigini bekleyin.
+- Uzun adresleri kapatmayin: son karakterler ve explorer linki kontrol icin yeterli.
+
+
+4. ONERILEN TEK KAYIT AKISI (3-5 DAKIKA)
+
+Kullanilacak URL'ler:
+- Landing: https://sprintos-ai.vercel.app/
+- Projects: https://sprintos-ai.vercel.app/projects
+- New project: https://sprintos-ai.vercel.app/projects/new
+- Builder: https://sprintos-ai.vercel.app/builder
+- Reviewer list: https://sprintos-ai.vercel.app/review
+- Reviewer desk: /review/{YENI_ID}/0 veya hazir kayit icin /review/1002/1
+- Public record: /e/{YENI_ID}, backup olarak /e/2 ve /e/3
+- AI boundary: /evidence/ai-boundary
+
+Tercih edilen cekim stratejisi:
+- Ilk bolumde gercek bir yeni engagement setup gosterin.
+- Full settlement'i ayni yeni engagement ile tamamlayabiliyorsaniz devam edin.
+- Wallet/testnet zamanini azaltmak gerekiyorsa yeni setup'in final receipt'ini
+  gosterdikten sonra mevcut canli #2 veya #1002 public record'una kesme yapin.
+  Bunu seslendirmede acikca "Bu, ayni akisin daha once tamamlanmis public record'u"
+  diye belirtin; iki farkli engagement'i tek islem gibi sunmayin.
+
+
+SAHNE 1 - LANDING PAGE (00:00-00:25)
+
+Ekran:
+- / adresinde acilis hero: Built. Proven. Paid.
+- Once Open SprintOS veya sag ust Enter app.
+- Isterseniz Problem, Solution, Trust bolumlerine hizli scroll yapin.
+
+Seslendirme:
+"SprintOS, milestone bazli fonlama ve kanitli odeme akisi. Sponsor once isi
+ve kabul kosullarini kilitler. Builder public proof gonderir. AI bu proof'u
+inceleyip advisory bir rapor yazar. Son karari ve para hareketini ise her zaman
+yetkili insan wallet'i verir. Simdi gercek MVP akisini aciyorum."
+
+Eylem:
+- Enter app -> /projects.
+
+
+SAHNE 2 - PROJECTS VE WALLET (00:25-00:45)
+
+Ekran:
+- /projects sayfasinda Connect wallet.
+- Sponsor wallet adresinin kisa hali gorunsun.
+- New project butonuna basin.
+
+Seslendirme:
+"Projects ekrani, wallet adresinin ledger'da project admin, builder veya ek admin/reviewer
+olarak yer aldigi engagement'lari listeler. Yeni proje olustururken wallet
+baglantisi sadece imza icin kullanilir; uygulama private key tutmaz."
+
+
+SAHNE 3 - REPOSITORY'YI BAGLAMA (00:45-01:10)
+
+Ekran:
+- /projects/new, Step 01 Repository.
+- Public repository modunu secin.
+- URL: https://github.com/egekoca/SprintOS
+- Scan repository'e basin.
+- SprintOS, default branch ve milestone/open item sayilarini gosterin.
+- Milestone listesi gelirse en fazla 2 veya 3 tanesini secin; Import ile ilerleyin.
+
+Seslendirme:
+"Bu engagement'in kaynak reposu SprintOS. Repo public oldugu icin GitHub OAuth
+olmadan da URL ile tarayabiliyorum. Burada repo adi ve default branch'i kontrol
+ediyorum. Varsa mevcut GitHub milestone'larini acceptance planina alabilirim;
+yoksa Manual veya brief tabanli plan kurabilirim. Onemli nokta su: repository
+linki, builder'in hangi public kaynaktan kanit sunacagini engagement'a baglar."
+
+Kontrol:
+- Ekranda Attached to this engagement ibaresi gorunmeli.
+- Repo taramasi fail ederse video icin ayni URL'yi tekrar deneyin veya Manual
+  secin; baska, alakasiz bir repo kullanmayin.
+
+
+SAHNE 4 - YENI MILESTONE PLANI (01:10-01:55)
+
+Onerilen en stabil yol: Manual plan. AI planlama gostermek istiyorsaniz brief
+ile Generate milestones'i sadece advisory configured true iken kullanin; cikan
+her alan yine elle kontrol edilmelidir.
+
+Milestone hedefleri icin bu dosyanin "2A. DEMO FORMUNA GIRILECEK GERCEK
+SPRINTOS MILESTONE PLAN'I" bolumundeki uc kaydi aynen kullanin. Oradaki plan
+SOW deliverable 1 (settlement), deliverable 2 (advisory boundary) ve deliverable
+3 (public web MVP) olarak ayrilmistir; onceki 60/40 ornek plan kullanilmamalidir.
+
+Ekran:
+- Start date, due date, amount alanlarini doldurun.
+- Total award 1000 yazip Split across 3 milestones'a basin veya miktarlari elle
+  girin.
+- Her criterion'in birden fazla kelimeden olustugunu ve bos kalmadigini kontrol edin.
+- Continue to roles.
+
+Seslendirme:
+"Milestone planinda outcome, tarih, miktar ve kontrol edilebilir kriterler var.
+Sponsor toplam 1,000 USDC award'i uc milestone'a dagitiyor. Bu plan daha sonra criteria
+belgesine donusuyor ve SHA-256 hash'i kontrata yaziliyor. Imzadan sonra kriterler
+degistirilemiyor; builder'in calistigi sey tam olarak bu kayit."
+
+
+SAHNE 5 - ROLLER VE WALLET'LER (01:55-02:20)
+
+Ekran:
+- Step 03 Roles.
+- Project admin: bagli wallet.
+- Builder wallet address: demo builder account.
+- Admin/reviewer: project admin wallet varsayilan yetkili; gerekiyorsa Additional
+  admin wallets alanindan baska admin/reviewer wallet'lari eklenebilir. Builder'i
+  reviewer olarak eklemeyin.
+- Review engagement'e basin.
+
+Seslendirme:
+"Project admin fonlar ve payout kararini verir. Builder proof submit eder. Project
+admin varsayilan reviewer'dir; ek admin wallet'lari da ayni yetkiyi tasiyabilir.
+Builder para serbest birakamaz. Bu kayitta project admin wallet'ini ana karar
+verici, builder wallet'ini de ayri calisan hesap olarak atiyorum."
+
+
+SAHNE 6 - FINAL REVIEW, CREATE VE FUND (02:20-02:55)
+
+Ekran:
+- Step 04 Final review receipt: repo, builder, payout decider, milestone'lar,
+  tarih ve amount.
+- "I have read every milestone..." kutusunu isaretleyin.
+- Continue to sign -> "Yes, lock and sign".
+- Wallet confirmation penceresinde transaction'i onaylayin.
+- Engagement created, ID ve create transaction hash'ini gosterin.
+- Fund {total} USDC butonuna basin ve ikinci wallet onayini gosterin.
+- Escrow funded, fund hash ve Open engagement linki gorunsun.
+
+Seslendirme:
+"Bu son degisiklik noktasi. Sponsor tum milestone ve kriterleri okudugunu
+onayliyor. Create imzasi engagement'i ledger'a yazar; Fund imzasi ise ayrilan
+USDC'yi escrow'a koyar. Bu iki transaction ayri ve sayfada hash olarak izlenebilir."
+
+Kontrol:
+- Gercek engagement ID'yi not edin. Videoda {YENI_ID} yerine bu sayiyi kullanin.
+- Yeni engagement guncel CBOC kontratinda olmalidir; public record sayfasindaki
+  Verify it yourself linki bunu gosterir.
+
+
+SAHNE 7 - BUILDER PROOF (02:55-03:25)
+
+Ekran degisikligi:
+- Wallet'i builder account ile degistirin; seed/private key goruntulemeyin.
+- /builder acin.
+- Dogru engagement ve milestone'i secin.
+- Acceptance criteria'nin tamamini gosterin.
+- En az su public linkleri ekleyin ve tiplerini secin:
+  1. https://github.com/egekoca/SprintOS - Repository
+  2. https://github.com/egekoca/SprintOS/tree/main/contracts/settlement - Test/contract source
+  3. https://github.com/egekoca/SprintOS/blob/main/docs/SECURITY.md - Documentation
+- Note: "Settlement ve advisory boundary kanitlari README/docs icinde."
+- Sign: submit evidence'e basin; builder wallet'te onaylayin.
+- Evidence recorded on chain, evidence hash ve transaction linkini gosterin.
+
+Seslendirme:
+"Builder, sponsorun sabitledigi kriterleri ekranda tam olarak goruyor. Kanit
+linkleri public ve login gerektirmiyor. Form once bundle'i hash'liyor; sonra
+builder wallet'i bu bundle hash'ini submit_evidence transaction'i ile kontrata
+ankorluyor. Artik reviewer'in okudugu belge, builder'in imzaladigi belgedir."
+
+
+SAHNE 8 - REVIEWER DESK VE ADVISORY RAPOR (03:25-04:05)
+
+Ekran degisikligi:
+- Wallet'i reviewer account ile degistirin.
+- /review listesinden EvidenceSubmitted milestone'i acin.
+- /review/{YENI_ID}/0 sayfasinda su uc bolumu birlikte gosterin:
+  1. Acceptance criteria - matches chain
+  2. Submitted evidence - matches chain
+  3. Advisory panel
+- Generate advisory report'e basin.
+- Score, recommendation, criterion checklist, missing information,
+  binding:false ve report hash alanlarini gosterin.
+
+Seslendirme:
+"Reviewer desk, neyin soz verildigini, neyin teslim edildigini ve advisory
+modulunun ne dusundugunu yan yana koyuyor. Iki belge de ledger'daki hash ile
+eslesmeden karar butonlari acilmiyor. Simdi raporu ben istiyorum. Bu skor bir
+inceleme yardimcisi; approval degil, payment instruction degil ve contract
+argumani degil. Rapor binding:false olarak uretiliyor."
+
+En guclu cutaway:
+- Yeni rapor yerine veya hemen sonra https://sprintos-ai.vercel.app/e/1002
+  ya da /evidence/ai-boundary acin.
+- 100/100 ve ReadyForReview'i gosterin.
+- State'in EvidenceSubmitted kaldigini ve escrow'un degismedigini belirtin.
+
+Seslendirme:
+"Canli #1002 kaydinda advisory skoru 100/100 ve ReadyForReview. Buna ragmen
+milestone EvidenceSubmitted olarak kaliyor; escrow ve builder balance degismiyor.
+Score, state degisikligi yapabilecek bir giris noktasi degil."
+
+
+SAHNE 9 - HUMAN APPROVE VE AYRI RELEASE (04:05-04:40)
+
+Ekran:
+- Reviewer desk'te "I read the evidence against the criteria myself" kutusunu
+  isaretleyin.
+- Sign: approve. Wallet onayini gosterin.
+- Approval recorded ve approval transaction hash gorunsun.
+- Sayfa yenilenince status Approved olur.
+- Sign: release {amount} USDC. Ikinci wallet onayini gosterin.
+- Payment released to builder ve release hash gorunsun.
+
+Seslendirme:
+"Karari veren insan, evidence'i kriterlere karsi kendisinin okudugunu attest eder.
+Approve bir judgement kaydidir. Odeme henuz gitmez. Simdi ayni reviewer wallet'i
+ikinci kez imzalayarak Release yapiyor. Bu ayrim bilincli: approval ile para
+transferi ayni transaction veya ayni AI cagrisi degil. Para, score yuzunden degil,
+yetkili insanin ikinci imzasi yuzunden hareket ediyor."
+
+
+SAHNE 10 - PUBLIC RECORD VE EXPLORER (04:40-05:00)
+
+Ekran:
+- /e/{YENI_ID} acin.
+- Committed, Paid to builder, Still in escrow kartlarini gosterin.
+- Parties: Builds it, Decides payouts.
+- Milestone status Released/Paid.
+- Settlement log'da create, fund, evidence, approve, release sirasi.
+- Bir transaction hash'i Stellar Expert'te acin.
+- Verify it yourself altinda guncel kontrat ID'sini gosterin.
+
+Seslendirme:
+"Bu public engagement sayfasi uygulamanin soyledigi bir ozet degil; durum
+Stellar testnet'ten okunuyor. Her action, signer, amount ve hash settlement
+log'unda. Explorer linki ile ayni transaction'i disaridan kontrol edebiliyorum.
+Boylece project admin, builder ve varsa ek admin/reviewer wallet'lari ayni ledger
+kaydina bakiyor."
+
+
+SAHNE 11 - HOLD / REFUND BRANCH (OPSIONAL, 20-30 SANIYE)
+
+Yeni refund engagement'i cekimde bekletmek yerine hazir public kaydi kullanin:
+- https://sprintos-ai.vercel.app/e/3
+- Status Held/Refunded, deadline ve Reclaimed by project admin miktarini gosterin.
+- Settlement log'da evidence -> hold -> refund sirasini gosterin.
+
+Seslendirme:
+"Olumlu yolun alternatifi Hold. Reviewer kaniti yetersiz bulursa milestone'i
+revision icin tutar; deadline gecince sponsor kalan escrow'u refund ile geri alir.
+Hazir public kayit #3 bu branch'i, transaction sirasi ve explorer linkleriyle
+gosteriyor. Erken refund denemesi contract tarafinda DeadlineNotReached ile
+reddediliyor."
+
+
+SAHNE 12 - KAPANIS: AI SINIRI (OPSIONAL, 20 SANIYE)
+
+Ekran:
+- https://sprintos-ai.vercel.app/evidence/ai-boundary
+- 100/100 test vector, binding:false, AI transaction: none.
+- Unauthorized approve/release satirlari.
+- Human approve ve human release explorer linkleri.
+
+Seslendirme:
+"Son kanit AI boundary. 100/100 rapor var ama AI payment transaction yok; cunku
+score kontrata hicbir zaman parametre olarak gonderilmiyor. Yetkisiz agent approve
+ve release cagrisinda Unauthorized aliyor. Ayni milestone ancak human reviewer'in
+iki ayri imzasindan sonra settle oluyor. SprintOS AI ile review'u hizlandiriyor;
+karari veya parayi AI'a teslim etmiyor."
+
+
+5. YENI ENGAGEMENT BASARISIZ OLURSA YEDEK KESME PLANI
+
+Canli yeni engagement'in her adimini tamamlamak icin wallet bakiyesi veya GitHub
+API gecikmesi sorun olursa kaydi asagidaki sekilde kurgu ile yine butunlestirin:
+
+1) Landing -> /projects -> /projects/new ekranlarinda repo baglama, milestone
+   edit, roller ve final review adimlarini cekin; final receipt'teki repo adi,
+   builder ve miktarlar gorunur olsun.
+2) Create/Fund adimini hazir #2'nin public record'undan devam ettirin. Ses:
+   "Bu akisin daha once tamamlanmis public testnet kaydi #2."  #2 eski v1 kontratinda
+   oldugu icin sayfadaki Verify it yourself linkini mutlaka gosterin.
+3) Builder submit ve reviewer approve/release ekranlarini ayni engagement ID ile
+   gostermeye calisin. Hazir kayit ekranina donuluyorsa bunu "public record" diye
+   adlandirin, yeni transaction gibi anlatmayin.
+4) 100/100 siniri icin dogrudan #1002 ve /evidence/ai-boundary cutaway kullanin.
+
+Bu yedek plan, yeni proje wizard'inin gercek oldugunu ve settlement kanitinin
+ayri bir canli record oldugunu birbirine karistirmadan gostermelidir.
+
+
+6. CEKIM SONRASI KONTROL LISTESI
+
+- [ ] Video adi: 18-sprintos-demo-video.mp4 veya teslim paketinin belirledigi tek ad.
+- [ ] Video 3-5 dakika; landing'den basliyor.
+- [ ] Repo tam URL'si ekranda: github.com/egekoca/SprintOS.
+- [ ] Yeni engagement ID, create hash ve fund hash not edildi.
+- [ ] Builder evidence hash ve submit transaction gorunuyor.
+- [ ] Criteria/evidence "matches chain" rozetleri gorunuyor.
+- [ ] Advisory report score ve binding:false gorunuyor.
+- [ ] Approve ve Release iki ayri wallet imzasi olarak kayitli.
+- [ ] Public engagement sayfasinda status, amount, parties ve settlement log gorunuyor.
+- [ ] En az bir Stellar Expert transaction linki acildi.
+- [ ] #3 Hold/refund branch'i veya esit derecede canli kayit gosterildi.
+- [ ] /evidence/ai-boundary'de AI transaction none ve Unauthorized gorunuyor.
+- [ ] Seed phrase, private key, OPENAI key, Blob token ve gereksiz hesap bilgisi yok.
+- [ ] Video yuklendikten sonra docs/EVIDENCE.md ve runbook'taki "outstanding"
+      ifadeleri gercek dosya/link ile guncellendi.
+
+
+7. VIDEO SONRASI KANIT DOKUMANI GUNCELLEMESI
+
+Repo icindeki evidence kaydinin kendi acigini kabul etmesi dogruydu; ancak video
+cekildikten sonra su metinler stale kalmamali:
+
+- apps/web/lib/evidence.ts icinde Deliverable 3 documentation maddesi.
+- apps/web/lib/evidence.ts icinde role screenshots/demo video maddesi.
+- docs/EVIDENCE.md (pnpm evidence:doc ile yeniden uretiliyor).
+- docs/FIRST-MONTH-EVIDENCE-RUNBOOK.md final packet dosya adi ve durumlari.
+
+Guncelleme iddiasi:
+"Demo video ve wallet signing recording tamamlandi. Kayit landing page'den
+baslayarak repo baglama, milestone plan, sponsor funding, builder evidence,
+advisory review, human approve, ayri human release ve public explorer verification
+akisini gosterir."
+
+Yerel dogrulama (bu incelemede):
+- pnpm test: 178 test passed (16 schema + 53 advisory + 109 application).
+- pnpm typecheck: passed.
+- pnpm lint:boundaries: passed; advisory/schemas chain'e erisemiyor.
+- Cargo contract testleri bu inceleme adiminda tekrar calistirilmadi; teslimden
+  once cargo test --package sprintos-settlement ve runbook'taki tam verification
+  komutlari ayri olarak alinmali.

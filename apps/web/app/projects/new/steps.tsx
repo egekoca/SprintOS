@@ -154,7 +154,7 @@ export function ScopeStep({ setup }: { setup: EngagementSetup }) {
   );
 }
 
-/** Step 3 — who builds it and who decides whether it was built. */
+/** Step 3 — the project admin, the builder, and any additional admin wallets. */
 export function RolesStep({ setup }: { setup: EngagementSetup }) {
   const { address } = setup;
 
@@ -171,7 +171,7 @@ export function RolesStep({ setup }: { setup: EngagementSetup }) {
         <div className="panel stack">
           <div className="sponsor-section-title">
             <span><ProductIcon name="wallet" size={22} /></span>
-            <div><p className="eyebrow">Sponsor</p><h3>Your wallet</h3></div>
+            <div><p className="eyebrow">Project admin</p><h3>Your wallet</h3></div>
           </div>
           {address ? (
             <p className="wallet-ready">
@@ -194,14 +194,14 @@ export function RolesStep({ setup }: { setup: EngagementSetup }) {
           </div>
 
           <div className="field">
-            <span className="group-label" id="deciders-label">Who can release the money?</span>
+            <span className="group-label" id="deciders-label">Additional admin wallets</span>
             <div className="deciders" role="group" aria-labelledby="deciders-label">
               <p className="decider-you">
                 <ProductIcon name="check" size={16} />
                 <span>
-                  <b>You do{address ? ` — ${shortAccount(address)}` : ""}.</b> You wrote the
-                  milestones and you are funding them, so your wallet decides every payout.
-                  Nothing below is required.
+                  <b>You are the first admin{address ? ` — ${shortAccount(address)}` : ""}.</b> You
+                  created the project, wrote the milestones and fund them, so your wallet can
+                  review and decide every payout. Nothing below is required.
                 </span>
               </p>
 
@@ -211,14 +211,14 @@ export function RolesStep({ setup }: { setup: EngagementSetup }) {
                     type="text"
                     placeholder="G…"
                     value={who}
-                    aria-label={`Authorised wallet ${index + 1}`}
+                    aria-label={`Additional admin wallet ${index + 1}`}
                     onChange={(event) => setup.updateReviewer(index, event.target.value)}
                   />
                   <button
                     type="button"
                     className="decider-remove"
                     onClick={() => setup.removeReviewer(index)}
-                    aria-label={`Remove authorised wallet ${index + 1}`}
+                    aria-label={`Remove additional admin wallet ${index + 1}`}
                   >
                     Remove
                   </button>
@@ -227,14 +227,14 @@ export function RolesStep({ setup }: { setup: EngagementSetup }) {
 
               {setup.extraReviewers.length < MAX_EXTRA_REVIEWERS && (
                 <button type="button" className="decider-add" onClick={setup.addReviewer}>
-                  + Authorise another wallet
+                  + Add another admin wallet
                 </button>
               )}
 
               <small className="field-hint">
-                Anyone you add can read the evidence and release payments on this engagement,
-                acting on their own. You can add or remove them later. The builder can never
-                be added.
+                Anyone you add becomes an additional admin/reviewer. They can read the evidence
+                and release payments on this engagement, acting on their own. Add them before
+                signing the project terms. The builder can never be added.
               </small>
             </div>
           </div>
@@ -269,7 +269,7 @@ export function ReviewStep({ setup }: { setup: EngagementSetup }) {
         <ReceiptRow icon="wallet" label="Builder" value={shortAccount(setup.builder)} />
         <ReceiptRow
           icon="signature"
-          label="Decides payouts"
+          label="Project admin / payout admins"
           value={
             setup.extraReviewers.filter(Boolean).length === 0
               ? `${shortAccount(setup.address ?? "")} · you`
