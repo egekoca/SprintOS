@@ -15,6 +15,7 @@ import { MilestoneScores } from "@/components/MilestoneScores";
 import { UsdcMark } from "@/components/UsdcMark";
 import { useWallet } from "@/components/WalletProvider";
 import { SettlementLog } from "@/components/SettlementLog";
+import { ProductIcon } from "@/components/ProductIcon";
 
 /**
  * The public engagement page.
@@ -39,6 +40,8 @@ export default function EngagementPage() {
   const [locked, setLocked] = useState<bigint | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [repository, setRepository] = useState<string | null>(null);
+  const [repositoryLoaded, setRepositoryLoaded] = useState(false);
   const { address } = useWallet();
   /* Bumped by the retry button; the read effect depends on it. */
   const [attempt, setAttempt] = useState(0);
@@ -51,15 +54,25 @@ export default function EngagementPage() {
     setEngagement(null);
     setLocked(null);
     setError(null);
+    setRepository(null);
+    setRepositoryLoaded(false);
     if (!validId) {
       setError("Engagement ids must be non-negative whole numbers.");
       setLoading(false);
       return;
     }
-    Promise.all([getEngagement(BigInt(id)), getBalance(BigInt(id))])
-      .then(([e, b]) => {
+    Promise.all([
+      getEngagement(BigInt(id)),
+      getBalance(BigInt(id)),
+      fetch(`/api/project?engagement_id=${encodeURIComponent(id)}`, { cache: "no-store" })
+        .then((response) => (response.ok ? response.json() : null))
+        .catch(() => null),
+    ])
+      .then(([e, b, projectBody]) => {
         setEngagement(e);
         setLocked(b);
+        setRepository(typeof projectBody?.project?.repository === "string" ? projectBody.project.repository : null);
+        setRepositoryLoaded(true);
       })
       .catch((err) => setError(err instanceof Error ? err.message : String(err)))
       .finally(() => setLoading(false));
@@ -101,6 +114,34 @@ export default function EngagementPage() {
         <p className="lede">
           Read from Stellar testnet, not reported by the application.
         </p>
+      </div>
+
+      <div
+        className="panel stack-s"
+        style={{ borderColor: "var(--edge-bright)", background: "var(--concrete)" }}
+      >
+        <div className="row" style={{ alignItems: "flex-start", gap: "0.75rem" }}>
+          <ProductIcon name="github" size={22} />
+          <div className="stack-s" style={{ gap: "0.25rem", minWidth: 0 }}>
+            <p className="eyebrow">Source repository</p>
+            {repository ? (
+              <a
+                href={repository}
+                target="_blank"
+                rel="noreferrer"
+                className="badge-link"
+                style={{ overflowWrap: "anywhere", fontSize: "1rem" }}
+              >
+                {repository} ↗
+              </a>
+            ) : (
+              <strong>{repositoryLoaded ? "Repository metadata unavailable" : "Reading repository metadata…"}</strong>
+            )}
+            <p className="faint" style={{ fontSize: "0.8125rem" }}>
+              The milestones below are evaluated against this repository.
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="grid-3">
