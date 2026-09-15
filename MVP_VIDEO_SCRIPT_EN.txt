@@ -1,0 +1,369 @@
+SPRINTOS AI REVIEWER - MVP VIDEO SCRIPT
+English recording script for the Instawards submission
+Date: 16 September 2026
+
+
+MAIN VIDEO FLOW - READ THIS SCRIPT ON CAMERA
+
+Target duration: 1:15-1:30 for the landing page, followed by approximately
+2:30 in the app. Each section tells you what to show, what to click, what to
+read, and what to say.
+
+DEMO SETUP
+- Repository: https://github.com/egekoca/SprintOS
+- Milestone 1: Stellar milestone settlement contract - 500 USDC
+- Milestone 2: AI assisted advisory review and security boundary - 300 USDC
+- Milestone 3: Public SprintOS web MVP and verifiable evidence flow - 200 USDC
+- Total testnet award: 1,000 USDC
+- Project admin: the wallet that creates the project and writes the milestones;
+  it is also the sponsor and the default human reviewer.
+- Builder: a separate testnet wallet that submits evidence and receives payment.
+- Additional admin/reviewer wallets are optional. The builder can never be one.
+
+Before recording, confirm that the testnet wallet, testnet USDC, Blob storage,
+the advisory service and /api/health are ready. Never show a seed phrase,
+private key, API key or storage token.
+
+
+PART A - LANDING PAGE (TARGET: 1:15-1:30)
+
+LANDING 1 - OPENING HERO (00:00-00:15 / 15 seconds)
+
+Screen and actions:
+1. Open https://sprintos-ai.vercel.app/.
+2. Stay at the top of the page. Keep the SprintOS logo, “Built. Proven. Paid.”
+   headline and “Open SprintOS” button in the frame.
+3. Do not click during the first 15 seconds; let the hero animation finish.
+
+Read this:
+"Hello, I am Ege. Today I will show you SprintOS. SprintOS is an AI-assisted
+milestone payment and review application running on the Stellar testnet. The
+project admin defines the work and its acceptance criteria. The builder submits
+public proof. AI prepares an advisory review, while the decision to approve or
+move money always belongs to a human wallet."
+
+Read on screen:
+- Built. Proven. Paid.
+- Fund a milestone. Prove the work. A person releases the payment.
+
+
+LANDING 2 - THE PROBLEM (00:15-00:30 / 15 seconds)
+
+Screen and actions:
+1. Scroll down one full section to the #problem section.
+2. Slowly move across the cards: “The target moves”, “The proof scatters”,
+   and “The money waits”. Do not click the cards.
+
+Read this:
+"Grant, freelance and contributor payments usually have three problems. The
+target can change during the project. Proof is scattered across GitHub, tests,
+documentation and messages. Finally, payment depends on trust or a slow manual
+review instead of a clear record. SprintOS brings all three parts into one flow."
+
+
+LANDING 3 - THE SOLUTION (00:30-00:45 / 15 seconds)
+
+Screen and actions:
+1. Scroll down to the #solution section.
+2. Follow the flow from left to right: “Scope is fixed” -> “Work is attached”
+   -> “A person signs” -> “Money moves”.
+
+Read this:
+"SprintOS has four steps. First, the scope is fixed. Then the work is attached
+to a GitHub repository. AI reads the evidence and prepares a report for the
+reviewer. A named human wallet approves or holds the work, and signs a separate
+transaction to release payment. AI speeds up review; it does not control the
+decision or the money."
+
+
+LANDING 4 - ESCROW AND MILESTONES (00:45-01:00 / 15 seconds)
+
+Screen and actions:
+1. Scroll to the #escrow section.
+2. Show “One budget, three proofs” and the escrow tree leading to three
+   milestones.
+3. Keep the illustration visible for a moment. Those illustration amounts are
+   not the demo amounts; the app demo will use 500, 300 and 200 USDC.
+
+Read this:
+"One budget is divided into separate deliverables. Each milestone has a title,
+acceptance criteria, a deadline and an amount. The illustration shows the idea;
+in the application I will create a real SprintOS plan with 500, 300 and 200
+testnet USDC."
+
+
+LANDING 5 - LIVE TOTALS (01:00-01:12 / 12 seconds)
+
+Screen and actions:
+1. Scroll to the Live Totals section.
+2. Wait for the totals to load and keep the cards visible.
+
+Read this:
+"These totals are not an application estimate. They summarize funded and
+released milestones read from the Stellar testnet ledger. Funding an engagement
+does not mean the builder has been paid. Payment appears only after the human
+release signature."
+
+
+LANDING 6 - TRUST BOUNDARY AND ENTERING THE APP (01:12-01:30 / 18 seconds)
+
+Screen and actions:
+1. Scroll to the #trust section.
+2. Show the two columns: “The software / Reads and reports” and “A named person
+   / Reads and decides”.
+3. Read the lines “No wallet. No signing key.” and “The payment moves because
+   they signed.”
+4. Scroll to the bottom and click “Enter SprintOS”.
+
+Read this:
+"The trust boundary is explicit. The software reads public evidence, compares
+it with the criteria and returns a score. It has no wallet, signing key or
+payment method. The named human reads the same record and decides with their
+own wallet. I will now show the same flow inside the application."
+
+
+PART B - APPLICATION (TARGET: ABOUT 2:30)
+
+APP 1 - PROJECTS AND THE PROJECT ADMIN WALLET (01:30-01:42 / 12 seconds)
+
+Screen and actions:
+1. On /projects, click “Connect wallet”.
+2. Confirm the Stellar testnet account in the wallet.
+3. When the shortened address appears, click “New project”.
+
+Read this:
+"The Projects page lists engagements associated with the connected wallet. I
+am connecting the project admin wallet. This wallet creates and funds the
+project, and it is the default human reviewer in this demo. The application
+does not hold the private key; it hands signing requests to the wallet. I am
+opening a new project now."
+
+
+APP 2 - ATTACH THE REPOSITORY (01:42-01:57 / 15 seconds)
+
+Screen and actions:
+1. On /projects/new, keep Step 01, “Repository”, visible.
+2. Select the “Public repository” mode.
+3. Enter: https://github.com/egekoca/SprintOS
+4. Click “Scan repository”.
+5. Show the SprintOS name, default branch and any milestone or open-item count.
+6. Leave “Attached to this engagement” visible and click “Continue to scope”.
+   If GitHub milestones are returned, select up to three and click “Use ...
+   milestones”. Otherwise continue with a Manual plan.
+
+Read this:
+"I am attaching the official SprintOS repository to this engagement. Because
+the repository is public, I can scan it by URL without GitHub OAuth. This link
+defines where the builder's public proof will come from. The repository is
+attached, so I am moving on to the delivery plan."
+
+
+APP 3 - CREATE THE THREE MILESTONES (01:57-02:27 / 30 seconds)
+
+Screen and actions:
+1. On Step 02, select “Manual”.
+2. Create three milestone cards and enter these values.
+
+MILESTONE 1
+Title: Stellar milestone settlement contract
+Outcome: The Stellar testnet flow works from engagement creation and USDC
+funding through evidence submission, human approval, separate release and
+deadline refund.
+Acceptance criteria:
+1. The project admin and builder are different Stellar testnet wallets; the
+   project admin is the default reviewer.
+2. The engagement is funded with testnet USDC and contains no more than three
+   milestones.
+3. Builder evidence changes the milestone to EvidenceSubmitted.
+4. Human Approve changes the status to Approved without moving the money.
+5. A separate human Release signature transfers the milestone amount to the
+   builder and produces a public transaction hash.
+Amount: 500 USDC
+
+MILESTONE 2
+Title: AI assisted advisory review and security boundary
+Outcome: A public evidence review report is generated, while the security
+boundary proves that AI cannot move money.
+Acceptance criteria:
+1. The report contains a score, criterion checklist, missing information and
+   recommendation.
+2. The report contains binding:false and a report_hash.
+3. The report runs only when a reviewer requests it; the repository is not
+   monitored in the background and submitted code is not executed.
+4. The advisory package has no wallet, signing key, Stellar SDK or payment
+   endpoint.
+5. A 100/100 score or an unauthorized account cannot call approve or release.
+Amount: 300 USDC
+
+MILESTONE 3
+Title: Public SprintOS web MVP and verifiable evidence flow
+Outcome: The public web MVP connects the project admin, builder and reviewer
+flows with repository evidence, wallet signatures, hashes and explorer links.
+Acceptance criteria:
+1. The project admin can complete repository, milestone, role and final review
+   steps in /projects/new.
+2. The builder can read the criteria and submit up to five typed public links
+   from /builder.
+3. The reviewer can see criteria, evidence and the advisory report together;
+   decisions stay disabled until the hashes match the ledger.
+4. Approve and Release are two separate human wallet signatures and appear in
+   the public engagement record with transaction hashes.
+5. /e/:id shows status, amounts, deadlines, parties, the settlement log and the
+   correct deployment contract link.
+Amount: 200 USDC
+
+3. Set the start date to today and due dates to +7, +14 and +21 days.
+4. Enter `1000` in “Total award” and click “Split across 3 milestones”.
+5. Show the readout: 500 / 300 / 200 USDC, total 1,000 USDC.
+6. Click “Continue to roles”.
+
+Read this:
+"I am turning SprintOS into three checkable milestones. The first is the
+settlement contract. The second is the advisory report and its security boundary.
+The third is the public web MVP that connects both flows. Each milestone has an
+outcome, acceptance criteria, a deadline and a value. I am allocating the
+1,000-testnet-USDC demo as 500, 300 and 200."
+
+
+APP 4 - ASSIGN THE PROJECT ADMIN AND BUILDER (02:27-02:42 / 15 seconds)
+
+Screen and actions:
+1. On Step 03, show “Project admin / Your wallet” with the connected address.
+2. Enter the separate builder testnet address in “Builder wallet address”.
+3. Show “You are the first admin” under “Additional admin wallets”.
+4. For this recording, leave additional admin wallets empty. Explain that the
+   project admin can add other admin/reviewer wallets before signing.
+5. Click “Review engagement”.
+
+Read this:
+"The connected wallet is the first project admin. It creates the project, funds
+it and can review and decide payouts. The builder is the only other required
+role and can submit proof but can never approve their own work. Additional
+admin or reviewer wallets are optional and can be authorized here."
+
+
+APP 5 - FINAL REVIEW, CREATE AND FUND (02:42-03:00 / 18 seconds)
+
+Screen and actions:
+1. On Step 04, read the receipt from top to bottom: repository, builder, project
+   admin, milestone dates, criteria and amounts.
+2. Check “I have read every milestone and requirement above”.
+3. Click “Continue to sign”, then “Yes, lock and sign”.
+4. Confirm the create transaction in the wallet.
+5. Show “Engagement created”, the engagement ID and the create transaction hash.
+6. Click “Fund 1000 USDC”, confirm the second wallet transaction, and show
+   “Escrow funded” plus the fund hash.
+
+Read this:
+"The final receipt shows exactly what the project admin is committing: the
+repository, builder, admin authority, dates, criteria and amounts. The checkbox
+is a real read-through attestation. The create signature hashes and fixes the
+milestone terms on the ledger. The second signature puts 1,000 testnet USDC in
+escrow. The builder has not been paid yet; the money is locked to the defined work."
+
+
+APP 6 - THE BUILDER SUBMITS EVIDENCE (03:00-03:20 / 20 seconds)
+
+Screen and actions:
+1. Switch the browser wallet to the separate builder testnet account.
+2. Open /builder.
+3. Select the new engagement and Milestone 1.
+4. Keep the full acceptance criteria visible.
+5. Add these public links and choose their types:
+   - https://github.com/egekoca/SprintOS - Repository
+   - https://github.com/egekoca/SprintOS/tree/main/contracts/settlement - Test result/source
+   - https://github.com/egekoca/SprintOS/blob/main/docs/SECURITY.md - Documentation
+6. Add this note: “Settlement and AI boundary proof are in the public repository
+   and documentation.”
+7. Click “Sign: submit evidence” and confirm in the builder wallet.
+8. Show “Evidence recorded on chain”, the evidence hash and the transaction link.
+
+Read this:
+"The builder sees the exact criteria fixed by the project admin. The builder
+submits public links through a typed evidence form. SprintOS hashes the bundle,
+and the builder wallet signs submit_evidence. The milestone is now
+EvidenceSubmitted. The reviewer will inspect this same bundle and this same hash."
+
+
+APP 7 - REVIEWER DESK AND AI SCORE (03:20-03:45 / 25 seconds)
+
+Screen and actions:
+1. Switch the wallet back to the project admin wallet, which is the default
+   human reviewer for this engagement.
+2. Open /review.
+3. Under “Waiting on you”, open the new EvidenceSubmitted milestone. The URL is
+   /review/{NEW_ID}/0.
+4. Show “matches chain” on Acceptance criteria and Submitted evidence.
+5. Click “Generate report” in the advisory panel.
+6. Read the score, checklist, recommendation, missing information, binding:false
+   and report hash.
+
+Read this:
+"The reviewer desk puts three things together: what the project admin agreed to,
+what the builder submitted, and what the advisory module thinks. Both documents
+match the hashes recorded on chain. I am requesting the report now. AI returns a
+score, criterion checklist, missing information and a recommendation. The report
+is explicitly binding:false. It is not an approval, it is not a payment command,
+and it is never passed to the settlement contract as an argument."
+
+Optional proof cutaway:
+- Open /e/1002 or /evidence/ai-boundary.
+- Show 100/100, ReadyForReview and EvidenceSubmitted.
+- Say: “A perfect score still leaves the milestone in EvidenceSubmitted. The
+  escrow and builder balance do not change.”
+
+
+APP 8 - HUMAN APPROVE, SEPARATE RELEASE AND PUBLIC RECORD (03:45-04:00 / 15 seconds)
+
+Screen and actions:
+1. Check “I read the evidence against the criteria myself”.
+2. Click “Sign: approve” and confirm in the project admin wallet.
+3. Show “Approval recorded” and the Approved status.
+4. Click “Sign: release 500 USDC” and confirm the second wallet transaction.
+5. Show “Payment released to the builder” and the release hash.
+6. Click “Open engagement” and open /e/{NEW_ID}.
+7. Show Paid to builder, the settlement log and the “Verify it yourself” contract
+   link.
+
+Read this:
+"Now the human decision happens. I attest that I read the evidence and sign
+Approve. This records a judgement; the money has not moved yet. Once the status
+is Approved, the separate Release action becomes available. I sign a second
+transaction with the same project admin wallet, and 500 USDC moves to the
+builder. The public engagement page shows the two signatures, status, amount,
+transaction hashes and the Stellar Explorer link. The human signature changed
+the state, not the AI score."
+
+
+APP 9 - HOLD, REFUND AND AI BOUNDARY CLOSE (04:00-04:10 / 10 seconds)
+
+Screen and actions:
+1. Open https://sprintos-ai.vercel.app/e/3.
+2. Show Held/Refunded, the deadline, Reclaimed by project admin and the settlement
+   log.
+3. Open /evidence/ai-boundary and briefly show 100/100 and the Unauthorized rows.
+
+Read this:
+"The alternative path is Hold. If the evidence is insufficient, the project
+admin or an additional admin reviewer holds the milestone. After the deadline,
+the project admin can reclaim the remaining escrow. Finally, the 100/100 boundary
+proof shows unauthorized approve and release attempts returning Unauthorized.
+AI helps with review, but the decision and the money remain with human wallets."
+
+
+RECORDING CHECKLIST
+
+- The recording starts on the landing page.
+- The opening says “Hello, I am Ege” and explains SprintOS in plain English.
+- The repository URL is visible: github.com/egekoca/SprintOS.
+- Project admin and builder are shown as the two required wallets.
+- Optional additional admin/reviewer wallets are explained accurately.
+- The three milestone titles, outcomes, criteria and 500/300/200 amounts are visible.
+- The create and fund wallet confirmations are visible without secrets.
+- Builder evidence hash and transaction link are visible.
+- Criteria and evidence show “matches chain”.
+- The advisory score and binding:false are visible.
+- Approve and Release are shown as two separate human signatures.
+- The public engagement page shows the source repository, status and settlement log.
+- Hold/refund and the 100/100 AI boundary are shown as the closing proof.
+
