@@ -106,7 +106,7 @@ export function SubmitProof({
           Cancel
         </button>
         <button type="button" className="btn btn-primary btn-sm" onClick={submit} disabled={busy}>
-          {busy ? <><FoxSpinner /> Waiting for signature…</> : "Sign and submit"}
+          {busy ? <><FoxSpinner /> Reading repository…</> : "Scan repository and sign"}
         </button>
       </div>
     </div>
