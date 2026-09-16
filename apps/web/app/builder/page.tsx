@@ -9,7 +9,7 @@ import {
   submitEvidence,
   type Engagement,
 } from "@/lib/stellar/contract";
-import { BUILDER_CLAIM_ENABLED, PUBLIC_APP_URL, formatUsdc, isPublicOrigin } from "@/lib/stellar/config";
+import { BUILDER_CLAIM_ENABLED, formatUsdc } from "@/lib/stellar/config";
 import { StatusPill } from "@/components/StatusPill";
 import { TxLink } from "@/components/TxLink";
 import { FoxLoader, FoxSpinner } from "@/components/FoxLoader";
@@ -17,7 +17,6 @@ import { MilestoneFlow } from "@/components/MilestoneFlow";
 import { MilestoneCriteria } from "@/components/MilestoneDocuments";
 import { ProductIcon } from "@/components/ProductIcon";
 import { WalletGate } from "@/components/WalletGate";
-import { MAX_EVIDENCE, type EvidenceType } from "@sprintos/schemas/milestone";
 
 /**
  * The builder's desk.
@@ -28,27 +27,12 @@ import { MAX_EVIDENCE, type EvidenceType } from "@sprintos/schemas/milestone";
  * a builder was asked to prove a milestone without being told what it required.
  */
 
-const TYPES: { value: EvidenceType; label: string }[] = [
-  { value: "repo", label: "Repository" },
-  { value: "commit", label: "Commit" },
-  { value: "pull_request", label: "Pull request" },
-  { value: "test_result", label: "Test result" },
-  { value: "docs", label: "Documentation" },
-  { value: "demo", label: "Demo" },
-];
-
-interface LinkRow { url: string; type: EvidenceType }
-
-const emptyLinks = (): LinkRow[] => [{ url: "", type: "repo" }];
-
 export default function BuilderPage() {
   const { address } = useWallet();
   const [engagements, setEngagements] = useState<Engagement[]>([]);
   const [loading, setLoading] = useState(true);
   const [engagementIndex, setEngagementIndex] = useState(0);
   const [milestoneIndex, setMilestoneIndex] = useState(0);
-  const [links, setLinks] = useState<LinkRow[]>(emptyLinks);
-  const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<{ hash: string; action: "submit" | "claim" } | null>(null);
@@ -85,8 +69,6 @@ export default function BuilderPage() {
   useEffect(() => {
     setEngagementIndex(0);
     setMilestoneIndex(0);
-    setLinks(emptyLinks());
-    setNote("");
     setDone(null);
   }, [address]);
 
@@ -99,8 +81,6 @@ export default function BuilderPage() {
 
   function selectMilestone(index: number) {
     setMilestoneIndex(index);
-    setLinks(emptyLinks());
-    setNote("");
     setError(null);
     setDone(null);
   }
@@ -110,34 +90,29 @@ export default function BuilderPage() {
     setError(null);
     setBusy(true);
     try {
-      const cleaned = links.filter((link) => link.url.trim());
-      if (cleaned.length === 0) throw new Error("Add at least one public link.");
+      const projectResponse = await fetch(`/api/project?engagement_id=${engagement.id}`);
+      const projectBody = (await projectResponse.json()) as { project?: { repository?: string }; error?: string };
+      if (!projectResponse.ok || !projectBody.project?.repository) {
+        throw new Error(projectBody.error ?? "This project has no repository attached.");
+      }
 
-      const bundle = {
-        schema_version: "1.0.0" as const,
-        engagement_id: String(engagement.id),
-        milestone_idx: milestoneIndex,
-        submitted_at: new Date().toISOString(),
-        ...(note.trim() ? { note: note.trim() } : {}),
-        links: cleaned.map((link) => ({ url: link.url.trim(), type: link.type })),
-      };
-
-      const response = await fetch("/api/evidence", {
+      const response = await fetch("/api/progress", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(bundle),
+        body: JSON.stringify({
+          engagement_id: String(engagement.id),
+          milestone_idx: milestoneIndex,
+          criteria_hash: milestone.criteria_hash,
+          repository: projectBody.project.repository,
+        }),
       });
-      const body = (await response.json()) as { hash?: string; error?: string };
-      if (!response.ok || !body.hash) throw new Error(body.error ?? "The evidence bundle was rejected.");
+      const body = (await response.json()) as { evidence_hash?: string; evidence_uri?: string; error?: string };
+      if (!response.ok || !body.evidence_hash || !body.evidence_uri) {
+        throw new Error(body.error ?? "The repository could not be inspected.");
+      }
 
-      /* Anchored on chain for good, so it must be the deployment's public
-         address rather than whatever host this tab happens to be on. */
-      const base = PUBLIC_APP_URL || window.location.origin;
-      const bundleUri = new URL(`/api/evidence?hash=${encodeURIComponent(body.hash)}`, base).toString();
-      const tx = await submitEvidence(address, engagement.id, milestoneIndex, body.hash, bundleUri);
+      const tx = await submitEvidence(address, engagement.id, milestoneIndex, body.evidence_hash, body.evidence_uri);
       setDone({ hash: tx.hash, action: "submit" });
-      setLinks(emptyLinks());
-      setNote("");
       try {
         await refresh();
       } catch {
@@ -274,72 +249,13 @@ export default function BuilderPage() {
 
             {canSubmit && (
               <div className="evidence-form">
-                <div className="stack-s" role="group" aria-labelledby="evidence-links-label">
-                  <span className="group-label" id="evidence-links-label">Public links — proof anyone can open without a login</span>
-                  {links.map((link, index) => (
-                    <div className="evidence-row" key={index}>
-                      <input
-                        type="url"
-                        placeholder="https://github.com/…"
-                        value={link.url}
-                        onChange={(event) =>
-                          setLinks((current) =>
-                            current.map((row, i) => (i === index ? { ...row, url: event.target.value } : row)),
-                          )
-                        }
-                      />
-                      <select
-                        value={link.type}
-                        onChange={(event) =>
-                          setLinks((current) =>
-                            current.map((row, i) =>
-                              i === index ? { ...row, type: event.target.value as EvidenceType } : row,
-                            ),
-                          )
-                        }
-                      >
-                        {TYPES.map((type) => (
-                          <option key={type.value} value={type.value}>{type.label}</option>
-                        ))}
-                      </select>
-                      {links.length > 1 && (
-                        <button
-                          type="button"
-                          className="evidence-remove"
-                          aria-label={`Remove link ${index + 1}`}
-                          onClick={() => setLinks((current) => current.filter((_, i) => i !== index))}
-                        >
-                          ×
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                  {links.length < MAX_EVIDENCE && (
-                    <button
-                      type="button"
-                      className="btn btn-ghost btn-sm"
-                      onClick={() => setLinks((current) => [...current, { url: "", type: "repo" }])}
-                    >
-                      Add link
-                    </button>
-                  )}
-                </div>
-
-                <div className="field">
-                  <label htmlFor="note">Note for the reviewer (optional)</label>
-                  <textarea
-                    id="note"
-                    rows={3}
-                    value={note}
-                    onChange={(event) => setNote(event.target.value)}
-                    placeholder="What changed since last time, or where to start reading."
-                  />
-                </div>
-
-                <EvidenceUriNotice />
+                <p className="muted" style={{ margin: 0 }}>
+                  SprintOS will read the repository already attached to this project, collect the
+                  relevant files and prepare the evidence automatically.
+                </p>
 
                 <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={busy}>
-                  {busy ? <><FoxSpinner /> Waiting for signature…</> : <><ProductIcon name="signature" size={18} /> Sign: submit evidence</>}
+                  {busy ? <><FoxSpinner /> Reading repository…</> : <><ProductIcon name="signature" size={18} /> Scan repository and sign</>}
                 </button>
               </div>
             )}
@@ -365,27 +281,5 @@ export default function BuilderPage() {
         </>
       )}
     </section>
-  );
-}
-
-/**
- * Warn when the link about to be written into contract storage would not
- * resolve for anyone else.
- *
- * Not a block: submitting evidence has to work on a laptop during development
- * and in a demo. But the URI is permanent, so the builder should know when the
- * one they are signing is private to their own machine.
- */
-function EvidenceUriNotice() {
-  const [origin, setOrigin] = useState<string | null>(null);
-  useEffect(() => setOrigin(PUBLIC_APP_URL || window.location.origin), []);
-  if (origin === null || isPublicOrigin(origin)) return null;
-  return (
-    <p className="notice">
-      This deployment has no public address configured, so the evidence link
-      anchored on chain will point at <code>{origin}</code> and nobody else will
-      be able to open it. Set <code>NEXT_PUBLIC_APP_URL</code> before submitting
-      evidence you intend to hand to a reviewer.
-    </p>
   );
 }

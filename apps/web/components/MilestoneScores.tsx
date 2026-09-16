@@ -175,6 +175,7 @@ export function MilestoneScores({
                 <SubmitProof
                   engagementId={engagementId}
                   milestoneIdx={idx}
+                  criteriaHash={milestone.criteria_hash}
                   builder={engagement.builder}
                   onCancel={() => setProving(null)}
                   onDone={() => {

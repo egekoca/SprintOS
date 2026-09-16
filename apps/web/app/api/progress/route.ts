@@ -294,11 +294,28 @@ export async function POST(request: Request) {
   const chosen = chooseEvidencePaths(repository, root.entries, root.branch);
   const links = await openDirectories(owner, repo, root.branch, repository, chosen, headers);
   const evidence = repositoryEvidence(parsed.engagement_id, parsed.milestone_idx, links);
+  let evidenceHash: string;
+  try {
+    evidenceHash = await store.putEvidence(evidence);
+  } catch (error) {
+    if (error instanceof StoreUnavailableError) {
+      return NextResponse.json({ error: error.message }, { status: 503 });
+    }
+    throw error;
+  }
+  const evidenceBase = process.env.PUBLIC_APP_URL?.trim() || new URL(request.url).origin;
+  const evidenceUri = new URL(
+    `/api/evidence?hash=${encodeURIComponent(evidenceHash)}`,
+    evidenceBase,
+  ).toString();
 
   try {
     const report = await generateReport({ criteria, evidence });
+    await store.putReport(report, evidenceHash);
     return NextResponse.json({
       report,
+      evidence_hash: evidenceHash,
+      evidence_uri: evidenceUri,
       /* Said in the response as well as in the bundle, because a caller that
          renders this next to a real report must be able to tell them apart. */
       source: "repository",
@@ -311,6 +328,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "The model returned a report that failed validation." }, { status: 502 });
     }
     if (error instanceof AdvisoryUnavailableError) {
+      return NextResponse.json({ error: error.message }, { status: 503 });
+    }
+    if (error instanceof StoreUnavailableError) {
       return NextResponse.json({ error: error.message }, { status: 503 });
     }
     throw error;
