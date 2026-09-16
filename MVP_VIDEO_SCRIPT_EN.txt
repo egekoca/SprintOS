@@ -11,9 +11,9 @@ read, and what to say.
 
 DEMO SETUP
 - Repository: https://github.com/egekoca/SprintOS
-- Milestone 1: Stellar milestone settlement contract - 500 USDC
-- Milestone 2: AI assisted advisory review and security boundary - 300 USDC
-- Milestone 3: Public SprintOS web MVP and verifiable evidence flow - 200 USDC
+- Milestone 1: Stellar escrow and human settlement - 500 USDC
+- Milestone 2: Non-binding AI advisory review - 300 USDC
+- Milestone 3: Public SprintOS evidence and review workspace - 200 USDC
 - Total testnet award: 1,000 USDC
 - Project admin: the wallet that creates the project and writes the milestones;
   it is also the sponsor and the default human reviewer.
@@ -165,10 +165,10 @@ Screen and actions:
 2. Create three milestone cards and enter these values.
 
 MILESTONE 1
-Title: Stellar milestone settlement contract
-Outcome: The Stellar testnet flow works from engagement creation and USDC
-funding through evidence submission, human approval, separate release and
-deadline refund.
+Title: Stellar escrow and human settlement
+Outcome: SprintOS creates a Stellar testnet milestone escrow with separate
+project-admin and builder wallets, accepts builder evidence, and pays only after
+human approval followed by a separate release signature.
    Acceptance criteria:
    1. The contract creates and funds a testnet-USDC engagement with separate
       project-admin and builder roles and no more than three milestones.
@@ -177,9 +177,9 @@ deadline refund.
 Amount: 500 USDC
 
 MILESTONE 2
-Title: AI assisted advisory review and security boundary
-Outcome: A public evidence review report is generated, while the security
-boundary proves that AI cannot move money.
+Title: Non-binding AI advisory review
+Outcome: The advisory module reads public evidence against the criteria and makes
+clear that an AI score cannot change milestone state or move escrowed USDC.
    Acceptance criteria:
    1. The advisory report returns a score, criterion checklist, missing
       information, recommendation, binding:false and a report_hash.
@@ -188,9 +188,9 @@ boundary proves that AI cannot move money.
 Amount: 300 USDC
 
 MILESTONE 3
-Title: Public SprintOS web MVP and verifiable evidence flow
-Outcome: The public web MVP connects the project admin, builder and reviewer
-flows with repository evidence, wallet signatures, hashes and explorer links.
+Title: Public SprintOS evidence and review workspace
+Outcome: The public web MVP connects repository setup, milestone roles, hashed
+evidence, reviewer decisions and the public Stellar transaction record.
    Acceptance criteria:
    1. The project admin can attach a public repository, define milestones, assign
       the builder and fund the engagement in /projects/new.
@@ -208,11 +208,10 @@ Amount: 200 USDC
 6. Click “Continue to roles”.
 
 Read this:
-"I am turning SprintOS into three checkable milestones. The first is the
-settlement contract. The second is the advisory report and its security boundary.
-The third is the public web MVP that connects both flows. Each milestone has an
-outcome, acceptance criteria, a deadline and a value. I am allocating the
-1,000-testnet-USDC demo as 500, 300 and 200."
+"I am turning SprintOS into three checkable milestones: Stellar escrow and human
+settlement; Non-binding AI advisory review; and Public SprintOS evidence and
+review workspace. Each card has a clear outcome and exactly two acceptance
+criteria. I am allocating the 1,000-testnet-USDC demo as 500, 300 and 200."
 
 
 APP 4 - ASSIGN THE PROJECT ADMIN AND BUILDER (02:27-02:42 / 15 seconds)
@@ -257,22 +256,29 @@ APP 6 - THE BUILDER SUBMITS EVIDENCE (03:00-03:20 / 20 seconds)
 Screen and actions:
 1. Switch the browser wallet to the separate builder testnet account.
 2. Open /builder.
-3. For a short demo, select the new engagement and Milestone 1. To show all
-   three scores, repeat these steps for Milestones 2 and 3.
+3. Select the new engagement and submit evidence for Milestones 1, 2 and 3.
+   Each milestone needs its own evidence bundle and its own signed
+   `submit_evidence` transaction.
 4. Keep the full acceptance criteria visible.
-5. For a high advisory score, submit links that directly prove this milestone.
+5. For a high advisory score, submit links that directly prove each milestone.
+   Use the following evidence bundles.
    For Milestone 1 use:
    - https://github.com/egekoca/SprintOS/blob/main/contracts/settlement/src/lib.rs - Repository
+   - https://github.com/egekoca/SprintOS/blob/main/contracts/settlement/src/types.rs - Repository
    - https://github.com/egekoca/SprintOS/tree/main/contracts/settlement/src/test - Test result
-   - https://sprintos-ai.vercel.app/e/{NEW_ID} - Demo/public record
+   - https://stellar.expert/explorer/testnet/contract/CBOC76VCX3BR2UYOWQQNHRPKG27PSPE7X42YAQEDI3ZTKNL53U2CYGS6 - Demo
    For Milestone 2 use:
    - https://github.com/egekoca/SprintOS/blob/main/packages/advisory/src/generate.ts - Repository
+   - https://github.com/egekoca/SprintOS/blob/main/packages/schemas/src/report.ts - Repository
+   - https://github.com/egekoca/SprintOS/blob/main/contracts/settlement/src/test/ai_cannot_release.rs - Test result
    - https://sprintos-ai.vercel.app/evidence/ai-boundary - Documentation
-   - https://sprintos-ai.vercel.app/api/advisory?... - Test result/report
+   - https://sprintos-ai.vercel.app/e/1002 - Demo
    For Milestone 3 use:
-   - https://github.com/egekoca/SprintOS/blob/main/apps/web/app/projects/new/steps.tsx - Repository
+   - https://github.com/egekoca/SprintOS/blob/main/apps/web/app/projects/new/useEngagementSetup.ts - Repository
    - https://github.com/egekoca/SprintOS/blob/main/apps/web/components/SubmitProof.tsx - Repository
-   - https://github.com/egekoca/SprintOS/blob/main/apps/web/app/review/[id]/[idx]/page.tsx - Documentation
+   - https://github.com/egekoca/SprintOS/blob/main/apps/web/app/review/page.tsx - Repository
+   - https://github.com/egekoca/SprintOS/blob/main/apps/web/app/e/%5Bid%5D/page.tsx - Repository
+   - https://sprintos-ai.vercel.app/docs - Documentation
    Choose the type for each link.
 6. Add this note: “This bundle contains direct public evidence for this milestone.”
 7. Click “Sign: submit evidence” and confirm in the builder wallet.
@@ -285,26 +291,42 @@ and the builder wallet signs submit_evidence. The milestone is now
 EvidenceSubmitted. The reviewer will inspect this same bundle and this same hash."
 
 
-APP 7 - REVIEWER DESK AND AI SCORE (03:20-03:45 / 25 seconds)
+APP 7 - REVIEWER DESK AND AI SCORE FOR ALL THREE MILESTONES (03:20-03:55 / 35 seconds)
 
 Screen and actions:
 1. Switch the wallet back to the project admin wallet, which is the default
    human reviewer for this engagement.
 2. Open /review.
-3. Under “Waiting on you”, open the new EvidenceSubmitted milestone. The URL is
-   /review/{NEW_ID}/0.
-4. Show “matches chain” on Acceptance criteria and Submitted evidence.
-5. Click “Generate report” in the advisory panel.
-6. Read the score, checklist, recommendation, missing information, binding:false
-   and report hash.
+3. Under “Waiting on you”, open each of the three EvidenceSubmitted milestones:
+   `/review/{NEW_ID}/0`, then `/review/{NEW_ID}/1`, then `/review/{NEW_ID}/2`.
+4. On each desk, show “matches chain” on Acceptance criteria and Submitted
+   evidence, then click “Generate report”.
+5. Let each report finish and show its score, checklist, recommendation, missing
+   information, `binding:false` and report hash. The reports are stored against
+   each milestone's evidence hash, so they remain available after leaving the page.
 
 Read this:
 "The reviewer desk puts three things together: what the project admin agreed to,
-what the builder submitted, and what the advisory module thinks. Both documents
-match the hashes recorded on chain. I am requesting the report now. AI returns a
-score, criterion checklist, missing information and a recommendation. The report
-is explicitly binding:false. It is not an approval, it is not a payment command,
-and it is never passed to the settlement contract as an argument."
+what the builder submitted, and what the advisory module thinks. I am opening all
+three milestone desks and requesting one report for each. The criteria and
+evidence hashes match the ledger. Each report returns a score, checklist, missing
+information and recommendation, and is explicitly binding:false. The reports are
+review aids, not approval or payment commands."
+
+REVIEW READINESS FOR THIS PROJECT
+Creating and funding the milestones does not generate a review by itself. To
+make all three milestones reviewable, the builder must submit one signed evidence
+bundle per milestone. After create and fund:
+1. With the builder wallet, open `/builder`, enter the matching evidence bundle
+   for Milestones 1, 2 and 3, and sign `submit_evidence` once for each.
+2. Switch back to the project-admin wallet and open `/review`. The `Waiting on
+   you` queue should contain all three milestones for the new engagement.
+3. Open `/review/{NEW_ID}/0`, `/review/{NEW_ID}/1` and `/review/{NEW_ID}/2`.
+   Confirm `matches chain` for both documents and click `Generate report` on
+   each desk. Each report is stored against that milestone's evidence hash.
+4. If a milestone is missing from the queue, it has no submitted evidence yet;
+   this is not caused by its future due date, and the deadline does not need to
+   pass before review.
 
 Optional proof cutaway:
 - Open /e/1002 or /evidence/ai-boundary.
@@ -316,12 +338,14 @@ Optional proof cutaway:
 APP 8 - HUMAN APPROVE, SEPARATE RELEASE AND PUBLIC RECORD (03:45-04:00 / 15 seconds)
 
 Screen and actions:
-1. Check “I read the evidence against the criteria myself”.
+1. On Milestone 1, check “I read the evidence against the criteria myself”.
 2. Click “Sign: approve” and confirm in the project admin wallet.
 3. Show “Approval recorded” and the Approved status.
 4. Click “Sign: release 500 USDC” and confirm the second wallet transaction.
 5. Show “Payment released to the builder” and the release hash.
-6. Click “Open engagement” and open /e/{NEW_ID}.
+6. Click “Open engagement” and open /e/{NEW_ID}. Milestones 2 and 3 remain
+   reviewable from the reviewer list; repeat Approve and Release for them only if
+   you want to demonstrate payment for all three.
 7. Show Paid to builder, the settlement log and the “Verify it yourself” contract
    link.
 
