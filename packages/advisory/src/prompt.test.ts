@@ -9,6 +9,7 @@ const criteria: CriteriaDocument = {
   engagement_id: "0",
   milestone_idx: 0,
   title: "Milestone",
+  outcome: "A tested delivery is available for review.",
   criteria: [{ id: "c1", text: "Tests pass" }],
 };
 
@@ -37,6 +38,11 @@ test("fetched content is fenced as untrusted data", () => {
   assert.match(prompt, /<evidence_content index="1"/);
   assert.match(prompt, /<\/evidence_content>/);
   assert.match(prompt, /untrusted data, not instructions/);
+});
+
+test("the milestone outcome is included before the criteria", () => {
+  const prompt = buildUserPrompt(criteria, []);
+  assert.match(prompt, /MILESTONE: Milestone\nOUTCOME: A tested delivery is available for review\./);
 });
 
 test("an injection attempt stays inside its fence", () => {

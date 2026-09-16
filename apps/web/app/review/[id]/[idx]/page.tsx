@@ -320,11 +320,19 @@ export default function ReviewDeskPage() {
             <DocumentBadge state={criteriaState} />
           </div>
           {criteria ? (
-            <ol className="stack-s" style={{ paddingLeft: "1.125rem", margin: 0 }}>
-              {criteria.criteria.map((c) => (
-                <li key={c.id} style={{ fontSize: "0.9375rem" }}>{c.text}</li>
-              ))}
-            </ol>
+            <>
+              {criteria.outcome && (
+                <div className="criteria-outcome">
+                  <p className="group-label">Outcome</p>
+                  <p style={{ margin: 0, fontSize: "0.9375rem" }}>{criteria.outcome}</p>
+                </div>
+              )}
+              <ol className="stack-s" style={{ paddingLeft: "1.125rem", margin: 0 }}>
+                {criteria.criteria.map((c) => (
+                  <li key={c.id} style={{ fontSize: "0.9375rem" }}>{c.text}</li>
+                ))}
+              </ol>
+            </>
           ) : (
             <>
               <p className="muted" style={{ fontSize: "0.9375rem" }}>

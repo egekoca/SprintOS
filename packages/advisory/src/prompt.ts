@@ -90,7 +90,7 @@ export function buildUserPrompt(
 
   const submitted = evidence.map((e, i) => `${i + 1}. ${e.url} (${e.type})`).join("\n");
 
-  return `MILESTONE: ${criteria.title}
+  return `MILESTONE: ${criteria.title}${criteria.outcome ? `\nOUTCOME: ${criteria.outcome}` : ""}
 
 ACCEPTANCE CRITERIA — assess each one, and return them in this order using
 these exact ids:

@@ -78,6 +78,7 @@ test("off-chain engagement references cannot contain paths", () => {
     engagement_id: "draft:3f2504e0-4f89-41d3-9a0c-0305e82c3301",
     milestone_idx: 0,
     title: "Milestone",
+    outcome: "A tested delivery is available for review.",
     criteria: [{ id: "c1", text: "Tests pass" }],
   }));
 });

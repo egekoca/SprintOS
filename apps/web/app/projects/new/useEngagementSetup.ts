@@ -298,6 +298,7 @@ export function useEngagementSetup() {
           engagement_id: draftReference,
           milestone_idx: index,
           title: milestone.title.trim(),
+          ...(milestone.summary.trim() ? { outcome: milestone.summary.trim() } : {}),
           criteria,
         };
         const response = await fetch("/api/criteria", {

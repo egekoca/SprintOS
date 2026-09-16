@@ -159,6 +159,12 @@
 .advisory-links { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.1rem; }
 .advisory-links a { font-size: 0.6875rem; }
 
+.criteria-outcome {
+  border-left: 2px solid var(--orange-lo);
+  padding: 0.25rem 0 0.25rem 0.75rem;
+}
+.criteria-outcome p { margin: 0.25rem 0 0; color: var(--chalk-dim); font-size: 0.875rem; }
+
 /* One link per row: what it is, then what kind of thing it is. The URL lives in
    the title attribute, where it can be read in full rather than cut to fit. */
 .evidence-links { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.45rem; }

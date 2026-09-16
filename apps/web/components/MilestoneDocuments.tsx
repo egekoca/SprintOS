@@ -16,7 +16,7 @@ import { ProductIcon, type ProductIconName } from "./ProductIcon";
  */
 
 interface CriteriaResponse {
-  criteria: { criteria: AcceptanceCriterion[] } | null;
+  criteria: { criteria: AcceptanceCriterion[]; outcome?: string } | null;
   hash: string | null;
 }
 
@@ -29,6 +29,7 @@ export function MilestoneCriteria({
   showHash?: boolean;
 }) {
   const [criteria, setCriteria] = useState<AcceptanceCriterion[] | null>(null);
+  const [outcome, setOutcome] = useState<string | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "missing">("loading");
   const [verified, setVerified] = useState(false);
 
@@ -45,6 +46,7 @@ export function MilestoneCriteria({
         if (cancelled) return;
         const list = body.criteria?.criteria ?? null;
         setCriteria(list);
+        setOutcome(body.criteria?.outcome ?? null);
         /* The API recomputes the hash from the stored document. Matching it
            against the one anchored on chain is what makes this list evidence
            rather than a claim by the interface. */
@@ -81,6 +83,12 @@ export function MilestoneCriteria({
 
   return (
     <div className="criteria">
+      {outcome && (
+        <div className="criteria-outcome">
+          <span className="group-label">Outcome</span>
+          <p>{outcome}</p>
+        </div>
+      )}
       <ul className="criteria-list-view">
         {criteria?.map((criterion) => (
           <li key={criterion.id}>

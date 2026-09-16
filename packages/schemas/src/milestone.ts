@@ -79,6 +79,8 @@ export const CriteriaDocument = z.object({
   ),
   milestone_idx: z.number().int().min(0).max(MAX_MILESTONES - 1),
   title: z.string().min(1).max(200),
+  /** The delivery outcome shown alongside the checkable criteria. */
+  outcome: z.string().min(1).max(500).optional(),
   criteria: z.array(AcceptanceCriterion).min(1).max(MAX_CRITERIA),
 });
 export type CriteriaDocument = z.infer<typeof CriteriaDocument>;
