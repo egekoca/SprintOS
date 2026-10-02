@@ -1,12 +1,15 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import {
   ACTIVITY_SCHEMA_VERSION,
   ActivityLog,
   AdvisoryReport,
+  ApprovalPolicy,
   CriteriaDocument,
   EvidenceBundle,
+  ReviewerAttestation,
+  WalletAccount,
   documentHash,
   ActivityEntry,
 } from "@sprintos/schemas";
@@ -93,6 +96,46 @@ function activityEntryKey(engagementId: string, txHash: string): string {
   return `activity/${engagementId}/${txHash}.json`;
 }
 
+const STELLAR_ADDRESS_RE = /^G[A-Z2-7]{55}$/;
+
+function validateAddress(address: string): void {
+  if (!STELLAR_ADDRESS_RE.test(address)) throw new Error("Invalid Stellar account id.");
+}
+
+/** The wallet-based account: plan, Free usage window, Plus activation. */
+function accountKey(address: string): string {
+  validateAddress(address);
+  return `accounts/${address}.json`;
+}
+
+/** The multi-reviewer approval threshold a sponsor set for one engagement. */
+function policyKey(engagementId: string): string {
+  validateEngagementId(engagementId);
+  return `policy/${engagementId}.json`;
+}
+
+/**
+ * Reviewer attestations, scoped to the exact evidence version they judge.
+ *
+ * One file per reviewer per version, so a reviewer who changes their mind
+ * overwrites their own prior attestation rather than piling up duplicates,
+ * and listing the directory is exactly the set to tally.
+ */
+function attestationPrefix(engagementId: string, milestoneIdx: number, evidenceHash: string): string {
+  validateEngagementKey(engagementId, milestoneIdx);
+  return `attestations/${engagementId}/${milestoneIdx}/${normalizeDocumentHash(evidenceHash).slice(0, 16)}`;
+}
+
+function attestationKey(
+  engagementId: string,
+  milestoneIdx: number,
+  evidenceHash: string,
+  reviewer: string,
+): string {
+  validateAddress(reviewer);
+  return `${attestationPrefix(engagementId, milestoneIdx, evidenceHash)}/${reviewer}.json`;
+}
+
 function sortActivityEntries(entries: readonly ActivityEntry[]): ActivityEntry[] {
   return [...entries].sort((a, b) => a.at.localeCompare(b.at) || a.tx_hash.localeCompare(b.tx_hash));
 }
@@ -122,6 +165,16 @@ export interface DocumentStore {
   getReport(engagementId: string, idx: number, evidenceHash: string): Promise<AdvisoryReport | null>;
   putActivity(log: ActivityLog): Promise<void>;
   getActivity(engagementId: string): Promise<ActivityLog | null>;
+  putAccount(account: WalletAccount): Promise<void>;
+  getAccount(address: string): Promise<WalletAccount | null>;
+  putPolicy(policy: ApprovalPolicy): Promise<void>;
+  getPolicy(engagementId: string): Promise<ApprovalPolicy | null>;
+  putAttestation(attestation: ReviewerAttestation): Promise<void>;
+  listAttestations(
+    engagementId: string,
+    milestoneIdx: number,
+    evidenceHash: string,
+  ): Promise<ReviewerAttestation[]>;
 }
 
 function parse<T>(raw: string, schema: z.ZodType<T>): T | null {
@@ -161,6 +214,16 @@ async function readFileDoc<T>(key: string, schema: z.ZodType<T>): Promise<T | nu
   }
 }
 
+async function readFileDir<T>(prefix: string, schema: z.ZodType<T>): Promise<T[]> {
+  const dir = join(ROOT, prefix);
+  if (!existsSync(dir)) return [];
+  const names = await readdir(dir);
+  const docs = await Promise.all(
+    names.filter((name) => name.endsWith(".json")).map((name) => readFileDoc<T>(`${prefix}/${name}`, schema)),
+  );
+  return docs.filter((doc) => doc !== null) as T[];
+}
+
 export const fileStore: DocumentStore = {
   async putProject(project) {
     await writeFileDoc(projectKey(project.engagement_id), project);
@@ -191,6 +254,25 @@ export const fileStore: DocumentStore = {
     await writeFileDoc(activityKey(log.engagement_id), log);
   },
   getActivity: (engagementId) => readFileDoc(activityKey(engagementId), ActivityLog),
+
+  async putAccount(account) {
+    await writeFileDoc(accountKey(account.address), account);
+  },
+  getAccount: (address) => readFileDoc(accountKey(address), WalletAccount),
+
+  async putPolicy(policy) {
+    await writeFileDoc(policyKey(policy.engagement_id), policy);
+  },
+  getPolicy: (engagementId) => readFileDoc(policyKey(engagementId), ApprovalPolicy),
+
+  async putAttestation(attestation) {
+    await writeFileDoc(
+      attestationKey(attestation.engagement_id, attestation.milestone_idx, attestation.evidence_hash, attestation.reviewer),
+      attestation,
+    );
+  },
+  listAttestations: (engagementId, milestoneIdx, evidenceHash) =>
+    readFileDir(attestationPrefix(engagementId, milestoneIdx, evidenceHash), ReviewerAttestation),
 };
 
 /* ----------------------------------------------------------- vercel blob */
@@ -260,7 +342,45 @@ export const blobStore: DocumentStore = {
     );
   },
   getActivity: (engagementId) => readBlobActivity(engagementId),
+
+  async putAccount(account) {
+    await writeBlobDoc(accountKey(account.address), account);
+  },
+  getAccount: (address) => readBlobDoc(accountKey(address), WalletAccount),
+
+  async putPolicy(policy) {
+    await writeBlobDoc(policyKey(policy.engagement_id), policy);
+  },
+  getPolicy: (engagementId) => readBlobDoc(policyKey(engagementId), ApprovalPolicy),
+
+  async putAttestation(attestation) {
+    await writeBlobDoc(
+      attestationKey(attestation.engagement_id, attestation.milestone_idx, attestation.evidence_hash, attestation.reviewer),
+      attestation,
+    );
+  },
+  listAttestations: (engagementId, milestoneIdx, evidenceHash) =>
+    readBlobDir(attestationPrefix(engagementId, milestoneIdx, evidenceHash), ReviewerAttestation),
 };
+
+async function readBlobDir<T>(prefix: string, schema: z.ZodType<T>): Promise<T[]> {
+  const { list } = await blob();
+  const docs: T[] = [];
+  let cursor: string | undefined;
+  do {
+    const page = await list({ prefix: `${prefix}/`, limit: 1_000, ...(cursor ? { cursor } : {}) });
+    const batch = await Promise.all(
+      page.blobs.map(async (item) => {
+        const response = await fetch(item.url, { cache: "no-store" });
+        if (!response.ok) return null;
+        return parse(await response.text(), schema);
+      }),
+    );
+    for (const doc of batch) if (doc !== null) docs.push(doc);
+    cursor = page.hasMore ? page.cursor : undefined;
+  } while (cursor);
+  return docs;
+}
 
 async function readBlobActivity(engagementId: string): Promise<ActivityLog | null> {
   validateEngagementId(engagementId);
