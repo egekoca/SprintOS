@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useWallet } from "@/components/WalletProvider";
-import { canDecide, listEngagements, type Engagement } from "@/lib/stellar/contract";
+import { canDecide, listEngagementsPage, type Engagement } from "@/lib/stellar/contract";
 import { formatUsdc, shortAddress } from "@/lib/stellar/config";
 import { EngagementPill, StatusPill } from "@/components/StatusPill";
 import { FoxLoader } from "@/components/FoxLoader";
@@ -18,6 +18,8 @@ export default function ReviewListPage() {
   const { address, connect } = useWallet();
   const [engagements, setEngagements] = useState<Engagement[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [nextBefore, setNextBefore] = useState<number | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
 
@@ -27,11 +29,33 @@ export default function ReviewListPage() {
   useEffect(() => {
     setLoading(true);
     setError(null);
-    listEngagements()
-      .then(setEngagements)
+    listEngagementsPage()
+      .then((result) => {
+        setEngagements(result.engagements);
+        setNextBefore(result.nextBefore);
+      })
       .catch((err) => setError(err instanceof Error ? err.message : String(err)))
       .finally(() => setLoading(false));
   }, [attempt]);
+
+  /* There is no indexer here — every page is a bounded batch of simulated
+     reads, newest first. "Waiting on you" above only reflects what has been
+     loaded so far, which is the recent, active end of the list by
+     construction; an older milestone still waiting on a decision stays
+     reachable by loading further back. */
+  async function loadMore() {
+    if (nextBefore === undefined || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const result = await listEngagementsPage({ before: nextBefore });
+      setEngagements((prev) => [...prev, ...result.engagements]);
+      setNextBefore(result.nextBefore);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLoadingMore(false);
+    }
+  }
 
   const waiting = engagements.flatMap((e) =>
     e.milestones
@@ -136,6 +160,11 @@ export default function ReviewListPage() {
               </tbody>
             </table>
           </div>
+          {nextBefore !== undefined && (
+            <button type="button" className="btn btn-ghost btn-sm" disabled={loadingMore} onClick={loadMore}>
+              {loadingMore ? "Loading…" : "Load earlier engagements"}
+            </button>
+          )}
         </div>
       )}
     </section>
