@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { WalletProvider } from "@/components/WalletProvider";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -28,6 +29,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main>{children}</main>
           <SiteFooter />
         </WalletProvider>
+        {/* Reports nothing until Web Analytics is turned on for this project
+            in the Vercel dashboard — that toggle needs the account owner,
+            this component alone does not enable collection. Harmless no-op
+            off Vercel (local dev, another host). */}
+        <Analytics />
       </body>
     </html>
   );
