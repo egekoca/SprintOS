@@ -96,6 +96,13 @@ export interface GenerateOptions {
   criteria: CriteriaDocument;
   evidence: EvidenceBundle;
   model?: string;
+  /**
+   * Overrides for a "Deep Review": the same pipeline, asked to think harder
+   * and read more of what it fetched. Defaults to the module's own low-cost
+   * constants, so every existing caller is unaffected.
+   */
+  reasoningEffort?: "low" | "medium" | "high";
+  maxOutputTokens?: number;
   /** Injected in tests and fixtures so no network call is made. */
   fetcher?: (bundle: EvidenceBundle) => Promise<FetchedEvidence[]>;
 }
@@ -145,8 +152,8 @@ export async function generateReport(options: GenerateOptions): Promise<Advisory
   try {
     const response = await requestStructuredJson({
       model,
-      maxOutputTokens: MAX_OUTPUT_TOKENS,
-      reasoningEffort: REASONING_EFFORT,
+      maxOutputTokens: options.maxOutputTokens ?? MAX_OUTPUT_TOKENS,
+      reasoningEffort: options.reasoningEffort ?? REASONING_EFFORT,
       instructions: SYSTEM_PROMPT,
       input: buildUserPrompt(criteria, fetched),
       name: "advisory_report",
