@@ -177,6 +177,16 @@ export async function POST(request: Request) {
   const milestoneIdx =
     action !== "created" && action !== "funded" && typeof secondArg === "number" ? secondArg : undefined;
 
+  /* submit_evidence's third argument is the evidence hash bytes. Decoding it
+     here — from the confirmed transaction, not from the browser's POST body —
+     is what lets the evidence version history (see evidence-versions.ts) be
+     read later without a separate, independently-trustable store for it. */
+  const thirdArg = call.args[2];
+  const evidenceHash =
+    action === "evidence_submitted" && thirdArg instanceof Uint8Array
+      ? Buffer.from(thirdArg).toString("hex")
+      : undefined;
+
   let entry: ActivityEntryValue;
   try {
     validateEngagementId(engagementId);
@@ -188,6 +198,7 @@ export async function POST(request: Request) {
       actor: call.source,
       /* The ledger's own timestamp, not the browser's clock. */
       at: new Date(confirmed.createdAt * 1000).toISOString(),
+      ...(evidenceHash ? { evidence_hash: evidenceHash } : {}),
     });
   } catch (error) {
     return NextResponse.json(
