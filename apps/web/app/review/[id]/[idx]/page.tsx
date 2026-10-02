@@ -5,11 +5,13 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import type { AdvisoryReport } from "@sprintos/schemas/report";
 import type { CriteriaDocument, EvidenceBundle } from "@sprintos/schemas/milestone";
+import type { ReviewerAttestation } from "@sprintos/schemas/attestation";
 import { useWallet } from "@/components/WalletProvider";
 import { AdvisoryPanel } from "@/components/AdvisoryPanel";
 import { StatusPill } from "@/components/StatusPill";
 import { TxLink } from "@/components/TxLink";
 import { FoxLoader, FoxSpinner } from "@/components/FoxLoader";
+import type { ApprovalTally } from "@/lib/attestation";
 import {
   approveMilestone,
   getEngagement,
@@ -116,11 +118,61 @@ export default function ReviewDeskPage() {
   const [busy, setBusy] = useState<string | null>(null);
   const [lastTx, setLastTx] = useState<{ hash: string; action: string } | null>(null);
 
+  /* Multi-reviewer threshold (app-layer, not the contract — see
+     lib/attestation.ts). Scoped to the exact evidence version on screen, so
+     a resubmission starts a fresh tally rather than inheriting one from the
+     version it superseded. */
+  const [threshold, setThreshold] = useState(1);
+  const [attestations, setAttestations] = useState<ReviewerAttestation[]>([]);
+  const [tally, setTally] = useState<ApprovalTally | null>(null);
+  const [attestComment, setAttestComment] = useState("");
+  const [criterionFeedback, setCriterionFeedback] = useState<Record<string, string>>({});
+  const [attestBusy, setAttestBusy] = useState<"approve" | "hold" | null>(null);
+  const [attestError, setAttestError] = useState<string | null>(null);
+
+  /* The connected wallet's own Free/Plus standing — never an input to any
+     decision, only to how hard the advisory module is allowed to think on
+     this wallet's behalf. */
+  const [entitlement, setEntitlement] = useState<{ plan: "free" | "plus"; remaining: { standard: number; deep: number } } | null>(null);
+  const [reviewKind, setReviewKind] = useState<"standard" | "deep">("standard");
+
   const refresh = useCallback(async () => {
     if (!validId) throw new Error("Engagement ids must be non-negative whole numbers.");
     const e = await getEngagement(BigInt(id));
     setEngagement(e);
   }, [id, validId]);
+
+  const loadAttestations = useCallback(async (evidenceHashOnChain: string) => {
+    try {
+      const [policyBody, attestationBody] = await Promise.all([
+        fetch(`/api/policy?engagement_id=${id}`).then((r) => r.json()),
+        fetch(`/api/attestation?engagement_id=${id}&milestone_idx=${idx}&evidence_hash=${evidenceHashOnChain}`).then((r) => r.json()),
+      ]);
+      setThreshold(policyBody.threshold ?? 1);
+      setAttestations(attestationBody.attestations ?? []);
+      setTally(attestationBody.tally ?? null);
+    } catch {
+      /* Non-critical: the real Approve/Release step still works through the
+         contract regardless of whether this read succeeded. */
+    }
+  }, [id, idx]);
+
+  useEffect(() => {
+    if (!address) {
+      setEntitlement(null);
+      return;
+    }
+    let cancelled = false;
+    fetch(`/api/account?address=${address}`)
+      .then((r) => r.json())
+      .then((body) => {
+        if (!cancelled) setEntitlement(body.entitlement ?? null);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [address]);
 
   /* biome-ignore lint/correctness/useExhaustiveDependencies: `refresh` is not
      called in here, but it closes over the milestone this desk is reading. A
@@ -136,6 +188,12 @@ export default function ReviewDeskPage() {
     setEvidenceSource(null);
     setReport(null);
     setError(null);
+    setThreshold(1);
+    setAttestations([]);
+    setTally(null);
+    setAttestComment("");
+    setCriterionFeedback({});
+    setAttestError(null);
     if (!validId || !validIdx) {
       setError(!validId ? "Engagement ids must be non-negative whole numbers." : "Milestone indexes must be non-negative whole numbers.");
       setLoading(false);
@@ -178,13 +236,15 @@ export default function ReviewDeskPage() {
           setEvidenceHash(recovered.hash);
           setEvidenceSource(recovered.bundle ? "pointer" : null);
         }
+
+        if (milestone.evidence_hash) await loadAttestations(milestone.evidence_hash);
       } catch (err) {
         setError(err instanceof Error ? err.message : String(err));
       } finally {
         setLoading(false);
       }
     })();
-  }, [id, idx, refresh, validId, validIdx]);
+  }, [id, idx, refresh, validId, validIdx, loadAttestations]);
 
   async function generate() {
     const milestone = engagement?.milestones[idx];
@@ -203,6 +263,8 @@ export default function ReviewDeskPage() {
           milestone_idx: idx,
           criteria_hash: milestone.criteria_hash,
           evidence_hash: milestone.evidence_hash,
+          ...(address ? { address } : {}),
+          kind: reviewKind,
         }),
       });
       const body = await res.json();
@@ -210,13 +272,51 @@ export default function ReviewDeskPage() {
         // Not a failure of the page. The reviewer can still decide, and the
         // message says so rather than blocking the screen behind an error.
         setAdvisoryError(body.error ?? "The report could not be produced. You can still decide without it.");
+        if (body.entitlement) setEntitlement(body.entitlement);
         return;
       }
       setReport(body.report);
+      if (body.entitlement) setEntitlement(body.entitlement);
     } catch {
       setAdvisoryError("The advisory service could not be reached. You can still decide without it.");
     } finally {
       setAdvisoryLoading(false);
+    }
+  }
+
+  async function submitAttestation(decision: "approve" | "hold") {
+    const milestone = engagement?.milestones[idx];
+    if (!address || !milestone?.evidence_hash) return;
+    setAttestBusy(decision);
+    setAttestError(null);
+    try {
+      const feedback = Object.entries(criterionFeedback)
+        .filter(([, comment]) => comment.trim().length > 0)
+        .map(([id_, comment]) => ({ id: id_, comment: comment.trim() }));
+      const res = await fetch("/api/attestation", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          engagement_id: id,
+          milestone_idx: idx,
+          evidence_hash: milestone.evidence_hash,
+          reviewer: address,
+          decision,
+          ...(attestComment.trim() ? { comment: attestComment.trim() } : {}),
+          criteria_feedback: feedback,
+        }),
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        setAttestError(body.error ?? "The attestation could not be recorded.");
+        return;
+      }
+      setAttestations(body.attestations ?? []);
+      setTally(body.tally ?? null);
+    } catch {
+      setAttestError("The attestation could not be reached. Your own Approve/Release signature still works regardless.");
+    } finally {
+      setAttestBusy(null);
     }
   }
 
@@ -281,6 +381,12 @@ export default function ReviewDeskPage() {
     anchoredEvidenceHash: milestone.evidence_hash,
   });
   const { criteria: criteriaState, evidence: evidenceState, decisionsEnabled: documentsVerified } = gate;
+
+  /* The app-layer threshold from lib/attestation.ts: the contract's own
+     Approve still takes exactly one reviewer signature, but this page will
+     not offer that button until enough distinct reviewers attested to it
+     here. 1 (the contract's own default) is always already met. */
+  const needsMoreAttestations = threshold > 1 && !(tally?.met ?? false);
 
   return (
     <section className="shell stack-l" style={{ paddingBlock: "2.5rem" }}>
@@ -407,7 +513,110 @@ export default function ReviewDeskPage() {
       </div>
 
       {/* ── what the module thinks ────────────────────────────────────── */}
+      {address && entitlement && (
+        <div className="row" style={{ gap: "1rem", alignItems: "center" }}>
+          <label className="row" style={{ gap: "0.375rem", fontSize: "0.8125rem" }}>
+            <input
+              type="checkbox"
+              checked={reviewKind === "deep"}
+              disabled={entitlement.plan !== "plus"}
+              onChange={(e) => setReviewKind(e.target.checked ? "deep" : "standard")}
+            />
+            <span>Deep Review{entitlement.plan !== "plus" ? " (Plus only)" : ""}</span>
+          </label>
+          <span className="faint mono" style={{ fontSize: "0.75rem" }}>
+            {entitlement.plan === "plus" ? "Plus" : "Free"} ·{" "}
+            {reviewKind === "deep" ? `${entitlement.remaining.deep} deep reviews left` : `${entitlement.remaining.standard} standard reviews left`}
+          </span>
+        </div>
+      )}
       <AdvisoryPanel report={report} loading={advisoryLoading} error={advisoryError} onGenerate={generate} />
+
+      {/* ── reviewer sign-off: the app-layer threshold, not the contract's
+          own single signature (see lib/attestation.ts) ────────────────── */}
+      {isReviewer && canDecide && milestone.evidence_hash && (
+        <div className="panel stack-s">
+          <div className="spread">
+            <p className="eyebrow">Reviewer sign-off</p>
+            <span className="faint mono" style={{ fontSize: "0.75rem" }}>
+              {tally ? `${tally.approvals.length} of ${threshold} reviewer${threshold === 1 ? "" : "s"} approved` : `threshold ${threshold}`}
+            </span>
+          </div>
+
+          {threshold > 1 && (
+            <p className="muted" style={{ fontSize: "0.875rem" }}>
+              This engagement requires {threshold} distinct reviewers to attest before the on-chain
+              Approve step below is offered. No advisory score ever counts toward this — only reviewer
+              wallets attesting here do.
+            </p>
+          )}
+
+          {attestations.length > 0 && (
+            <ul className="stack-s" style={{ fontSize: "0.8125rem", margin: 0, paddingLeft: "1.125rem" }}>
+              {attestations.map((a) => (
+                <li key={a.reviewer}>
+                  <span className="mono">{shortAddress(a.reviewer)}</span> — {a.decision}
+                  {a.comment ? `: "${a.comment}"` : ""}
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {criteria && criteria.criteria.length > 0 && (
+            <div className="stack-s">
+              <p className="group-label">Criterion feedback (optional)</p>
+              {criteria.criteria.map((c) => (
+                <label key={c.id} className="field">
+                  <span style={{ fontSize: "0.8125rem" }}>{c.text}</span>
+                  <input
+                    type="text"
+                    maxLength={500}
+                    value={criterionFeedback[c.id] ?? ""}
+                    onChange={(e) => setCriterionFeedback((prev) => ({ ...prev, [c.id]: e.target.value }))}
+                    placeholder="Add a note on this criterion…"
+                  />
+                </label>
+              ))}
+            </div>
+          )}
+
+          <label className="field">
+            <span style={{ fontSize: "0.8125rem" }}>Overall comment (optional)</span>
+            <input
+              type="text"
+              maxLength={1000}
+              value={attestComment}
+              onChange={(e) => setAttestComment(e.target.value)}
+            />
+          </label>
+
+          {attestError && <p className="notice">{attestError}</p>}
+
+          <div className="row">
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              disabled={!address || attestBusy !== null}
+              onClick={() => submitAttestation("approve")}
+            >
+              {attestBusy === "approve" ? <><FoxSpinner /> Recording…</> : "Attest: I approve"}
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              disabled={!address || attestBusy !== null}
+              onClick={() => submitAttestation("hold")}
+            >
+              {attestBusy === "hold" ? <><FoxSpinner /> Recording…</> : "Attest: I'd hold"}
+            </button>
+          </div>
+
+          <p className="faint" style={{ fontSize: "0.75rem" }}>
+            Attesting here only decides when the real Approve/Release step below is offered. The
+            contract still requires your own wallet signature on that step regardless.
+          </p>
+        </div>
+      )}
 
       {/* ── the decision ─────────────────────────────────────────────── */}
       <div className="panel panel-marked stack">
@@ -452,7 +661,12 @@ export default function ReviewDeskPage() {
             <div className="row">
               {canDecide && (
                 <>
-                  <button type="button" className="btn btn-primary" disabled={!documentsVerified || !attested || busy !== null} onClick={() => act("approve")}>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    disabled={!documentsVerified || !attested || busy !== null || needsMoreAttestations}
+                    onClick={() => act("approve")}
+                  >
                     {busy === "approve" ? <><FoxSpinner /> Waiting for signature…</> : "Sign: approve"}
                   </button>
                   <button type="button" className="btn btn-hold" disabled={!documentsVerified || !attested || busy !== null} onClick={() => act("hold")}>
@@ -466,6 +680,13 @@ export default function ReviewDeskPage() {
                 </button>
               )}
             </div>
+
+            {canDecide && needsMoreAttestations && (
+              <p className="notice">
+                {tally?.approvals.length ?? 0} of {threshold} reviewers have attested approval above.
+                The Approve signature opens once enough have.
+              </p>
+            )}
 
             <p className="faint" style={{ fontSize: "0.8125rem" }}>
               {canRelease
