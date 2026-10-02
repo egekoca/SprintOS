@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "./Logo";
 import { useWallet } from "./WalletProvider";
-import { explorerAccount, shortAddress } from "@/lib/stellar/config";
+import { explorerAccount, IS_MAINNET, shortAddress } from "@/lib/stellar/config";
 import { FoxSpinner } from "./FoxLoader";
 
 /**
@@ -22,7 +22,7 @@ const NAV = [
 ];
 
 export function SiteHeader() {
-  const { address, connecting, connect, disconnect, error, offTestnet, recheck } = useWallet();
+  const { address, connecting, connect, disconnect, error, offDeploymentNetwork, recheck } = useWallet();
   const pathname = usePathname();
 
   if (pathname === "/") {
@@ -109,15 +109,15 @@ export function SiteHeader() {
         </div>
       )}
       {/* A warning, not a wall. Reading works on any network, and every
-          signature carries the testnet passphrase explicitly — but a wallet
-          pointed elsewhere may refuse to sign, so say so before they get
-          there. Only the wallet's own settings can change this. */}
-      {offTestnet && (
+          signature carries this deployment's own passphrase explicitly — but
+          a wallet pointed elsewhere may refuse to sign, so say so before they
+          get there. Only the wallet's own settings can change this. */}
+      {offDeploymentNetwork && (
         <div className="shell" style={{ paddingBottom: "0.75rem" }}>
           <p className="notice network-notice">
             <span>
-              Your wallet is not on Stellar testnet. Browsing works either way, but it may refuse to
-              sign — switch it to testnet in the wallet itself.
+              Your wallet is not on Stellar {IS_MAINNET ? "mainnet" : "testnet"}. Browsing works either
+              way, but it may refuse to sign — switch it in the wallet itself.
             </span>
             <button type="button" className="btn btn-ghost btn-sm" onClick={recheck}>
               I switched it

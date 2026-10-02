@@ -1,5 +1,5 @@
 import { StrKey } from "@stellar/stellar-sdk";
-import { parseUsdc, usdcInputValue } from "./stellar/config.ts";
+import { IS_MAINNET, MAINNET_MILESTONE_CAP_USDC, parseUsdc, usdcInputValue } from "./stellar/config.ts";
 import { deadlineSeconds, startSeconds, type MilestoneForm } from "./sponsor-draft.ts";
 
 /**
@@ -92,11 +92,25 @@ export function milestoneProblem(milestone: MilestoneForm): string | null {
   }
 
   try {
-    if (parseUsdc(milestone.amount) <= 0n) return "Every milestone needs an amount greater than zero.";
+    const amount = parseUsdc(milestone.amount);
+    if (amount <= 0n) return "Every milestone needs an amount greater than zero.";
+    if (exceedsMainnetCap(amount, IS_MAINNET, MAINNET_MILESTONE_CAP_USDC)) {
+      return `During the mainnet pilot, no single milestone may be funded above ${MAINNET_MILESTONE_CAP_USDC} USDC.`;
+    }
   } catch {
     return "Enter a valid USDC amount with no more than 7 decimal places.";
   }
   return null;
+}
+
+/**
+ * Whether a milestone amount breaks the mainnet pilot's per-milestone safety
+ * cap. Pure and parameterized on `isMainnet`/`capUsdc` rather than reading the
+ * module-level config directly, so it can be exercised in tests without
+ * needing a real mainnet deployment loaded.
+ */
+export function exceedsMainnetCap(amountStroops: bigint, isMainnet: boolean, capUsdc: number): boolean {
+  return isMainnet && amountStroops > parseUsdc(String(capUsdc));
 }
 
 /** The first problem across the whole plan, or null when it is ready to sign. */

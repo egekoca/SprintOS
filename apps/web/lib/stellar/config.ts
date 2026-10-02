@@ -1,12 +1,39 @@
-import deployment from "./deployment.json" with { type: "json" };
+import testnetDeployment from "./deployment.json" with { type: "json" };
+import mainnetDeployment from "./deployment.mainnet.json" with { type: "json" };
 
 /**
  * Network configuration.
  *
- * Testnet only, by design. The Statement of Work puts mainnet deployment and
- * settlement with real funds explicitly out of scope, so there is no mainnet
- * branch here to switch on by accident.
+ * Mainnet is opt-in through one explicit environment variable, never the
+ * default: a deployment with `NEXT_PUBLIC_NETWORK_MODE` unset or set to
+ * anything other than `"mainnet"` is testnet, full stop. That is what "no
+ * switch to flip by accident" means in practice — the switch exists now, but
+ * nothing flips it without a deliberate build-time choice.
+ *
+ * Flipping it is also refused outright while `deployment.mainnet.json` still
+ * holds any of its `REPLACE_*` placeholders, so a half-filled-in mainnet
+ * record fails loudly at startup instead of quietly serving testnet-shaped
+ * values under a mainnet label.
  */
+export const NETWORK_MODE: "testnet" | "mainnet" =
+  process.env.NEXT_PUBLIC_NETWORK_MODE === "mainnet" ? "mainnet" : "testnet";
+export const IS_MAINNET = NETWORK_MODE === "mainnet";
+
+function assertDeploymentIsReal(value: Record<string, unknown>): void {
+  for (const [key, val] of Object.entries(value)) {
+    if (typeof val === "string" && val.startsWith("REPLACE_")) {
+      throw new Error(
+        `Mainnet mode is on but deployment.mainnet.json."${key}" is still a placeholder (${val}). ` +
+          "Fill in every REPLACE_* value from a real, reviewed mainnet deployment before enabling mainnet mode.",
+      );
+    }
+  }
+}
+
+if (IS_MAINNET) assertDeploymentIsReal(mainnetDeployment as unknown as Record<string, unknown>);
+
+const deployment = IS_MAINNET ? mainnetDeployment : testnetDeployment;
+
 export const NETWORK = {
   passphrase: deployment.networkPassphrase,
   rpcUrl: process.env.NEXT_PUBLIC_STELLAR_RPC_URL ?? deployment.rpcUrl,
@@ -18,6 +45,25 @@ export const SETTLEMENT_CONTRACT_ID =
 
 export const USDC_SAC_ID = process.env.NEXT_PUBLIC_USDC_SAC_ID ?? deployment.usdcSacId;
 
+/**
+ * The classic asset behind that SAC, for the one path that still uses a plain
+ * Stellar payment rather than a Soroban contract call: a wallet paying for
+ * SprintOS Plus. `deployment.usdcAsset` is stored as `"CODE:ISSUER"`.
+ */
+const [DEFAULT_USDC_CODE, DEFAULT_USDC_ISSUER] = (deployment.usdcAsset ?? "").split(":");
+export const USDC_ASSET_CODE = process.env.NEXT_PUBLIC_USDC_ASSET_CODE ?? DEFAULT_USDC_CODE ?? "USDC";
+export const USDC_ISSUER =
+  process.env.NEXT_PUBLIC_USDC_ISSUER ?? deployment.usdcIssuer ?? DEFAULT_USDC_ISSUER ?? "";
+
+/**
+ * Where a Plus payment is sent.
+ *
+ * A public key only — nothing in this codebase ever holds its secret key.
+ * Unset on a deployment that is not selling Plus yet, in which case the
+ * purchase flow refuses to build a transaction rather than guess a recipient.
+ */
+export const TREASURY_ADDRESS = process.env.NEXT_PUBLIC_TREASURY_ADDRESS ?? "";
+
 const builderClaimOverride = process.env.NEXT_PUBLIC_BUILDER_CLAIM_ENABLED;
 export const BUILDER_CLAIM_ENABLED =
   builderClaimOverride === undefined || builderClaimOverride === ""
@@ -26,7 +72,16 @@ export const BUILDER_CLAIM_ENABLED =
 
 export const USDC_DECIMALS = 7;
 
-export const EXPLORER_BASE = "https://stellar.expert/explorer/testnet";
+/**
+ * The pilot safety cap: the most a single milestone may be funded for on
+ * mainnet, independent of the plan's own 100-USDC-style aggregate thinking.
+ * Keeping it per-milestone rather than only aggregate lets more small pilot
+ * engagements run without raising the amount any one of them ever risks.
+ * Testnet has no such cap — this only ever applies when `IS_MAINNET`.
+ */
+export const MAINNET_MILESTONE_CAP_USDC = Number(process.env.NEXT_PUBLIC_MAINNET_MILESTONE_CAP_USDC) || 20;
+
+export const EXPLORER_BASE = `https://stellar.expert/explorer/${IS_MAINNET ? "public" : "testnet"}`;
 
 /**
  * The origin this deployment is reachable at from outside.

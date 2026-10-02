@@ -16,10 +16,11 @@ interface WalletState {
   /** Set when the obstacle is something the screen can help with. */
   problem: WalletProblem | null;
   /**
-   * True when the wallet is connected but pointed at another network. This is
-   * a warning, not a gate — everything except signing works regardless.
+   * True when the wallet is connected but pointed at a network other than the
+   * one this deployment is configured for (testnet or mainnet). This is a
+   * warning, not a gate — everything except signing works regardless.
    */
-  offTestnet: boolean;
+  offDeploymentNetwork: boolean;
   connect: () => Promise<void>;
   /** Re-read the wallet's network after the user changed it themselves. */
   recheck: () => Promise<void>;
@@ -35,7 +36,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [problem, setProblem] = useState<WalletProblem | null>(null);
-  const [offTestnet, setOffTestnet] = useState(false);
+  const [offDeploymentNetwork, setOffDeploymentNetwork] = useState(false);
 
   // Remember the address so a refresh does not drop the reviewer out of a
   // half-finished review. This is a display convenience only — the wallet
@@ -56,12 +57,13 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     } catch { /* not fatal */ }
   }, []);
 
-  /* Informational only. Signing passes the testnet passphrase explicitly, so
-     this never blocks anything — it just lets the interface warn early rather
-     than letting someone reach the signature and be surprised. */
+  /* Informational only. Signing passes this deployment's own passphrase
+     explicitly, so this never blocks anything — it just lets the interface
+     warn early rather than letting someone reach the signature and be
+     surprised. */
   const recheck = useCallback(async () => {
     const network = await currentNetwork();
-    setOffTestnet(Boolean(network && !network.isTestnet));
+    setOffDeploymentNetwork(Boolean(network && !network.matchesDeployment));
   }, []);
 
   const connect = useCallback(async () => {
@@ -91,15 +93,15 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     setAddress(null);
     setProblem(null);
     setError(null);
-    setOffTestnet(false);
+    setOffDeploymentNetwork(false);
     try {
       window.localStorage.removeItem(STORAGE_KEY);
     } catch { /* not fatal */ }
   }, []);
 
   const value = useMemo(
-    () => ({ address, connecting, error, problem, offTestnet, connect, recheck, disconnect }),
-    [address, connecting, error, problem, offTestnet, connect, recheck, disconnect],
+    () => ({ address, connecting, error, problem, offDeploymentNetwork, connect, recheck, disconnect }),
+    [address, connecting, error, problem, offDeploymentNetwork, connect, recheck, disconnect],
   );
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;

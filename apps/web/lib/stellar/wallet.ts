@@ -13,6 +13,8 @@
  * no use for, and a shorter list is a smaller surface.
  */
 
+import { IS_MAINNET } from "./config";
+
 let initialized = false;
 let kitPromise: ReturnType<typeof importWalletKit> | null = null;
 
@@ -43,9 +45,10 @@ async function ensureInit() {
 
   const { StellarWalletsKit, Networks } = modules.kit;
   StellarWalletsKit.init({
-    // Testnet is pinned here as well as in config. Mainnet is out of scope for
-    // this engagement, and there is no switch to flip by accident.
-    network: Networks.TESTNET,
+    // Mirrors `IS_MAINNET` from config, which is itself gated on
+    // `NEXT_PUBLIC_NETWORK_MODE` and refuses to resolve to mainnet at all
+    // while deployment.mainnet.json still holds placeholder values.
+    network: IS_MAINNET ? Networks.PUBLIC : Networks.TESTNET,
     selectedWalletId: modules.freighter.FREIGHTER_ID,
     modules: [
       new modules.freighter.FreighterModule(),
@@ -109,11 +112,12 @@ export async function detectWallets(): Promise<{ available: WalletOption[]; all:
 }
 
 /** Which Stellar network the connected wallet is pointed at, if any. */
-export async function currentNetwork(): Promise<{ passphrase: string; isTestnet: boolean } | null> {
+export async function currentNetwork(): Promise<{ passphrase: string; matchesDeployment: boolean } | null> {
   const { StellarWalletsKit, Networks } = await ensureInit();
   try {
     const { networkPassphrase } = await StellarWalletsKit.getNetwork();
-    return { passphrase: networkPassphrase, isTestnet: networkPassphrase === Networks.TESTNET };
+    const expected = IS_MAINNET ? Networks.PUBLIC : Networks.TESTNET;
+    return { passphrase: networkPassphrase, matchesDeployment: networkPassphrase === expected };
   } catch {
     return null;
   }
@@ -154,14 +158,15 @@ function networkName(passphrase: string): string {
  * Resolves null when the user closes the modal without choosing — a dismissal
  * is not an error and should not be reported as one.
  *
- * Connecting deliberately does NOT require the wallet to be on testnet. An
- * address is a keypair and is the same on every network; the app reads the
- * ledger through its own testnet RPC, not through the wallet; and every
- * signature this codebase requests carries an explicit testnet passphrase, so
- * a transaction signed here can only ever be valid on testnet. Blocking the
- * connection was therefore stopping people for no reason it could justify —
- * the network only matters at the moment of signing, and that is where it is
- * now checked.
+ * Connecting deliberately does NOT require the wallet to be on the right
+ * network yet. An address is a keypair and is the same on every network; the
+ * app reads the ledger through its own RPC, not through the wallet; and every
+ * signature this codebase requests carries this deployment's own explicit
+ * passphrase (testnet or mainnet, from `IS_MAINNET`), so a transaction signed
+ * here can only ever be valid on the network this deployment is actually
+ * configured for. Blocking the connection was therefore stopping people for no
+ * reason it could justify — the network only matters at the moment of
+ * signing, and that is where it is now checked.
  */
 export async function connectWallet(): Promise<ConnectedWallet | null> {
   const { StellarWalletsKit } = await ensureInit();
@@ -190,19 +195,22 @@ export async function connectWallet(): Promise<ConnectedWallet | null> {
  * The wallet shows the user exactly what they are authorizing and they approve
  * it themselves. Nothing in this codebase can sign on their behalf.
  *
- * The testnet passphrase is passed explicitly, so the wallet is being asked for
- * a testnet signature no matter which network its own UI happens to be showing.
- * Some wallets honour that and sign; others refuse until their selected network
- * matches. Rather than pre-emptively blocking everyone, this asks first and
- * only explains if the wallet actually objects — and by then it can say which
- * wallet, which network, and what to change.
+ * This deployment's own passphrase is passed explicitly — testnet or
+ * mainnet, from `IS_MAINNET` — so the wallet is being asked for a signature on
+ * exactly the network this build is configured for, no matter which network
+ * its own UI happens to be showing. Some wallets honour that and sign; others
+ * refuse until their selected network matches. Rather than pre-emptively
+ * blocking everyone, this asks first and only explains if the wallet actually
+ * objects — and by then it can say which wallet, which network, and what to
+ * change.
  */
 export async function signTransaction(xdr: string, address: string): Promise<string> {
   const { StellarWalletsKit, Networks } = await ensureInit();
+  const deploymentPassphrase = IS_MAINNET ? Networks.PUBLIC : Networks.TESTNET;
   try {
     const { signedTxXdr } = await StellarWalletsKit.signTransaction(xdr, {
       address,
-      networkPassphrase: Networks.TESTNET,
+      networkPassphrase: deploymentPassphrase,
     });
     return signedTxXdr;
   } catch (err) {
@@ -211,11 +219,12 @@ export async function signTransaction(xdr: string, address: string): Promise<str
     /* Only reach for the network explanation once signing has genuinely
        failed, and only when the wallet really is pointed elsewhere. */
     const network = await currentNetwork();
-    if (network && !network.isTestnet) {
+    if (network && !network.matchesDeployment) {
       const walletName = StellarWalletsKit.selectedModule?.productName ?? "Your wallet";
+      const deploymentName = IS_MAINNET ? "Stellar mainnet" : "Stellar testnet";
       throw new WalletProblemError(
         { kind: "wrong-network", current: networkName(network.passphrase), walletName },
-        `${walletName} would not sign a testnet transaction while it is set to ${networkName(network.passphrase)}.`,
+        `${walletName} would not sign a ${deploymentName} transaction while it is set to ${networkName(network.passphrase)}.`,
       );
     }
     throw new Error(errorMessage(err));

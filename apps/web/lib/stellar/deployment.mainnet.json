@@ -1,0 +1,30 @@
+{
+  "network": "mainnet",
+  "networkPassphrase": "Public Global Stellar Network ; September 2015",
+  "rpcUrl": "REPLACE_WITH_A_MAINNET_SOROBAN_RPC_PROVIDER_URL",
+  "horizonUrl": "https://horizon.stellar.org",
+  "settlementContractId": "REPLACE_AFTER_MAINNET_DEPLOY",
+  "usdcSacId": "REPLACE_AFTER_COMPUTING_THE_CANONICAL_USDC_SAC_ID",
+  "usdcAsset": "USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+  "usdcIssuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+  "deployedAt": null,
+  "features": {
+    "builderClaim": true,
+    "reviewerList": true
+  },
+  "explorer": {
+    "contract": "REPLACE_AFTER_MAINNET_DEPLOY",
+    "usdc": "https://stellar.expert/explorer/public/asset/USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+  },
+  "firstEngagementId": 0,
+  "wasmSha256": "REPLACE_AFTER_MAINNET_DEPLOY",
+  "previousDeployment": null,
+  "_readme": [
+    "This file is a template, not a live deployment record. Every REPLACE_* value must be filled in before NEXT_PUBLIC_NETWORK_MODE=mainnet is ever set on a real deployment — see docs/MONTH-2-COMPLETION-PLAN.md.",
+    "usdcAsset/usdcIssuer are Circle's canonical Stellar mainnet USDC issuer, GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN, confirmed from developers.circle.com/stablecoins/usdc-contract-addresses and the js-stellar-sdk README on 2026-10-02. Re-verify independently before funding anything real against it.",
+    "horizonUrl is SDF's public mainnet Horizon, confirmed from the js-stellar-sdk README.",
+    "rpcUrl has no free SDF-hosted mainnet equivalent to soroban-testnet.stellar.org — the signed SOW itself excludes 'RPC subscriptions' from the grant budget, so a paid or otherwise-provisioned provider URL has to go here before mainnet mode can work at all.",
+    "usdcSacId is the Stellar Asset Contract address for the classic asset above. It is deterministic (Asset.contractId(Networks.PUBLIC)) but was not computed from inside this sandbox — compute and verify it yourself (e.g. via the Stellar SDK or `stellar contract id asset`) before relying on it, rather than trust a value typed in here.",
+    "settlementContractId, the contract explorer link and wasmSha256 are filled in only after the settlement contract is actually deployed to mainnet from a reviewed commit."
+  ]
+}
