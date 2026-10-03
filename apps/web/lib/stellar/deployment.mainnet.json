@@ -1,7 +1,7 @@
 {
   "network": "mainnet",
   "networkPassphrase": "Public Global Stellar Network ; September 2015",
-  "rpcUrl": "REPLACE_WITH_A_MAINNET_SOROBAN_RPC_PROVIDER_URL",
+  "rpcUrl": "https://mainnet.sorobanrpc.com",
   "horizonUrl": "https://horizon.stellar.org",
   "settlementContractId": "REPLACE_AFTER_MAINNET_DEPLOY",
   "usdcSacId": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
@@ -23,7 +23,7 @@
     "This file is a template, not a live deployment record. Every REPLACE_* value must be filled in before NEXT_PUBLIC_NETWORK_MODE=mainnet is ever set on a real deployment — see docs/MONTH-2-COMPLETION-PLAN.md.",
     "usdcAsset/usdcIssuer are Circle's canonical Stellar mainnet USDC issuer, GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN, confirmed from developers.circle.com/stablecoins/usdc-contract-addresses and the js-stellar-sdk README on 2026-10-02. Re-verify independently before funding anything real against it.",
     "horizonUrl is SDF's public mainnet Horizon, confirmed from the js-stellar-sdk README.",
-    "rpcUrl has no free SDF-hosted mainnet equivalent to soroban-testnet.stellar.org — the signed SOW itself excludes 'RPC subscriptions' from the grant budget, so a paid or otherwise-provisioned provider URL has to go here before mainnet mode can work at all.",
+    "rpcUrl has no free SDF-hosted mainnet equivalent to soroban-testnet.stellar.org. https://mainnet.sorobanrpc.com was chosen 2026-10-03 from Stellar's own published RPC provider list (developers.stellar.org/docs/data/apis/rpc/providers) as a public, no-signup option — re-test it before relying on it under real pilot load, and have a second provider from that list in mind as a fallback.",
     "usdcSacId was computed on 2026-10-02 with the official `stellar` CLI: `stellar contract id asset --asset \"USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN\" --network mainnet`. It is a pure deterministic derivation from the issuer and network passphrase above, no RPC call or signature involved — re-run that command yourself before funding anything real against it, rather than trust a value typed in here.",
     "settlementContractId, the contract explorer link and wasmSha256 are filled in only after the settlement contract is actually deployed to mainnet from a reviewed commit."
   ]

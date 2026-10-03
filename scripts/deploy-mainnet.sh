@@ -12,10 +12,11 @@
 #        stellar keys generate --network mainnet sprintos-mainnet-deployer
 #      then send it a small amount of real XLM (a few is enough for fees) —
 #      this script does not fund anything.
-#   2. Pick a mainnet RPC provider and export it:
+#   2. Defaults to https://mainnet.sorobanrpc.com (a public provider from
+#      Stellar's own RPC provider list — no free SDF-hosted mainnet RPC
+#      exists the way it does for testnet). Override with:
 #        export STELLAR_MAINNET_RPC_URL="https://..."
-#      See docs/MONTH-2-COMPLETION-PLAN.md for candidates — there is no free
-#      SDF-hosted mainnet RPC the way there is for testnet.
+#      if it is rate-limited or unavailable when you run this.
 #   3. Re-verify the canonical USDC issuer and SAC id this script uses against
 #      your own source (developers.circle.com, stellar.expert) rather than
 #      trusting this file. See deployment.mainnet.json's own _readme.
@@ -26,7 +27,7 @@ cd "$ROOT"
 
 NETWORK="mainnet"
 DEPLOYER="${SPRINTOS_MAINNET_DEPLOYER:-sprintos-mainnet-deployer}"
-RPC_URL="${STELLAR_MAINNET_RPC_URL:?Set STELLAR_MAINNET_RPC_URL to a mainnet Soroban RPC provider first.}"
+RPC_URL="${STELLAR_MAINNET_RPC_URL:-https://mainnet.sorobanrpc.com}"
 # Circle's canonical Stellar mainnet USDC issuer — verify this yourself before
 # trusting it; see deployment.mainnet.json's _readme for how it was sourced.
 USDC_ISSUER="GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
