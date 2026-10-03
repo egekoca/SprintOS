@@ -60,7 +60,7 @@ echo "▸ Deploying with token=$USDC"
 # to a transaction against real money.
 CONTRACT=$(stellar contract deploy --wasm "$WASM" \
   --source-account "$DEPLOYER" --rpc-url "$RPC_URL" --network-passphrase "$NETWORK_PASSPHRASE" \
-  --alias sprintos-settlement-mainnet \
+  --alias sprintos-settlement-mainnet --inclusion-fee 1000000 \
   -- --token "$USDC" | tail -1)
 
 WASM_SHA256=$(shasum -a 256 "$WASM" | cut -d' ' -f1)
