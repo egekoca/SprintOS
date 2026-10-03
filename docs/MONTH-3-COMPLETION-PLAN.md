@@ -37,8 +37,8 @@ substitute for any of them. Status as of 2026-10-04:
 | --- | --- |
 | Multi-asset Plus/Pro payment (≥4 Stellar assets), three-tier ladder | **Shipped.** Free/Plus/Pro in `packages/schemas/src/account.ts`; `/plus` purchase page; `/api/account/activate` verifies any accepted asset against `lib/stellar/payment-assets.ts`. Only 3 assets carry a verified real issuer (USDC, EURC, native XLM) — a 4th needs a real address, not a guess; see that file's own comment. |
 | StelHacks integration scope agreed | **Blocked on Ege.** This is a real, named external relationship — needs who the contact is, what they've discussed, and what "integration" concretely means to them before any API or docs can be shaped to fit. |
-| Public Review API | Not started. Architecturally close to `/api/advisory` (criteria + evidence in, advisory report out) — the gap is API-key auth instead of same-origin checks, per-key rate limiting, and external-facing docs. Reasonable to build a generic version now and point it at StelHacks once Section 2's blocker clears. |
-| Reliability items extended to the API | Depends on the Review API existing first. |
+| Public Review API | **Shipped.** `/api/v1/review`, bearer-key auth via `/api/admin/api-keys` (keys stored only hashed), per-key rate limit and single-flight lock, `docs/REVIEW-API.md` for partners. Smoke-tested end to end with a real advisory call. `SPRINTOS_ADMIN_SECRET` is set locally and on Vercel (Production + Preview) as of 2026-10-04. Still generic — needs StelHacks's actual rubric/evidence shape once Section 2 clears, and has no usage metering/billing yet. |
+| Reliability items extended to the API | Partially covered by the above (rate limit, job lock, bounded timeouts already shared with the rest of the app). Not yet audited specifically against the API's own failure modes. |
 | Domain migration off the Vercel subdomain | Not started. Needs a domain Ege owns (or buys) — I can add it in Vercel and help with DNS records once there's a domain name to point. |
 | Five-plus X posts | Depends on the X account existing. |
 | Updated H1-H7 verdict table | Depends on the Month 2 pilot actually running. |
