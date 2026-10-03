@@ -25,18 +25,18 @@ const ENVIRONMENT = [
   ["NEXT_PUBLIC_STELLAR_RPC_URL", "Optional testnet RPC override."],
   ["GITHUB_TOKEN", "Optional higher rate limit for public repository scans."],
   ["NEXT_PUBLIC_NETWORK_MODE", "\"mainnet\" or unset/testnet. Refuses to start in mainnet mode until deployment.mainnet.json is fully filled in."],
-  ["NEXT_PUBLIC_TREASURY_ADDRESS", "Where a SprintOS Plus payment is sent. Unset means this deployment does not sell Plus."],
+  ["NEXT_PUBLIC_TREASURY_ADDRESS", "Where a SprintOS Plus or Pro payment is sent. Unset means this deployment does not sell either tier."],
 ] as const;
 
 const ENDPOINTS = [
   ["GET", "/api/health", "Non-secret deployment diagnostics, including which network this deployment is on."],
   ["POST", "/api/criteria", "Validate and store acceptance criteria by hash."],
   ["POST", "/api/evidence", "Validate and store a builder evidence bundle by hash."],
-  ["POST", "/api/advisory", "Run a requested, non-binding advisory report — Standard or Deep, metered against the caller's Free/Plus entitlement."],
+  ["POST", "/api/advisory", "Run a requested, non-binding advisory report — Standard or Deep, metered against the caller's Free/Plus/Pro entitlement."],
   ["GET", "/api/advisory", "Read a stored report and verify its hash."],
   ["GET", "/api/activity?engagement_id=2", "Read indexed, network-verified transactions."],
-  ["GET", "/api/account?address=G...", "A wallet's Free/Plus plan and remaining reviews this period."],
-  ["POST", "/api/account/activate", "Activate Plus after a 5 USDC payment is confirmed on the network."],
+  ["GET", "/api/account?address=G...", "A wallet's Free/Plus/Pro plan and remaining reviews this period."],
+  ["POST", "/api/account/activate", "Activate Plus or Pro after a payment in an accepted asset is confirmed on the network."],
   ["GET", "/api/policy?engagement_id=2", "The multi-reviewer approval threshold a sponsor configured, if any."],
   ["POST", "/api/policy", "Set that threshold. Sponsor only."],
   ["GET", "/api/attestation", "A milestone's reviewer attestations for one evidence version, and the tally against the threshold."],
@@ -61,6 +61,7 @@ export default function DocsPage() {
             <div className="docs-sidebar-links">
               <Link href="/evidence"><ProductIcon name="eye" size={15} /> Evidence pack</Link>
               <Link href="/evidence/ai-boundary"><ProductIcon name="shield" size={15} /> AI boundary proof</Link>
+              <Link href="/plus"><ProductIcon name="milestone" size={15} /> Plans: Free, Plus, Pro</Link>
               <ExternalLink href="https://github.com/egekoca/SprintOS"><ProductIcon name="github" size={15} /> GitHub repository</ExternalLink>
             </div>
           </div>

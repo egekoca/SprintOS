@@ -1,21 +1,22 @@
 import { NextResponse } from "next/server";
-import { PLAN_PERIOD_DAYS, PLUS_PRICE_USDC, type WalletAccount } from "@sprintos/schemas";
+import { PaidTier, PLAN_PERIOD_DAYS, type WalletAccount } from "@sprintos/schemas";
 import { entitlementOf, newAccount } from "@/lib/entitlement";
 import { StoreUnavailableError, store } from "@/lib/store";
 import { takeRateLimit } from "@/lib/rate-limit";
 import { isSameOrigin, requestBodyIsTooLarge, requestClientKey } from "@/lib/request-security";
 import { TREASURY_ADDRESS } from "@/lib/stellar/config";
-import { verifyUsdcPayment } from "@/lib/stellar/payment-verify.server";
+import { findPaymentAsset } from "@/lib/stellar/payment-assets";
+import { verifyPayment } from "@/lib/stellar/payment-verify.server";
 
 /**
- * Activate SprintOS Plus for one wallet.
+ * Activate SprintOS Plus or Pro for one wallet.
  *
  * Entitlement is granted only after the payment is read back from the
- * network: the right asset, the right recipient, at least the going rate, and
- * sent by the wallet asking to be upgraded. A client claiming "I paid" is
- * never enough — exactly the discipline `/api/activity` applies to settlement
- * transactions, applied here to the one payment in this app that is not a
- * contract call.
+ * network: an accepted asset, the right recipient, at least that asset's
+ * price for the requested tier, and sent by the wallet asking to be
+ * upgraded. A client claiming "I paid" is never enough — exactly the
+ * discipline `/api/activity` applies to settlement transactions, applied
+ * here to the one payment in this app that is not a contract call.
  */
 export const runtime = "nodejs";
 
@@ -33,12 +34,12 @@ export async function POST(request: Request) {
   }
   if (!TREASURY_ADDRESS) {
     return NextResponse.json(
-      { error: "This deployment is not configured to sell Plus yet." },
+      { error: "This deployment is not configured to sell Plus or Pro yet." },
       { status: 503 },
     );
   }
 
-  let body: { address?: unknown; tx_hash?: unknown };
+  let body: { address?: unknown; tx_hash?: unknown; tier?: unknown };
   try {
     body = (await request.json()) as typeof body;
   } catch {
@@ -47,9 +48,14 @@ export async function POST(request: Request) {
 
   const address = typeof body.address === "string" ? body.address : "";
   const txHash = typeof body.tx_hash === "string" ? body.tx_hash.toLowerCase() : "";
-  if (!ADDRESS_RE.test(address) || !/^[0-9a-f]{64}$/.test(txHash)) {
-    return NextResponse.json({ error: "Send the wallet address and the payment transaction hash." }, { status: 400 });
+  const tierParsed = PaidTier.safeParse(body.tier);
+  if (!ADDRESS_RE.test(address) || !/^[0-9a-f]{64}$/.test(txHash) || !tierParsed.success) {
+    return NextResponse.json(
+      { error: "Send the wallet address, the payment transaction hash, and the tier (\"plus\" or \"pro\")." },
+      { status: 400 },
+    );
   }
+  const tier = tierParsed.data;
 
   let account: WalletAccount;
   try {
@@ -61,14 +67,14 @@ export async function POST(request: Request) {
     throw err;
   }
 
-  if (account.plus_payment_tx_hash === txHash) {
-    return NextResponse.json({ error: "That payment has already activated a Plus period." }, { status: 409 });
+  if (account.tier_payment_tx_hash === txHash) {
+    return NextResponse.json({ error: "That payment has already activated a paid period." }, { status: 409 });
   }
 
-  const payment = await verifyUsdcPayment(txHash);
+  const payment = await verifyPayment(txHash);
   if (!payment) {
     return NextResponse.json(
-      { error: "That transaction could not be read back from the network as a confirmed USDC payment." },
+      { error: "That transaction could not be read back from the network as a confirmed payment." },
       { status: 409 },
     );
   }
@@ -76,21 +82,32 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "That payment was not sent by this wallet." }, { status: 403 });
   }
   if (payment.to !== TREASURY_ADDRESS) {
-    return NextResponse.json({ error: "That payment was not sent to the SprintOS Plus address." }, { status: 403 });
+    return NextResponse.json({ error: "That payment was not sent to the SprintOS treasury address." }, { status: 403 });
   }
-  if (Number(payment.amount) < Number(PLUS_PRICE_USDC)) {
+
+  const asset = findPaymentAsset(payment.assetCode, payment.assetIssuer);
+  if (!asset) {
     return NextResponse.json(
-      { error: `That payment was for less than the ${PLUS_PRICE_USDC} USDC Plus price.` },
+      { error: `${payment.assetCode} is not an asset this deployment accepts for Plus or Pro.` },
+      { status: 403 },
+    );
+  }
+  const price = asset.price[tier];
+  if (Number(payment.amount) < Number(price)) {
+    return NextResponse.json(
+      { error: `That payment was for less than the ${price} ${asset.code} ${tier} price.` },
       { status: 403 },
     );
   }
 
   const now = new Date();
-  const activated = {
+  const activated: WalletAccount = {
     ...account,
-    plus_activated_at: now.toISOString(),
-    plus_expires_at: new Date(now.getTime() + PLAN_PERIOD_DAYS * 24 * 60 * 60 * 1000).toISOString(),
-    plus_payment_tx_hash: txHash,
+    paid_tier: tier,
+    tier_activated_at: now.toISOString(),
+    tier_expires_at: new Date(now.getTime() + PLAN_PERIOD_DAYS * 24 * 60 * 60 * 1000).toISOString(),
+    tier_payment_asset: asset.code,
+    tier_payment_tx_hash: txHash,
   };
 
   try {

@@ -18,6 +18,7 @@ import { FoxSpinner } from "./FoxLoader";
 const NAV = [
   { href: "/projects", label: "Projects" },
   { href: "/board", label: "Board" },
+  { href: "/plus", label: "Plans" },
   { href: "/docs", label: "Docs" },
 ];
 

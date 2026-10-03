@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { canUse, entitlementOf, newAccount, recordUsage } from "./entitlement.ts";
+import { activeTier, canUse, entitlementOf, newAccount, recordUsage } from "./entitlement.ts";
 
 const ADDRESS = "GBIFJZC2QVNDKDJQEBC247BF5URT4T24FXCRC53527P3TXUUIEIRZSMA";
 const NOW = new Date("2026-10-02T00:00:00.000Z");
@@ -32,8 +32,9 @@ test("the fourth standard review in a window is refused on Free", () => {
 test("an active Plus period raises the caps and unlocks Deep", () => {
   const account = {
     ...newAccount(ADDRESS, NOW),
-    plus_activated_at: NOW.toISOString(),
-    plus_expires_at: new Date(NOW.getTime() + 29 * 24 * 60 * 60 * 1000).toISOString(),
+    paid_tier: "plus" as const,
+    tier_activated_at: NOW.toISOString(),
+    tier_expires_at: new Date(NOW.getTime() + 29 * 24 * 60 * 60 * 1000).toISOString(),
   };
   const entitlement = entitlementOf(account, NOW);
   assert.equal(entitlement.plan, "plus");
@@ -41,12 +42,27 @@ test("an active Plus period raises the caps and unlocks Deep", () => {
   assert.equal(entitlement.remaining.deep, 5);
 });
 
-test("an expired Plus period falls back to Free", () => {
+test("an active Pro period raises the caps further than Plus", () => {
   const account = {
     ...newAccount(ADDRESS, NOW),
-    plus_activated_at: new Date(NOW.getTime() - 40 * 24 * 60 * 60 * 1000).toISOString(),
-    plus_expires_at: new Date(NOW.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+    paid_tier: "pro" as const,
+    tier_activated_at: NOW.toISOString(),
+    tier_expires_at: new Date(NOW.getTime() + 29 * 24 * 60 * 60 * 1000).toISOString(),
   };
+  const entitlement = entitlementOf(account, NOW);
+  assert.equal(entitlement.plan, "pro");
+  assert.equal(entitlement.remaining.standard, 25);
+  assert.equal(entitlement.remaining.deep, 15);
+});
+
+test("an expired paid period falls back to Free", () => {
+  const account = {
+    ...newAccount(ADDRESS, NOW),
+    paid_tier: "plus" as const,
+    tier_activated_at: new Date(NOW.getTime() - 40 * 24 * 60 * 60 * 1000).toISOString(),
+    tier_expires_at: new Date(NOW.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+  };
+  assert.equal(activeTier(account, NOW), "free");
   assert.equal(entitlementOf(account, NOW).plan, "free");
 });
 

@@ -24,6 +24,7 @@ import {
 import { formatUsdc, shortAddress } from "@/lib/stellar/config";
 import { documentHashInBrowser, hashesMatch } from "@/lib/document-hash";
 import { reviewGate, type DocumentState } from "@/lib/review-gate";
+import type { Entitlement } from "@/lib/entitlement";
 import { EvidenceBundle as EvidenceBundleSchema } from "@sprintos/schemas/milestone";
 
 /**
@@ -133,7 +134,7 @@ export default function ReviewDeskPage() {
   /* The connected wallet's own Free/Plus standing — never an input to any
      decision, only to how hard the advisory module is allowed to think on
      this wallet's behalf. */
-  const [entitlement, setEntitlement] = useState<{ plan: "free" | "plus"; remaining: { standard: number; deep: number } } | null>(null);
+  const [entitlement, setEntitlement] = useState<Entitlement | null>(null);
   const [reviewKind, setReviewKind] = useState<"standard" | "deep">("standard");
 
   const refresh = useCallback(async () => {
@@ -519,13 +520,13 @@ export default function ReviewDeskPage() {
             <input
               type="checkbox"
               checked={reviewKind === "deep"}
-              disabled={entitlement.plan !== "plus"}
+              disabled={entitlement.plan === "free"}
               onChange={(e) => setReviewKind(e.target.checked ? "deep" : "standard")}
             />
-            <span>Deep Review{entitlement.plan !== "plus" ? " (Plus only)" : ""}</span>
+            <span>Deep Review{entitlement.plan === "free" ? " (Plus or Pro only)" : ""}</span>
           </label>
           <span className="faint mono" style={{ fontSize: "0.75rem" }}>
-            {entitlement.plan === "plus" ? "Plus" : "Free"} ·{" "}
+            {entitlement.plan === "free" ? "Free" : entitlement.plan === "plus" ? "Plus" : "Pro"} ·{" "}
             {reviewKind === "deep" ? `${entitlement.remaining.deep} deep reviews left` : `${entitlement.remaining.standard} standard reviews left`}
           </span>
         </div>

@@ -1,5 +1,5 @@
 import { Horizon } from "@stellar/stellar-sdk";
-import { NETWORK, USDC_ASSET_CODE, USDC_ISSUER } from "./config";
+import { NETWORK } from "./config";
 import { withTimeout } from "../with-timeout";
 
 const HORIZON_TIMEOUT_MS = 10_000;
@@ -7,17 +7,24 @@ const HORIZON_TIMEOUT_MS = 10_000;
 /**
  * Read a classic Stellar payment back from the network.
  *
- * Plus activation is the one place this application still moves money
- * through a plain Stellar payment rather than a Soroban contract call —
- * there is no "Plus" asset or subscription contract, just a wallet paying
- * the going rate in USDC. This reads that payment back from Horizon rather
- * than trusting a client's claim that it happened, the same discipline the
- * settlement activity index applies to contract calls.
+ * Plus and Pro activation are the one place this application still moves
+ * money through a plain Stellar payment rather than a Soroban contract call
+ * — there is no subscription contract, just a wallet paying the going rate
+ * in one of a few accepted assets (see `payment-assets.ts`). This reads that
+ * payment back from Horizon rather than trusting a client's claim that it
+ * happened, the same discipline the settlement activity index applies to
+ * contract calls. It does not itself know which asset is "acceptable" or
+ * what it should cost — that is the caller's job, matching the returned
+ * asset against `payment-assets.ts`.
  */
 
-export interface VerifiedUsdcPayment {
+export interface VerifiedPayment {
   from: string;
   to: string;
+  /** "native" for XLM, otherwise the issued asset's code. */
+  assetCode: string;
+  /** null for native XLM. */
+  assetIssuer: string | null;
   amount: string;
   at: string;
 }
@@ -28,12 +35,11 @@ function horizon(): Horizon.Server {
 
 /**
  * Null when the transaction does not exist, did not succeed, or carries no
- * payment of this deployment's configured USDC asset.
+ * payment operation at all.
  */
-export async function verifyUsdcPayment(txHash: string): Promise<VerifiedUsdcPayment | null> {
+export async function verifyPayment(txHash: string): Promise<VerifiedPayment | null> {
   if (!/^[0-9a-f]{64}$/i.test(txHash)) return null;
   const server = horizon();
-
   const timeoutMessage = `Horizon did not answer within ${HORIZON_TIMEOUT_MS / 1000} seconds.`;
 
   let tx: Horizon.ServerApi.TransactionRecord;
@@ -52,13 +58,17 @@ export async function verifyUsdcPayment(txHash: string): Promise<VerifiedUsdcPay
   }
 
   const payment = ops.records.find(
-    (op): op is Horizon.ServerApi.PaymentOperationRecord =>
-      op.type === "payment" &&
-      (op as Horizon.ServerApi.PaymentOperationRecord).asset_type !== "native" &&
-      (op as Horizon.ServerApi.PaymentOperationRecord).asset_code === USDC_ASSET_CODE &&
-      (op as Horizon.ServerApi.PaymentOperationRecord).asset_issuer === USDC_ISSUER,
+    (op): op is Horizon.ServerApi.PaymentOperationRecord => op.type === "payment",
   );
   if (!payment) return null;
 
-  return { from: payment.from, to: payment.to, amount: payment.amount, at: tx.created_at };
+  const isNative = payment.asset_type === "native";
+  return {
+    from: payment.from,
+    to: payment.to,
+    assetCode: isNative ? "XLM" : (payment.asset_code ?? ""),
+    assetIssuer: isNative ? null : (payment.asset_issuer ?? null),
+    amount: payment.amount,
+    at: tx.created_at,
+  };
 }

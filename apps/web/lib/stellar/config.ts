@@ -56,13 +56,24 @@ export const USDC_ISSUER =
   process.env.NEXT_PUBLIC_USDC_ISSUER ?? deployment.usdcIssuer ?? DEFAULT_USDC_ISSUER ?? "";
 
 /**
- * Where a Plus payment is sent.
+ * Where a Plus or Pro payment is sent.
  *
  * A public key only — nothing in this codebase ever holds its secret key.
- * Unset on a deployment that is not selling Plus yet, in which case the
- * purchase flow refuses to build a transaction rather than guess a recipient.
+ * Unset on a deployment that is not selling either tier yet, in which case
+ * the purchase flow refuses to build a transaction rather than guess a
+ * recipient.
  */
 export const TREASURY_ADDRESS = process.env.NEXT_PUBLIC_TREASURY_ADDRESS ?? "";
+
+/**
+ * Circle's canonical EURC issuer on Stellar mainnet, confirmed from
+ * developers.circle.com/stablecoins/eurc-contract-addresses on 2026-10-04.
+ * There is no equivalent well-known EURC on testnet, so this is only ever
+ * offered as a payment asset when `IS_MAINNET` — see payment-assets.ts.
+ */
+export const EURC_ASSET_CODE = process.env.NEXT_PUBLIC_EURC_ASSET_CODE ?? "EURC";
+export const EURC_ISSUER =
+  process.env.NEXT_PUBLIC_EURC_ISSUER ?? "GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2";
 
 const builderClaimOverride = process.env.NEXT_PUBLIC_BUILDER_CLAIM_ENABLED;
 export const BUILDER_CLAIM_ENABLED =
