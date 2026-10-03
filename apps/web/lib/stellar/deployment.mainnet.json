@@ -3,28 +3,27 @@
   "networkPassphrase": "Public Global Stellar Network ; September 2015",
   "rpcUrl": "https://mainnet.sorobanrpc.com",
   "horizonUrl": "https://horizon.stellar.org",
-  "settlementContractId": "REPLACE_AFTER_MAINNET_DEPLOY",
+  "settlementContractId": "CAD6T756NFMN2EVOBK2GLAE3CEM33I7RUBTQ6QRFWRXWES53Z5QG4OTE",
   "usdcSacId": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
   "usdcAsset": "USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
   "usdcIssuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
-  "deployedAt": null,
+  "deployedAt": "2026-10-03T21:08:37Z",
   "features": {
     "builderClaim": true,
     "reviewerList": true
   },
   "explorer": {
-    "contract": "REPLACE_AFTER_MAINNET_DEPLOY",
+    "contract": "https://stellar.expert/explorer/public/contract/CAD6T756NFMN2EVOBK2GLAE3CEM33I7RUBTQ6QRFWRXWES53Z5QG4OTE",
     "usdc": "https://stellar.expert/explorer/public/asset/USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
   },
   "firstEngagementId": 0,
-  "wasmSha256": "REPLACE_AFTER_MAINNET_DEPLOY",
+  "wasmSha256": "0ab09039e8e9d16e162d7f27d8cf4008c262199e33c451851fed22545a804e23",
   "previousDeployment": null,
   "_readme": [
-    "This file is a template, not a live deployment record. Every REPLACE_* value must be filled in before NEXT_PUBLIC_NETWORK_MODE=mainnet is ever set on a real deployment — see docs/MONTH-2-COMPLETION-PLAN.md.",
-    "usdcAsset/usdcIssuer are Circle's canonical Stellar mainnet USDC issuer, GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN, confirmed from developers.circle.com/stablecoins/usdc-contract-addresses and the js-stellar-sdk README on 2026-10-02. Re-verify independently before funding anything real against it.",
-    "horizonUrl is SDF's public mainnet Horizon, confirmed from the js-stellar-sdk README.",
-    "rpcUrl has no free SDF-hosted mainnet equivalent to soroban-testnet.stellar.org. https://mainnet.sorobanrpc.com was chosen 2026-10-03 from Stellar's own published RPC provider list (developers.stellar.org/docs/data/apis/rpc/providers) as a public, no-signup option — re-test it before relying on it under real pilot load, and have a second provider from that list in mind as a fallback.",
-    "usdcSacId was computed on 2026-10-02 with the official `stellar` CLI: `stellar contract id asset --asset \"USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN\" --network mainnet`. It is a pure deterministic derivation from the issuer and network passphrase above, no RPC call or signature involved — re-run that command yourself before funding anything real against it, rather than trust a value typed in here.",
-    "settlementContractId, the contract explorer link and wasmSha256 are filled in only after the settlement contract is actually deployed to mainnet from a reviewed commit."
+    "Deployed 2026-10-03 from the committed contracts/settlement source (wasmSha256 above). Deploy transactions: upload wasm 8e37137e8639c3c831efea3862261c0b645b29e6e1d351b783d29636577c0b69, create contract cf40c296f0597a11e60bbcc0d627fad30538611f7747e36d5370888cea58ba74 — both verified successful on Horizon.",
+    "usdcAsset/usdcIssuer are Circle's canonical Stellar mainnet USDC issuer, confirmed from developers.circle.com/stablecoins/usdc-contract-addresses and the js-stellar-sdk README on 2026-10-02.",
+    "usdcSacId was computed with the official `stellar` CLI: `stellar contract id asset --asset \"USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN\" --network mainnet` — a deterministic derivation, not a live lookup.",
+    "The deploy's actual Soroban resource fee was unusually high for a ~22KB contract (~21.6 XLM total between both transactions) — confirmed consistent across two independent RPC providers (sorobanrpc.com and Gateway) before submitting, so it was real rather than a provider quirk. Worth watching if a redeploy is ever needed.",
+    "NEXT_PUBLIC_NETWORK_MODE must still be explicitly set to \"mainnet\" on any deployment before this record takes effect there — see config.ts."
   ]
 }
