@@ -24,11 +24,13 @@ the X account, the five-person pilot, and the recorded session all need
 Ege's own hands, identity, or other real people. Engineering cannot
 substitute for any of them. Status as of 2026-10-04:
 
-- Mainnet deploy: contract built and all 65 tests pass; deploy itself is
-  blocked for Claude Code by its own auto-mode classifier (a harness-level
-  restriction, not a permission a chat message can lift) — Ege runs
-  `./scripts/deploy-mainnet.sh` directly. Deployer `GD5FP44K4Z5F6QKYVG3L2XTJDEQGXYFAR5OQ3VKDDGMOR6IXHXADVZI6`
-  holds 2 XLM, confirmed on mainnet.
+- **Mainnet deploy: done, 2026-10-03.** Ege ran it directly (blocked for
+  Claude Code by its own harness-level classifier). Contract
+  `CAD6T756NFMN2EVOBK2GLAE3CEM33I7RUBTQ6QRFWRXWES53Z5QG4OTE`, both deploy
+  transactions verified on Horizon — see `MONTH-2-COMPLETION-PLAN.md` for
+  the full trail. `NEXT_PUBLIC_NETWORK_MODE=mainnet` is not yet set on the
+  live Vercel deployment; flipping it is a deliberate next decision, not
+  done as part of this.
 - X account, pilot recruitment, recorded session: not started.
 
 ## 2. Month 3 draft's new commitments (Section 7.2) — engineering status

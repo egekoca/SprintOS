@@ -213,15 +213,32 @@ None of it touches the settlement contract.
   deployment** — that env var still needs adding there before Plus can
   activate in production.
 
+- **Mainnet contract deployed, 2026-10-03.** Contract
+  `CAD6T756NFMN2EVOBK2GLAE3CEM33I7RUBTQ6QRFWRXWES53Z5QG4OTE`, wasm hash
+  `0ab09039e8e9d16e162d7f27d8cf4008c262199e33c451851fed22545a804e23`. Both
+  deploy transactions (upload wasm, create contract) verified successful on
+  Horizon. `deployment.mainnet.json` now holds real values; confirmed
+  `NEXT_PUBLIC_NETWORK_MODE=mainnet` loads them without error. Along the
+  way: the CLI needed `--network-passphrase` alongside `--rpc-url`, the
+  contract's `first_id` constructor argument was missing from the deploy
+  script entirely, and the real Soroban resource fee turned out to be
+  ~21.6 XLM total (≈$5) — unusually high for this contract's size, verified
+  consistent across two independent RPC providers before spending anything,
+  so it was real rather than a provider quirk. `scripts/deploy-mainnet.sh`
+  is fixed with all three corrections for any future redeploy.
+- Deployer `GD5FP44K4Z5F6QKYVG3L2XTJDEQGXYFAR5OQ3VKDDGMOR6IXHXADVZI6` has
+  ~10.4 XLM left after the deploy.
+
 **Still open, and why it wasn't done in this pass:**
-- The actual mainnet contract deployment (`scripts/deploy-mainnet.sh` is
-  ready; it needs a real funded mainnet deployer key and a typed "YES" at
-  the prompt — deliberately not something this session runs unattended),
-  the real 5 USDC Plus activation, opening the X account, recruiting and
-  running the five-person pilot, and recording the live feedback session —
-  these need your own wallet signature, your own identity, and real other
-  people, respectively. No tool available in this session can do any of
-  them for you.
+- `NEXT_PUBLIC_NETWORK_MODE=mainnet` is not yet set on the live Vercel
+  deployment (Production or Preview) — the SOW's own plan calls for
+  "controlled low value smoke tests before pilot usage" first. Worth
+  deciding deliberately when to flip it, not as a side effect of this
+  commit.
+- The real 5 USDC (or other asset) Plus/Pro activation against the live
+  contract, opening the X account, recruiting and running the five-person
+  pilot, and recording the live feedback session — these need your own
+  wallet signature, your own identity, and real other people, respectively.
 
 ## 4. What to explicitly de-scope if 13 days is too tight
 
