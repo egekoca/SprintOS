@@ -114,6 +114,11 @@ function policyKey(engagementId: string): string {
   return `policy/${engagementId}.json`;
 }
 
+function apiKeyKey(keyHash: string): string {
+  if (!/^[0-9a-f]{64}$/.test(keyHash)) throw new Error("Invalid API key hash.");
+  return `api-keys/${keyHash}.json`;
+}
+
 /**
  * Reviewer attestations, scoped to the exact evidence version they judge.
  *
@@ -154,6 +159,19 @@ export const Project = z.object({
 });
 export type Project = z.infer<typeof Project>;
 
+/**
+ * A public Review API key, stored by its own hash so a leaked document store
+ * never hands out a usable secret — the same reasoning session tokens get
+ * hashed for. `key` itself is generated once, shown to the issuer, and never
+ * written down anywhere after that.
+ */
+export const ApiKeyRecord = z.object({
+  key_hash: z.string().regex(/^[0-9a-f]{64}$/),
+  label: z.string().min(1).max(100),
+  created_at: z.iso.datetime(),
+});
+export type ApiKeyRecord = z.infer<typeof ApiKeyRecord>;
+
 export interface DocumentStore {
   putProject(project: Project): Promise<void>;
   getProject(engagementId: string): Promise<Project | null>;
@@ -175,6 +193,8 @@ export interface DocumentStore {
     milestoneIdx: number,
     evidenceHash: string,
   ): Promise<ReviewerAttestation[]>;
+  putApiKey(record: ApiKeyRecord): Promise<void>;
+  getApiKey(keyHash: string): Promise<ApiKeyRecord | null>;
 }
 
 function parse<T>(raw: string, schema: z.ZodType<T>): T | null {
@@ -273,6 +293,11 @@ export const fileStore: DocumentStore = {
   },
   listAttestations: (engagementId, milestoneIdx, evidenceHash) =>
     readFileDir(attestationPrefix(engagementId, milestoneIdx, evidenceHash), ReviewerAttestation),
+
+  async putApiKey(record) {
+    await writeFileDoc(apiKeyKey(record.key_hash), record);
+  },
+  getApiKey: (keyHash) => readFileDoc(apiKeyKey(keyHash), ApiKeyRecord),
 };
 
 /* ----------------------------------------------------------- vercel blob */
@@ -361,6 +386,11 @@ export const blobStore: DocumentStore = {
   },
   listAttestations: (engagementId, milestoneIdx, evidenceHash) =>
     readBlobDir(attestationPrefix(engagementId, milestoneIdx, evidenceHash), ReviewerAttestation),
+
+  async putApiKey(record) {
+    await writeBlobDoc(apiKeyKey(record.key_hash), record);
+  },
+  getApiKey: (keyHash) => readBlobDoc(apiKeyKey(keyHash), ApiKeyRecord),
 };
 
 async function readBlobDir<T>(prefix: string, schema: z.ZodType<T>): Promise<T[]> {

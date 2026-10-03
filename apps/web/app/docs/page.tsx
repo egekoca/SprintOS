@@ -41,6 +41,7 @@ const ENDPOINTS = [
   ["POST", "/api/policy", "Set that threshold. Sponsor only."],
   ["GET", "/api/attestation", "A milestone's reviewer attestations for one evidence version, and the tally against the threshold."],
   ["POST", "/api/attestation", "Record one reviewer's attestation. Never itself moves funds — see /evidence/ai-boundary."],
+  ["POST", "/api/v1/review", "The public Review API for platforms outside a SprintOS engagement. Bearer key required — see docs/REVIEW-API.md."],
 ] as const;
 
 function ExternalLink({ href, children }: { href: string; children: React.ReactNode }) {
@@ -62,6 +63,7 @@ export default function DocsPage() {
               <Link href="/evidence"><ProductIcon name="eye" size={15} /> Evidence pack</Link>
               <Link href="/evidence/ai-boundary"><ProductIcon name="shield" size={15} /> AI boundary proof</Link>
               <Link href="/plus"><ProductIcon name="milestone" size={15} /> Plans: Free, Plus, Pro</Link>
+              <ExternalLink href="https://github.com/egekoca/SprintOS/blob/main/docs/REVIEW-API.md"><ProductIcon name="eye" size={15} /> Review API docs</ExternalLink>
               <ExternalLink href="https://github.com/egekoca/SprintOS"><ProductIcon name="github" size={15} /> GitHub repository</ExternalLink>
             </div>
           </div>

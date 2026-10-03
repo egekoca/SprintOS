@@ -1,0 +1,64 @@
+# SprintOS Review API
+
+A hackathon judging a submission against a fixed rubric is the same shape
+of problem as a grant programme reviewing a milestone: a small set of
+written criteria, a handful of public evidence links, and a reviewer who
+has to form an opinion. This API wraps SprintOS's advisory pipeline for a
+platform that is not running a SprintOS engagement at all.
+
+## The guarantee this API makes
+
+The response is a score, a per-criterion checklist and a recommendation —
+never a decision. Nothing this endpoint returns can approve a submission,
+rank one out, or move a payment. It is the same non-binding advisory report
+`/api/advisory` produces for a SprintOS milestone, with the same disclaimer
+field locked to `"binding": false`. A human at the calling platform reads
+it the way a SprintOS reviewer does: as an aid, never an answer.
+
+## Getting a key
+
+Keys are issued directly, not through self-serve signup — open a
+conversation with the SprintOS team. Each key is shown once, at mint time,
+and is not retrievable afterward; a lost key means a new one.
+
+## Calling it
+
+```
+POST /api/v1/review
+Authorization: Bearer sk_...
+Content-Type: application/json
+
+{
+  "title": "Hackathon submission rubric",
+  "outcome": "A complete, judgeable submission",
+  "criteria": [
+    { "id": "c1", "text": "Project has a public repository with a README" },
+    { "id": "c2", "text": "Project demonstrates a working demo" }
+  ],
+  "evidence_links": [
+    { "url": "https://github.com/...", "type": "repo" },
+    { "url": "https://youtube.com/...", "type": "demo" }
+  ],
+  "kind": "standard"
+}
+```
+
+- `criteria`: 1–5 entries, each a short written check.
+- `evidence_links`: 1–5 public `https://` URLs, each typed as one of
+  `repo`, `commit`, `pull_request`, `test_result`, `docs`, `demo`.
+- `kind`: `"standard"` (default) or `"deep"` — Deep asks the model to think
+  harder and read more of what it fetched, at a higher cost per call.
+- Rate limited per key: 20 requests per hour, and only one request in
+  flight per key at a time.
+
+Response is `{ "report": AdvisoryReport }` — the same schema documented in
+`packages/schemas/src/report.ts`, including `report_hash` so a stored copy
+can be checked for tampering later.
+
+## What this is not
+
+No submission, rubric, or evidence link is stored or anchored anywhere —
+nothing here touches the Stellar network, a wallet, or a contract. If a
+platform wants a public, verifiable record of a decision the way a
+SprintOS engagement has one, that is a different integration (a real
+engagement with an on-chain settlement), not this endpoint.
