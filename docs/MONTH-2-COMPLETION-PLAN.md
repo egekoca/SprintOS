@@ -229,12 +229,19 @@ None of it touches the settlement contract.
 - Deployer `GD5FP44K4Z5F6QKYVG3L2XTJDEQGXYFAR5OQ3VKDDGMOR6IXHXADVZI6` has
   ~10.4 XLM left after the deploy.
 
-**Still open, and why it wasn't done in this pass:**
-- `NEXT_PUBLIC_NETWORK_MODE=mainnet` is not yet set on the live Vercel
-  deployment (Production or Preview) — the SOW's own plan calls for
-  "controlled low value smoke tests before pilot usage" first. Worth
-  deciding deliberately when to flip it, not as a side effect of this
-  commit.
+- **sprintos-ai.vercel.app is live on mainnet, 2026-10-03.** Ege chose to
+  flip `NEXT_PUBLIC_NETWORK_MODE=mainnet` straight to Production (skipping
+  the Preview-first smoke-test option this plan had recommended) and asked
+  for the redeploy immediately. `/api/health` confirms `"network": "mainnet"`
+  in production; `/plus`, `/api/account`, `/api/v1/review` and `/proof/[id]`
+  all verified reachable on the live domain in the same pass.
+
+**Still open:**
+- No real engagement has been created against the live mainnet contract
+  yet — the SOW's own "controlled low value smoke test before pilot usage"
+  still has not happened, it just happens on production now rather than a
+  preview URL first. Worth doing deliberately before pointing real pilot
+  users at it.
 - The real 5 USDC (or other asset) Plus/Pro activation against the live
   contract, opening the X account, recruiting and running the five-person
   pilot, and recording the live feedback session — these need your own
