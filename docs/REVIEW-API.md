@@ -19,7 +19,10 @@ it the way a SprintOS reviewer does: as an aid, never an answer.
 
 Keys are issued directly, not through self-serve signup — open a
 conversation with the SprintOS team. Each key is shown once, at mint time,
-and is not retrievable afterward; a lost key means a new one.
+and is not retrievable afterward; a lost key means a new one. Each key also
+carries its own per-hour rate limit, set when it is minted — a platform
+judging a batch of hackathon submissions in one sitting gets a ceiling
+sized for that, not a one-size-fits-all default.
 
 ## Calling it
 
@@ -48,8 +51,9 @@ Content-Type: application/json
   `repo`, `commit`, `pull_request`, `test_result`, `docs`, `demo`.
 - `kind`: `"standard"` (default) or `"deep"` — Deep asks the model to think
   harder and read more of what it fetched, at a higher cost per call.
-- Rate limited per key: 20 requests per hour, and only one request in
-  flight per key at a time.
+- Rate limited per key at whatever ceiling was set when the key was
+  minted (20/hour by default), and only one request in flight per key at
+  a time.
 
 Response is `{ "report": AdvisoryReport }` — the same schema documented in
 `packages/schemas/src/report.ts`, including `report_hash` so a stored copy

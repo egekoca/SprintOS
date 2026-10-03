@@ -169,6 +169,13 @@ export const ApiKeyRecord = z.object({
   key_hash: z.string().regex(/^[0-9a-f]{64}$/),
   label: z.string().min(1).max(100),
   created_at: z.iso.datetime(),
+  /**
+   * Requests per hour for this key alone. A hackathon platform judging a
+   * batch of submissions needs a much higher ceiling than a flat default
+   * would give it — set deliberately per partner at mint time rather than
+   * guessed once for everyone.
+   */
+  rate_limit_per_hour: z.number().int().min(1).max(10_000).default(20),
 });
 export type ApiKeyRecord = z.infer<typeof ApiKeyRecord>;
 

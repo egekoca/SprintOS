@@ -79,7 +79,7 @@ to confirm it before mainnet money moves.
 | CI security regression (AI score 100 cannot release) | **Done** | `test_milestone_state_has_no_ai_writable_field`, `test_ai_score_zero_does_not_block_human_approval` exist and pass; keep green through every change here. |
 | 5 pilot users + feedback form + 1 recorded session | **Missing — and time-critical** | Needs recruitment to start *immediately*, in parallel with engineering, not after it. |
 | Improvement changelog from pilot findings | **Missing** | Depends on the pilot happening first. |
-| Official SprintOS AI Reviewer X account | **Missing** | `marketing/twitter-bio.txt`, a banner and a profile picture already exist locally (untracked) — the account itself has not been opened/published yet. |
+| Official SprintOS AI Reviewer X account | **Open.** https://x.com/sprintos_ai, confirmed by Ege 2026-10-04. `marketing/twitter-bio.txt`'s draft still says "testnet MVP" — needs a pass now that mainnet is live, before it's actually used as the account bio. No posts published yet. |
 
 ## 2. Architecture decision needed: multi-reviewer threshold
 

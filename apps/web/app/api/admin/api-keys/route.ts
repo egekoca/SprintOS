@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Request body is too large." }, { status: 413 });
   }
 
-  let body: { label?: unknown };
+  let body: { label?: unknown; rate_limit_per_hour?: unknown };
   try {
     body = (await request.json()) as typeof body;
   } catch {
@@ -42,12 +42,13 @@ export async function POST(request: Request) {
     key_hash: hashApiKey(key),
     label,
     created_at: new Date().toISOString(),
+    ...(body.rate_limit_per_hour !== undefined ? { rate_limit_per_hour: body.rate_limit_per_hour } : {}),
   });
 
   try {
     await store.putApiKey(record);
     // The only response that ever carries the raw key. Lost means re-minted.
-    return NextResponse.json({ key, label });
+    return NextResponse.json({ key, label, rate_limit_per_hour: record.rate_limit_per_hour });
   } catch (err) {
     if (err instanceof StoreUnavailableError) {
       return NextResponse.json({ error: err.message }, { status: 503 });

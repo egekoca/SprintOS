@@ -1,0 +1,5 @@
+SprintOS is live on Stellar mainnet.
+
+A human reviewer still has to sign every release — the AI can score a milestone 100/100 and it still can't move a single USDC on its own. That guarantee is enforced in the contract itself, not a policy.
+
+Testnet proved it. Mainnet runs it. #Stellar #Soroban

@@ -1,0 +1,10 @@
+DRAFT — confirm with StelHacks before posting. Naming a partner publicly
+should be their call too, not just ours.
+
+Working with @StelHacks (replace with their real handle) to bring
+AI-assisted judging to their Stellar hackathon platform: judges set the
+rubric, SprintOS checks each submitted repo against it and scores it —
+never approves, never ranks anyone out. The jury still decides everything
+that matters.
+
+More soon.

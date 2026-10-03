@@ -36,13 +36,13 @@ const Body = z.object({
   kind: z.enum(["standard", "deep"]).default("standard"),
 });
 
-async function authenticate(request: Request): Promise<{ label: string } | null> {
+async function authenticate(request: Request): Promise<{ label: string; rateLimitPerHour: number } | null> {
   const auth = request.headers.get("authorization") ?? "";
   const match = auth.match(/^Bearer (sk_[0-9a-f]+)$/);
   const presented = match?.[1];
   if (!presented) return null;
   const record = await store.getApiKey(hashApiKey(presented));
-  return record ? { label: record.label } : null;
+  return record ? { label: record.label, rateLimitPerHour: record.rate_limit_per_hour } : null;
 }
 
 export async function POST(request: Request) {
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Request body is too large." }, { status: 413 });
   }
 
-  let caller: { label: string } | null;
+  let caller: { label: string; rateLimitPerHour: number } | null;
   try {
     caller = await authenticate(request);
   } catch (err) {
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Send a valid Review API key as a Bearer token." }, { status: 401 });
   }
 
-  const rate = takeRateLimit(`review-api:${caller.label}`, 20, 60 * 60_000);
+  const rate = takeRateLimit(`review-api:${caller.label}`, caller.rateLimitPerHour, 60 * 60_000);
   if (!rate.allowed) {
     return NextResponse.json(
       { error: "Too many requests for this key this hour." },
