@@ -28,6 +28,9 @@ cd "$ROOT"
 NETWORK="mainnet"
 DEPLOYER="${SPRINTOS_MAINNET_DEPLOYER:-sprintos-mainnet-deployer}"
 RPC_URL="${STELLAR_MAINNET_RPC_URL:-https://mainnet.sorobanrpc.com}"
+# Required explicitly whenever --rpc-url is passed — the CLI will not infer
+# it from --network once an RPC URL is also given.
+NETWORK_PASSPHRASE="Public Global Stellar Network ; September 2015"
 # Circle's canonical Stellar mainnet USDC issuer — verify this yourself before
 # trusting it; see deployment.mainnet.json's _readme for how it was sourced.
 USDC_ISSUER="GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
@@ -52,10 +55,13 @@ echo "▸ Running the full contract test suite before deploying, including the A
 cargo test --package sprintos-settlement --quiet
 
 echo "▸ Deploying with token=$USDC"
+# stderr is kept visible on purpose — a silently swallowed deploy error here
+# is worse than a noisy one, since the whole point is to know what happened
+# to a transaction against real money.
 CONTRACT=$(stellar contract deploy --wasm "$WASM" \
-  --source-account "$DEPLOYER" --network "$NETWORK" --rpc-url "$RPC_URL" \
+  --source-account "$DEPLOYER" --rpc-url "$RPC_URL" --network-passphrase "$NETWORK_PASSPHRASE" \
   --alias sprintos-settlement-mainnet \
-  -- --token "$USDC" 2>/dev/null | tail -1)
+  -- --token "$USDC" | tail -1)
 
 WASM_SHA256=$(shasum -a 256 "$WASM" | cut -d' ' -f1)
 
