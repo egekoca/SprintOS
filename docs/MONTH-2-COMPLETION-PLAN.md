@@ -203,12 +203,25 @@ None of it touches the settlement contract.
   Customer Development Plan specifies), and the structured post-pilot
   feedback form. Text only; running it still needs real participants.
 
+- Mainnet RPC and treasury address: `deployment.mainnet.json`'s `rpcUrl`
+  defaults to `https://mainnet.sorobanrpc.com` (a public provider from
+  Stellar's own list). `NEXT_PUBLIC_TREASURY_ADDRESS` is set in local
+  `.env.local` to the address Ege provided on 2026-10-03 and verified as a
+  well-formed Stellar public key; `/api/account/activate` confirmed it picks
+  this up (it now reaches the Horizon lookup instead of refusing with "not
+  configured to sell Plus yet"). **Not yet set on the actual Vercel
+  deployment** — that env var still needs adding there before Plus can
+  activate in production.
+
 **Still open, and why it wasn't done in this pass:**
-- The actual mainnet deployment, the real 5 USDC Plus activation, opening
-  the X account, recruiting and running the five-person pilot, and
-  recording the live feedback session — these need your own wallet
-  signature, your own identity, and real other people, respectively. No
-  tool available in this session can do any of them for you.
+- The actual mainnet contract deployment (`scripts/deploy-mainnet.sh` is
+  ready; it needs a real funded mainnet deployer key and a typed "YES" at
+  the prompt — deliberately not something this session runs unattended),
+  the real 5 USDC Plus activation, opening the X account, recruiting and
+  running the five-person pilot, and recording the live feedback session —
+  these need your own wallet signature, your own identity, and real other
+  people, respectively. No tool available in this session can do any of
+  them for you.
 
 ## 4. What to explicitly de-scope if 13 days is too tight
 
