@@ -41,7 +41,9 @@ export const PAYMENT_ASSETS: readonly PaymentAsset[] = [
     // Approximate EUR-equivalent of the USD reference prices, not a live
     // conversion — a flat figure, re-priced by hand occasionally rather than
     // fetched, same reasoning as the native-XLM price below.
-    price: { plus: "5", pro: "14" },
+    // Temporarily cut to trivial test amounts (2026-10-06), same reason as
+    // PLUS_PRICE_USDC/PRO_PRICE_USDC. Restore to 5/14 before the real pilot.
+    price: { plus: "0.5", pro: "1" },
     mainnetOnly: true,
   },
   {
@@ -50,7 +52,9 @@ export const PAYMENT_ASSETS: readonly PaymentAsset[] = [
     // Flat prices, not a USD conversion — this deployment holds no price
     // oracle and is not adding one just to accept the network's own asset.
     // Re-price by hand if XLM moves enough to make these feel wrong.
-    price: { plus: "25", pro: "75" },
+    // Temporarily cut to trivial test amounts (2026-10-06); restore to
+    // 25/75 before the real pilot.
+    price: { plus: "1", pro: "2" },
     mainnetOnly: false,
   },
 ] as const;

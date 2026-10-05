@@ -64,6 +64,10 @@ export const PRO_DEEP_REVIEWS_PER_PERIOD = 15;
  * the signed SOW's own 5 USDC figure, and Pro as a clear step up from it.
  * Draft numbers: adjust freely, nothing downstream hardcodes them beyond
  * this file and the per-asset price table that reads them.
+ *
+ * Temporarily cut to trivial test amounts (2026-10-06) so the real on-chain
+ * Plus/Pro payment flow can be smoke-tested on mainnet without spending the
+ * real 5/15 USDC. Restore to 5/15 before the actual pilot.
  */
-export const PLUS_PRICE_USDC = "5";
-export const PRO_PRICE_USDC = "15";
+export const PLUS_PRICE_USDC = "0.5";
+export const PRO_PRICE_USDC = "1";
