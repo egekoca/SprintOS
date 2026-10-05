@@ -92,6 +92,19 @@ export const USDC_DECIMALS = 7;
  */
 export const MAINNET_MILESTONE_CAP_USDC = Number(process.env.NEXT_PUBLIC_MAINNET_MILESTONE_CAP_USDC) || 20;
 
+/**
+ * The inclusion fee for a signed write (create_engagement, fund,
+ * submit_evidence, approve, hold, release, refund, add/remove_reviewer).
+ *
+ * The SDK's 100-stroop `BASE_FEE` is rejected outright on mainnet right now
+ * (`TxInsufficientFee`, confirmed against the live network on 2026-10-06 —
+ * the same problem `scripts/deploy-mainnet.sh` already had to work around
+ * with its own `--inclusion-fee`). Testnet has no such floor, so this only
+ * raises the fee where it is actually needed. 1,000,000 stroops is 0.1 XLM —
+ * negligible next to the 100 USDC pilot cap, and what cleared mainnet here.
+ */
+export const WRITE_FEE = IS_MAINNET ? "1000000" : undefined;
+
 export const EXPLORER_BASE = `https://stellar.expert/explorer/${IS_MAINNET ? "public" : "testnet"}`;
 
 /**

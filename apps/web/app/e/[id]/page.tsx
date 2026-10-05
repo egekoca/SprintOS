@@ -16,6 +16,7 @@ import { UsdcMark } from "@/components/UsdcMark";
 import { useWallet } from "@/components/WalletProvider";
 import { SettlementLog } from "@/components/SettlementLog";
 import { ProductIcon } from "@/components/ProductIcon";
+import { IS_MAINNET } from "@/lib/stellar/config";
 
 /**
  * The public engagement page.
@@ -112,7 +113,7 @@ export default function EngagementPage() {
         </div>
         <h2>Engagement #{String(engagement.id)}</h2>
         <p className="lede">
-          Read from Stellar testnet, not reported by the application.
+          Read from Stellar {IS_MAINNET ? "mainnet" : "testnet"}, not reported by the application.
         </p>
       </div>
 

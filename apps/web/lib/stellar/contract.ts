@@ -28,6 +28,7 @@ import {
   LEGACY_SETTLEMENT_CONTRACT_ID,
   NETWORK,
   SETTLEMENT_CONTRACT_ID,
+  WRITE_FEE,
 } from "./config.ts";
 import { signTransaction } from "./wallet.ts";
 import { engagementPageRange } from "./pagination.ts";
@@ -391,7 +392,7 @@ async function invoke(
 ): Promise<SubmittedTx> {
   const account = await server.getAccount(address);
   const built = new TransactionBuilder(account, {
-    fee: BASE_FEE,
+    fee: WRITE_FEE ?? BASE_FEE,
     networkPassphrase: NETWORK.passphrase,
   })
     .addOperation(contract().call(method, ...args))
