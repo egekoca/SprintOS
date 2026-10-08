@@ -6,6 +6,13 @@ import { FoxSpinner } from "@/components/FoxLoader";
 import { availablePaymentAssets, type PaymentAsset } from "@/lib/stellar/payment-assets";
 import { payForPlan } from "@/lib/stellar/pay";
 import type { Entitlement } from "@/lib/entitlement";
+import {
+  FREE_STANDARD_REVIEWS_PER_PERIOD,
+  PLUS_STANDARD_REVIEWS_PER_PERIOD,
+  PLUS_DEEP_REVIEWS_PER_PERIOD,
+  PRO_STANDARD_REVIEWS_PER_PERIOD,
+  PRO_DEEP_REVIEWS_PER_PERIOD,
+} from "@sprintos/schemas/account";
 
 /**
  * Upgrade to Plus or Pro.
@@ -20,6 +27,26 @@ import type { Entitlement } from "@/lib/entitlement";
 
 const TIER_LABEL: Record<"plus" | "pro", string> = { plus: "Plus", pro: "Pro" };
 const PLAN_LABEL: Record<"free" | "plus" | "pro", string> = { free: "Free", plus: "Plus", pro: "Pro" };
+
+/** What each plan actually includes, shown so "Plus" and "Pro" are a choice
+    between numbers, not just two buttons with no stated difference. */
+const PLAN_PERKS: Record<"free" | "plus" | "pro", { standard: number; deep: number; blurb: string }> = {
+  free: {
+    standard: FREE_STANDARD_REVIEWS_PER_PERIOD,
+    deep: 0,
+    blurb: "Enough to try SprintOS on a real milestone before paying anything.",
+  },
+  plus: {
+    standard: PLUS_STANDARD_REVIEWS_PER_PERIOD,
+    deep: PLUS_DEEP_REVIEWS_PER_PERIOD,
+    blurb: "For a reviewer or builder working a normal pace of engagements.",
+  },
+  pro: {
+    standard: PRO_STANDARD_REVIEWS_PER_PERIOD,
+    deep: PRO_DEEP_REVIEWS_PER_PERIOD,
+    blurb: "For a programme running many engagements at once, or heavy Deep Review use.",
+  },
+};
 
 export default function PlusPage() {
   const { address, connect } = useWallet();
@@ -90,6 +117,22 @@ export default function PlusPage() {
           token, no subscription contract.
         </p>
       </header>
+
+      <div className="plan-compare">
+        {(["free", "plus", "pro"] as const).map((p) => (
+          <div key={p} className={`plan-compare-card${p === "free" ? "" : " is-paid"}`}>
+            <p className="eyebrow">{PLAN_LABEL[p]}</p>
+            <p className="plan-compare-count">
+              {PLAN_PERKS[p].standard} <small>standard</small>
+            </p>
+            <p className="plan-compare-count">
+              {PLAN_PERKS[p].deep} <small>deep</small>
+            </p>
+            <p className="faint" style={{ fontSize: "0.8125rem" }}>every 30 days</p>
+            <p className="muted" style={{ fontSize: "0.8125rem" }}>{PLAN_PERKS[p].blurb}</p>
+          </div>
+        ))}
+      </div>
 
       {!address && (
         <div className="panel row" style={{ justifyContent: "space-between" }}>

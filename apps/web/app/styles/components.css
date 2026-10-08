@@ -255,3 +255,17 @@ input:focus, textarea:focus, select:focus { border-color: var(--orange); }
   color: var(--chalk-dim);
 }
 .notice-ok { border-left-color: var(--st-released); }
+
+/* ---------------------------------------------------- plan comparison */
+.plan-compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+.plan-compare-card {
+  background: var(--concrete);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-lg);
+  padding: 1.1rem 1.25rem;
+  display: grid;
+  gap: 0.2rem;
+}
+.plan-compare-card.is-paid { border-color: var(--edge-bright); }
+.plan-compare-count { font-family: var(--font-mono); font-size: 1.35rem; color: var(--chalk); margin: 0.2rem 0 0; }
+.plan-compare-count small { font-family: var(--font-body); font-size: 0.75rem; color: var(--chalk-dim); margin-left: 0.3rem; }
