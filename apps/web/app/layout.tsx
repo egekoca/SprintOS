@@ -7,7 +7,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { IS_MAINNET } from "@/lib/stellar/config";
 
 export const metadata: Metadata = {
-  title: "SprintOS — milestone settlement on Stellar",
+  title: "SprintOS",
   description: IS_MAINNET
     ? "Fund milestones in mainnet USDC, submit public proof of work, and let a human reviewer decide. The AI advises; it cannot pay anyone."
     : "Fund milestones in testnet USDC, submit public proof of work, and let a human reviewer decide. The AI advises; it cannot pay anyone.",
