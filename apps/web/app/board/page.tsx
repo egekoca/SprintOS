@@ -6,7 +6,7 @@ import { useWallet } from "@/components/WalletProvider";
 import { FoxLoader } from "@/components/FoxLoader";
 import { ProductIcon } from "@/components/ProductIcon";
 import { listEngagements, type Engagement } from "@/lib/stellar/contract";
-import { explorerAccount, formatUsdc, shortAddress } from "@/lib/stellar/config";
+import { formatUsdc, shortAddress } from "@/lib/stellar/config";
 import {
   PAGE_SIZE,
   pageOf,
@@ -119,9 +119,9 @@ export default function BoardPage() {
                 {podium.map((row) => (
                   <li key={row.address} className={`board-podium-slot is-rank-${row.rank}`}>
                     <span className="board-medal">{row.rank}</span>
-                    <a href={explorerAccount(row.address)} target="_blank" rel="noreferrer" className="mono">
+                    <Link href={`/builders/${row.address}`} className="mono">
                       {shortAddress(row.address, 4, 4)}
-                    </a>
+                    </Link>
                     <b>{formatUsdc(row.earned)}</b>
                     <small>{row.milestonesPaid} milestone{row.milestonesPaid === 1 ? "" : "s"}</small>
                   </li>
@@ -188,9 +188,9 @@ function Row({ row, mine }: { row: BuilderStanding; mine: boolean }) {
     <tr className={mine ? "is-mine" : undefined}>
       <td className="board-rank">{row.rank}</td>
       <td>
-        <a href={explorerAccount(row.address)} target="_blank" rel="noreferrer" className="mono">
+        <Link href={`/builders/${row.address}`} className="mono">
           {shortAddress(row.address, 6, 6)}
-        </a>
+        </Link>
         {mine && <span className="board-you">you</span>}
       </td>
       <td className="data">{formatUsdc(row.earned)}</td>
