@@ -23,16 +23,15 @@ this file is the single place to check what is left.
   EURC, native XLM, and USDT0 (LayerZero-bridged Tether, issuer
   `GATISXX6BZ6NC7IKQBY37CJD4SOZL3CYZJWXEDG6JVIY4WBS6KXJHN6Q`, verified against
   developers.stellar.org and live Horizon data 2026-10-29).
-- ⬜ **Not yet committed or deployed** — the USDT0 wiring exists only in the
-  working tree as of this writing.
+- ✅ Committed 2026-11-26. Not yet deployed to production.
 - ⬜ Real on-chain smoke-test payment in each asset, with transaction hashes
   for the evidence package (SOW §6.1). A test-buyer identity exists for this
   (`sprintos-mainnet-test-buyer`, secret in macOS Keychain, public
   `GDQRTX7NPSFJA7WLKG5KNMTS5SZLK4SYOT2WYRT66KMGLAVW2V45XUEM`) — needs Ege to
   fund it with XLM + each asset and run a real Plus/Pro purchase per asset.
 
-**Next:** commit + deploy the USDT0 change, then Ege runs the real funded
-smoke test across all four assets.
+**Next:** deploy, then Ege runs the real funded smoke test across all four
+assets.
 
 ## Deliverable 2 — Public Review API
 
@@ -86,16 +85,34 @@ evaluation running in production).
 > Migrate off the default Vercel subdomain onto an owned domain. Publish the
 > launch through ≥5 original X posts.
 
-- 🟡 Rate limiting, job locking and the boundary enforcement above now cover
-  the API specifically (see Deliverable 2). Dedup/timeout-retry bounds on
-  the review and evidence routes still need a dedicated audit against the
-  API's own abuse paths (burst traffic from a third party, not just a logged
-  in user) — not yet done.
-- ⬜ Per-builder detail view on the public Board (see one builder's full
-  engagement history, not just totals).
-- ⬜ One-click "accept the AI's milestone draft" flow (currently every field
-  is reviewed by hand).
-- ⬜ Clearer next-step navigation across more pages.
+- ✅ **API-specific abuse-path tests** — `e2e/review-api.spec.ts` (new),
+  exercised over real HTTP against a locally-started server (Next.js route
+  handlers can't be imported directly outside `next build`/`start`, so this
+  is the Playwright layer, like the rest of the e2e suite). Covers: the
+  keyless demo endpoint, a missing API key (401), an unknown key (401), an
+  oversized body rejected before auth even runs (413), and a key rate
+  limited at exactly the ceiling it was minted with (429, with
+  `retry-after`). `playwright.config.ts` now gives its local test server a
+  throwaway admin secret and clears `OPENAI_API_KEY`, both scoped only to
+  that locally-started process. A true concurrent-duplicate-request race
+  was attempted and deliberately dropped as unreliably flaky; the
+  underlying job-lock primitive stays covered by `lib/rate-limit.test.ts`.
+- ✅ Per-builder detail view on the public Board —
+  `/builders/[address]`, linked from every Board row and podium slot.
+  Lists every engagement that address was ever assigned as builder, funded
+  or not, paid or not, computed live from the contract.
+- ✅ One-click "accept the AI's milestone draft" flow — "Accept plan &
+  continue" in `/projects/new` step 2, next to the existing even-split
+  button. Prices every milestone from the entered total and advances
+  immediately, instead of requiring an amount typed into each milestone
+  card by hand (the one field the AI draft never fills in, and the one
+  actually blocking Continue).
+- ⬜ Clearer next-step navigation across more pages. Unlike the other two
+  UX items, the SOW names no specific mechanism here, and the Month 2
+  pilot's actual feedback notes live in a recorded session / Drive folder
+  this plan has not read verbatim — guessing at which pages risks fixing
+  the wrong thing. Needs either the raw pilot feedback or Ege's own sense
+  of where people get lost before picking a concrete change.
 - ⬜ Real owned domain — purchase + DNS/TLS migration off `*.vercel.app` for
   the web app, Public Proof pages, and the API. Needs Ege to pick/buy a
   domain; I can wire DNS and Vercel once there's a name.
@@ -108,15 +125,15 @@ evaluation running in production).
   needed: one post once the new domain is live, and Ege actually posting
   these from the SprintOS AI Reviewer X account.
 
-**Next, after Deliverable 2's StelHacks item closes:** audit API-specific
-abuse paths, then work the UX list (Board per-builder view first — it's the
-most self-contained), then domain migration once Ege has a name.
+**Next:** close the StelHacks loop (Deliverable 2) and deploy everything
+committed so far; get direction on the next-step-navigation item; domain
+migration once Ege has a name.
 
 ## Summary: what needs Ege vs. what's engineering-only
 
 | Needs Ege | Pure engineering (can proceed now) |
 | --- | --- |
-| Fund `sprintos-mainnet-test-buyer` and run the real asset smoke tests | Commit + deploy today's USDT0 + API boundary work |
-| StelHacks coordination (real key, volume, format) | API-specific reliability/abuse-path tests |
-| Buy a domain | Board per-builder view |
-| Post the 6 ready X launch drafts (+ StelHacks one, once confirmed) | One-click AI-draft-accept UX |
+| Fund `sprintos-mainnet-test-buyer` and run the real asset smoke tests | Deploy everything committed so far |
+| StelHacks coordination (real key, volume, format) | Pick a concrete next-step-navigation fix, once scoped |
+| Buy a domain | |
+| Post the 6 ready X launch drafts (+ StelHacks one, once confirmed) | |
