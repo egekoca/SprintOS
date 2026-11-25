@@ -1,0 +1,3 @@
+SprintOS just ran its first real transactions on Stellar mainnet — zero errors so far. The AI reviewer scored the work; only the human wallet signed the release. Same guarantee as testnet, now for real money.
+
+More soon. #Stellar #Soroban

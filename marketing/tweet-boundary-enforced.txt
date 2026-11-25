@@ -1,0 +1,7 @@
+"The AI can't release funds" is a claim. This is the enforcement:
+
+CI fails the build if the advisory package ever imports a Stellar SDK or touches key-handling code. Not a policy, not a review habit — a red pipeline.
+
+Open source. Check it yourself.
+
+#Stellar #Soroban

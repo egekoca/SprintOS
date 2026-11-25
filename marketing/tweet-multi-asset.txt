@@ -1,0 +1,5 @@
+SprintOS Plus and Pro now accept four Stellar assets: USDC, EURC, USDT0 and XLM.
+
+Each one is a standard on-chain payment, verified before anything unlocks. No new token minted, nothing custodied, no price oracle in the loop.
+
+#Stellar #Soroban

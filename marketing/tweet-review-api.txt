@@ -1,0 +1,1 @@
+SprintOS now ships a public Review API: send a rubric and evidence links, get back a score and checklist, never a decision. Built for hackathons and grant platforms judging many submissions under deadline. #Stellar #Soroban

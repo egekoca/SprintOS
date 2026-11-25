@@ -1,0 +1,5 @@
+SprintOS: an AI reviewer scores your Stellar milestones, but it can't release funds.
+
+A score of 100 still can't move a single USDC without the human wallet signing off. No backdoor, no override, enforced in the contract itself.
+
+AI advises. Humans decide. #Stellar #Soroban

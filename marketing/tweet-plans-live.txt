@@ -1,0 +1,3 @@
+SprintOS now ships three plans: Free (3 reviews/30 days), Plus (10 standard + 5 deep), Pro (25 standard + 15 deep) — pay in USDC, EURC, or XLM, verified on-chain before any entitlement unlocks.
+
+No card. No account. Just your wallet. #Stellar #Soroban
