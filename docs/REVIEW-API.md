@@ -15,6 +15,21 @@ rank one out, or move a payment. It is the same non-binding advisory report
 field locked to `"binding": false`. A human at the calling platform reads
 it the way a SprintOS reviewer does: as an aid, never an answer.
 
+## Try it without a key
+
+```
+curl https://sprintos-ai.vercel.app/api/v1/review/demo
+```
+
+No Bearer token, no wallet, no account — this returns exactly the report
+`POST /api/v1/review` would produce for the example request below, generated
+from a fixed draft rather than a live model call. Same input, same
+`report_id`, same `generated_at`, same `report_hash` every time:
+`sha256:88f6e90eaacb0ab49b9af7cb22b39ae1f0d27c75271f51e9da5316ed20d2a610`,
+score 82, `ReadyForReview`. `pnpm --filter @sprintos/advisory fixtures`
+regenerates it byte for byte — see `packages/advisory/src/demo-fixture.ts`
+and `packages/advisory/fixtures/04-api-demo.report.json`.
+
 ## Getting a key
 
 Keys are issued directly, not through self-serve signup — open a

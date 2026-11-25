@@ -15,6 +15,7 @@ import { assembleReport } from "./generate.ts";
 import type { FetchedEvidence } from "./fetch.ts";
 import type { Draft } from "./validate.ts";
 import { validateDraft } from "./validate.ts";
+import { buildDemoReport, DEMO_CRITERIA, DEMO_EVIDENCE } from "./demo-fixture.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const outDir = join(here, "..", "fixtures");
@@ -203,3 +204,18 @@ for (const sample of samples) {
 writeFileSync(join(outDir, "criteria.json"), `${JSON.stringify(criteria, null, 2)}\n`);
 writeFileSync(join(outDir, "index.json"), `${JSON.stringify(index, null, 2)}\n`);
 console.log(`\n${samples.length} sample reports written to packages/advisory/fixtures/`);
+
+/*
+ * The Review API's keyless demo sample — the exact request from
+ * docs/REVIEW-API.md's "Calling it" section, built from the same fixed
+ * definitions `GET /api/v1/review/demo` calls live. Written here too so the
+ * evidence package has a byte-for-byte copy to check independently, the same
+ * way the three samples above do.
+ */
+const demoReport = buildDemoReport();
+writeFileSync(join(outDir, "04-api-demo.report.json"), `${JSON.stringify(demoReport, null, 2)}\n`);
+writeFileSync(join(outDir, "04-api-demo.evidence.json"), `${JSON.stringify(DEMO_EVIDENCE, null, 2)}\n`);
+writeFileSync(join(outDir, "04-api-demo.criteria.json"), `${JSON.stringify(DEMO_CRITERIA, null, 2)}\n`);
+console.log(
+  `${"04-api-demo (Review API)".padEnd(28)} score ${String(demoReport.advisory_score).padStart(3)}  ${demoReport.report_hash}`,
+);

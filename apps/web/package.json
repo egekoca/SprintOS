@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test": "node --test --experimental-strip-types 'lib/**/*.test.ts'"
+    "test": "node --test --experimental-strip-types 'lib/**/*.test.ts' 'app/**/*.test.ts'"
   },
   "dependencies": {
     "@creit-tech/stellar-wallets-kit": "npm:@jsr/creit-tech__stellar-wallets-kit@^2.5.0",
