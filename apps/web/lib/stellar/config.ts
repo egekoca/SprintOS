@@ -75,6 +75,19 @@ export const EURC_ASSET_CODE = process.env.NEXT_PUBLIC_EURC_ASSET_CODE ?? "EURC"
 export const EURC_ISSUER =
   process.env.NEXT_PUBLIC_EURC_ISSUER ?? "GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2";
 
+/**
+ * USDT0 — the LayerZero omnichain bridge of Tether's USDT, licensed by
+ * Tether and operated by Everdawn Labs, backed 1:1 by USDT locked on
+ * Ethereum. Not a native Stellar Tether issuance; Tether does not issue
+ * classic USDT on Stellar directly. Confirmed from
+ * developers.stellar.org/docs/tokens/usdt0-layerzero and cross-checked
+ * against Horizon's live asset record (32k+ authorized trustlines, SAC id
+ * matches the docs) on 2026-10-29. Mainnet only — no testnet equivalent.
+ */
+export const USDT0_ASSET_CODE = process.env.NEXT_PUBLIC_USDT0_ASSET_CODE ?? "USDT0";
+export const USDT0_ISSUER =
+  process.env.NEXT_PUBLIC_USDT0_ISSUER ?? "GATISXX6BZ6NC7IKQBY37CJD4SOZL3CYZJWXEDG6JVIY4WBS6KXJHN6Q";
+
 const builderClaimOverride = process.env.NEXT_PUBLIC_BUILDER_CLAIM_ENABLED;
 export const BUILDER_CLAIM_ENABLED =
   builderClaimOverride === undefined || builderClaimOverride === ""

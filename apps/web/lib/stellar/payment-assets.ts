@@ -1,5 +1,13 @@
 import { PLUS_PRICE_USDC, PRO_PRICE_USDC, type PaidTier } from "@sprintos/schemas/account";
-import { EURC_ASSET_CODE, EURC_ISSUER, IS_MAINNET, USDC_ASSET_CODE, USDC_ISSUER } from "./config";
+import {
+  EURC_ASSET_CODE,
+  EURC_ISSUER,
+  IS_MAINNET,
+  USDC_ASSET_CODE,
+  USDC_ISSUER,
+  USDT0_ASSET_CODE,
+  USDT0_ISSUER,
+} from "./config";
 
 /**
  * What SprintOS Plus and Pro can be paid in.
@@ -12,8 +20,8 @@ import { EURC_ASSET_CODE, EURC_ISSUER, IS_MAINNET, USDC_ASSET_CODE, USDC_ISSUER 
  * XLM) gets its own flat price instead of a derived USD conversion, so this
  * never depends on a price oracle as an external dependency.
  *
- * Three are wired with verified issuers as of 2026-10-04. A fourth needs a
- * real, checked issuer address before it belongs here — see
+ * Three were wired with verified issuers as of 2026-10-04; a fourth (USDT0)
+ * was added 2026-10-29 once a real, checked issuer address existed — see
  * docs/MONTH-2-COMPLETION-PLAN.md for why this file does not simply invent
  * one to hit a number.
  */
@@ -43,6 +51,14 @@ export const PAYMENT_ASSETS: readonly PaymentAsset[] = [
     // fetched, same reasoning as the native-XLM price below.
     // Temporarily cut to trivial test amounts (2026-10-06), same reason as
     // PLUS_PRICE_USDC/PRO_PRICE_USDC. Restore to 5/14 before the real pilot.
+    price: { plus: "0.5", pro: "1" },
+    mainnetOnly: true,
+  },
+  {
+    code: USDT0_ASSET_CODE,
+    issuer: USDT0_ISSUER,
+    // Same trivial test pricing as the other stablecoins for the mainnet
+    // smoke test; restore to 5/14 before the real pilot.
     price: { plus: "0.5", pro: "1" },
     mainnetOnly: true,
   },
