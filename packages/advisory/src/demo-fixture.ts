@@ -64,7 +64,7 @@ const DEMO_DRAFT: Draft = {
   criteria: [
     {
       id: "c1",
-      text: DEMO_CRITERIA.criteria[0]!.text,
+      text: "Project has a public repository with a README",
       verdict: "met",
       confidence: "high",
       supporting_links: [REPO],
@@ -72,7 +72,7 @@ const DEMO_DRAFT: Draft = {
     },
     {
       id: "c2",
-      text: DEMO_CRITERIA.criteria[1]!.text,
+      text: "Project demonstrates a working demo",
       verdict: "met",
       confidence: "medium",
       supporting_links: [DEMO_VIDEO],
