@@ -117,6 +117,17 @@ export function ScopeStep({ setup }: { setup: EngagementSetup }) {
           >
             Split across {milestones.length} milestone{milestones.length === 1 ? "" : "s"}
           </button>
+          {setup.scopeMode === "ai" && (
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={grantTarget === null || grantTarget <= 0n}
+              onClick={() => { if (setup.acceptAiPlan()) setup.setStep(3); }}
+              title="Price every milestone evenly and move on, instead of reviewing and typing an amount into each one by hand."
+            >
+              <ProductIcon name="check" size={18} /> Accept plan &amp; continue
+            </button>
+          )}
           <div className="budget-readout">
             <span><small>Allocated</small><b>{formatUsdc(total)}</b></span>
             {remaining !== null && (
@@ -127,8 +138,9 @@ export function ScopeStep({ setup }: { setup: EngagementSetup }) {
             )}
           </div>
           <p className="budget-hint">
-            Enter the whole award and split it, or leave this blank and price each milestone
-            directly below. Either way the escrow is funded with the allocated total.
+            {setup.scopeMode === "ai"
+              ? "Enter the total award and accept the plan in one click, or split it, or price each milestone directly below. Either way the escrow is funded with the allocated total."
+              : "Enter the whole award and split it, or leave this blank and price each milestone directly below. Either way the escrow is funded with the allocated total."}
           </p>
         </section>
       )}
