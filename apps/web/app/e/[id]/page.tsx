@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { contractIdFor, getBalance, getEngagement, type Engagement } from "@/lib/stellar/contract";
 import {
@@ -155,7 +156,7 @@ export default function EngagementPage() {
       <div className="panel stack-s">
         <p className="eyebrow">Parties</p>
         <div className="grid-3">
-          <Party party="Builds it" address={engagement.builder} />
+          <Party party="Builds it" address={engagement.builder} historyHref={`/builders/${engagement.builder}`} />
           <Party party="Decides payouts" address={engagement.sponsor} />
           {engagement.reviewers.map((r) => (
             <Party key={r} party="Also decides" address={r} />
@@ -213,13 +214,26 @@ function Figure({ label, value, accent }: { label: string; value: string; accent
   );
 }
 
-function Party({ party, address, note }: { party: string; address: string; note?: string }) {
+function Party({
+  party, address, note, historyHref,
+}: {
+  party: string;
+  address: string;
+  note?: string;
+  /** When set, links to that address's full engagement history on `/builders/[address]`. */
+  historyHref?: string;
+}) {
   return (
     <div className="stack-s" style={{ gap: "0.25rem" }}>
       <span className="eyebrow">{party}</span>
       <a href={explorerAccount(address)} target="_blank" rel="noreferrer" className="badge-link">
         {shortAddress(address, 6, 6)} ↗
       </a>
+      {historyHref && (
+        <Link href={historyHref} className="faint" style={{ fontSize: "0.75rem" }}>
+          Full history →
+        </Link>
+      )}
       {note && <span className="faint" style={{ fontSize: "0.75rem" }}>{note}</span>}
     </div>
   );
