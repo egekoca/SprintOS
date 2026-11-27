@@ -169,18 +169,17 @@ running in their own production).
   this plan has not read verbatim — guessing at which pages risks fixing
   the wrong thing. Needs either the raw pilot feedback or Ege's own sense
   of where people get lost before picking a concrete change.
-- ✅ **Real owned domain**, 2026-11-27 — `sprintos.xyz` bought through
-  Vercel (Ege confirmed the purchase interactively; the CLI itself refuses
-  to buy a domain non-interactively, by Vercel's own design), attached to
-  the project, DNS verified, TLS live. `NEXT_PUBLIC_APP_URL` updated to
-  `https://sprintos.xyz` and production redeployed — confirmed serving
-  correctly. The web app, Public Proof pages and the API are all reachable
-  there now. 🟡 One piece left: the SOW asks for the old `*.vercel.app`
-  subdomain to redirect, which Vercel only exposes through the dashboard's
-  domain settings (a "Redirect to" toggle), not the CLI — both domains
-  currently serve the same live content correctly, just without the 301.
-  Two clicks in the dashboard closes this; ask if that redirect should be
-  set up.
+- ✅ **Real owned domain, fully migrated**, 2026-11-27 — `sprintos.xyz`
+  bought through Vercel (Ege confirmed the purchase interactively; the CLI
+  itself refuses to buy a domain non-interactively, by Vercel's own
+  design), attached to the project, DNS verified, TLS live.
+  `NEXT_PUBLIC_APP_URL` updated to `https://sprintos.xyz`, production
+  redeployed. Both old addresses now 30x-redirect to it — `sprintos-
+  ai.vercel.app` (308 permanent) and `sprintos-two.vercel.app` (307, after
+  first repointing it off `sprintos-ai.vercel.app` since Vercel refuses a
+  redirect chain) — confirmed live: `curl -I https://sprintos-ai.vercel.app`
+  returns `308` to `https://sprintos.xyz/`. The web app, Public Proof
+  pages and the API are all served from the owned domain.
 - 🟡 ≥5 new X posts specifically announcing this period's launch — **6
   drafts ready** in `marketing/` (text + matching card image each):
   `tweet-multi-asset`, `tweet-pro-tier`, `tweet-boundary-enforced`,
@@ -191,7 +190,7 @@ running in their own production).
   these from the SprintOS AI Reviewer X account.
 
 **Next:** open the StelHacks conversation (Deliverable 2); get direction on
-the next-step-navigation item; decide on the old-subdomain redirect.
+the next-step-navigation item. Domain migration is fully done.
 
 ## Summary: what needs Ege vs. what's engineering-only
 
@@ -200,4 +199,3 @@ the next-step-navigation item; decide on the old-subdomain redirect.
 | Open the actual StelHacks conversation — real key, volume, whether they'll swap their own reviewer for ours | Merge [PR #2](https://github.com/egekoca/SprintOS/pull/2) |
 | Pilot feedback for the next-step-navigation item | — |
 | Post the 6 ready X launch drafts (+ StelHacks one, once confirmed) | |
-| Set the `*.vercel.app` → `sprintos.xyz` redirect in the Vercel dashboard (CLI can't do this one) | |
