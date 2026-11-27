@@ -384,6 +384,62 @@ body:has(.rec-visual) .rec-orbit-viewport {
 .rec-solution-step p { color: var(--chalk-dim); font-size: .88rem; line-height: 1.6; font-weight: 400; }
 .rec-solution-step > i { position: absolute; top: 50%; right: -1rem; width: 2rem; height: 2rem; display: grid; place-items: center; border-radius: 50%; background: var(--orange); color: var(--ink); font-family: var(--font-mono); font-style: normal; z-index: 2; }
 
+/* -------------------------------------------------------- built to extend */
+/* Two surfaces, one row: what a wallet can pay in, and who else can call the
+   engine. Side by side rather than stacked, because neither is the main
+   point on its own — together they say "the rails flex", which one alone
+   would not. */
+.rec-extend-grid {
+  margin-top: 2.5rem;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 1rem;
+  align-items: stretch;
+}
+.rec-asset-panel, .rec-api-panel {
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(160deg, rgba(255,255,255,.022), transparent 55%), var(--concrete);
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.1rem;
+}
+.rec-extend-lede { font-size: .92rem; line-height: 1.6; color: var(--chalk-dim); font-weight: 400; }
+
+.rec-asset-row { display: flex; flex-wrap: wrap; gap: .6rem; list-style: none; padding: 0; margin: 0; }
+.rec-asset-chip {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  padding: .55rem .85rem .55rem .55rem;
+  border: 1px solid var(--edge-bright);
+  border-radius: 999px;
+  background: var(--concrete-2);
+}
+.rec-asset-chip svg { flex-shrink: 0; }
+.rec-asset-chip span { display: flex; flex-direction: column; line-height: 1.15; }
+.rec-asset-chip b { font-size: .88rem; color: var(--paper); }
+.rec-asset-chip small { font-size: .68rem; color: var(--chalk-dim); font-weight: 400; }
+
+.rec-extend-icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius);
+  border: 1px dashed var(--advisory-edge);
+  background: var(--advisory-bg);
+  color: var(--advisory-ink);
+}
+.rec-api-panel h3 { font-size: 1.2rem; color: var(--paper); }
+.rec-api-panel p { font-size: .9rem; line-height: 1.6; color: var(--chalk-dim); font-weight: 400; }
+
+@media (max-width: 860px) {
+  .rec-extend-grid { grid-template-columns: 1fr; }
+}
+
 /* ---------------------------------------------------- scrolled-in reveals */
 /* Rows that assemble themselves as the reader arrives. `Reveal` adds
    `.is-revealed` when the container enters the viewport and numbers each child

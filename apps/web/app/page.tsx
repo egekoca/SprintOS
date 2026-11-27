@@ -5,6 +5,14 @@ import { MilestoneTree } from "@/components/MilestoneTree";
 import { LiveTotals } from "@/components/LiveTotals";
 import { ProductIcon, type ProductIconName } from "@/components/ProductIcon";
 import { Reveal } from "@/components/Reveal";
+import { EurcMark, UsdcMark, UsdtMark, XlmMark } from "@/components/TokenMarks";
+
+const ASSETS = [
+  { mark: UsdcMark, code: "USDC", issuer: "Circle" },
+  { mark: EurcMark, code: "EURC", issuer: "Circle" },
+  { mark: UsdtMark, code: "USDT0", issuer: "Tether, via LayerZero" },
+  { mark: XlmMark, code: "XLM", issuer: "Stellar's own asset" },
+] satisfies Array<{ mark: (props: { size?: number }) => React.ReactElement; code: string; issuer: string }>;
 
 const PROBLEMS = [
   {
@@ -107,6 +115,52 @@ export default function LandingPage() {
 
       {/* The argument above is checkable, so state the checkable part. */}
       <LiveTotals />
+
+      {/* The rails flex two ways: what a wallet can pay in, and who else can
+          call the engine. Neither is an afterthought bolted beside the core
+          flow — same escrow, same human-signs guarantee, just more doors in. */}
+      <section className="rec-visual-section rec-extend-section shell" id="extend">
+        <VisualHeading
+          eyebrow="Built to extend"
+          title={<>Pay how you hold value.<br /><span className="rec-hot">Judge how you already work.</span></>}
+        />
+
+        <div className="rec-extend-grid">
+          <div className="rec-asset-panel">
+            <p className="rec-extend-lede">
+              Plus and Pro take any of these — a standard on-chain payment, verified before
+              anything unlocks. No card, no custom token, no price oracle in the loop.
+            </p>
+            <ul className="rec-asset-row">
+              {ASSETS.map(({ mark: Mark, code, issuer }) => (
+                <li key={code} className="rec-asset-chip">
+                  <Mark size={26} />
+                  <span>
+                    <b>{code}</b>
+                    <small>{issuer}</small>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="rec-api-panel">
+            <span className="rec-extend-icon"><ProductIcon name="link" size={22} /></span>
+            <h3>The same engine, as an API</h3>
+            <p>
+              A hackathon judging a hundred submissions against a fixed rubric has the same
+              problem a grant programme has reviewing one milestone. The public Review API
+              wraps SprintOS's advisory pipeline for a platform that isn&rsquo;t running a
+              SprintOS engagement at all — scored, never decided, built and cost-tested
+              against a real submission from{" "}
+              <a href="https://stelhacks.vercel.app" target="_blank" rel="noreferrer" className="badge-link">
+                StelHacks
+              </a>, a hackathon platform on Stellar.
+            </p>
+            <Link href="/docs" className="badge-link">API docs →</Link>
+          </div>
+        </div>
+      </section>
 
       {/* Two circles and an arrow said "reads" and "signs" without saying who,
           or what the difference buys anyone. The boundary is worth stating as
