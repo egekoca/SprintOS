@@ -24,14 +24,39 @@ this file is the single place to check what is left.
   `GATISXX6BZ6NC7IKQBY37CJD4SOZL3CYZJWXEDG6JVIY4WBS6KXJHN6Q`, verified against
   developers.stellar.org and live Horizon data 2026-10-29).
 - ✅ Committed 2026-11-26. Not yet deployed to production.
-- ⬜ Real on-chain smoke-test payment in each asset, with transaction hashes
-  for the evidence package (SOW §6.1). A test-buyer identity exists for this
-  (`sprintos-mainnet-test-buyer`, secret in macOS Keychain, public
-  `GDQRTX7NPSFJA7WLKG5KNMTS5SZLK4SYOT2WYRT66KMGLAVW2V45XUEM`) — needs Ege to
-  fund it with XLM + each asset and run a real Plus/Pro purchase per asset.
+- 🟡 Real on-chain smoke-test payment in each asset, with transaction hashes
+  for the evidence package (SOW §6.1). Test-buyer wallet
+  `GDQRTX7NPSFJA7WLKG5KNMTS5SZLK4SYOT2WYRT66KMGLAVW2V45XUEM` funded
+  2026-11-27 with 5 XLM + 0.5 USDC + 0.5 EURC + 0.5 USDT0, trustlines open.
+  **Blocked on `NEXT_PUBLIC_TREASURY_ADDRESS`** — reading it from Vercel's
+  env was refused by the harness's own classifier (it's a public address,
+  not a secret, but the classifier can't tell the difference); need Ege to
+  read it from the Vercel dashboard and hand it over. USDT0 purchase also
+  needs this session's work deployed first (not yet deployed).
+- ✅ **Real mainnet milestone/escrow regression run, 2026-11-27** —
+  `sprintos-mainnet-test-sponsor` / `sprintos-mainnet-test-builder`
+  identities created, funded (11 XLM / 2 XLM), full lifecycle run for real
+  on the live contract: create_engagement → fund (0.3 USDC) →
+  submit_evidence → approve → release → closed. Builder's balance
+  confirmed +0.3 USDC; public proof page live at
+  [/proof/7](https://sprintos-ai.vercel.app/proof/7). Transactions:
+  [create](https://stellar.expert/explorer/public/tx/2e47d4cbe01c4c90aaa6989398f434977c938959ce28060eae45b722c51b1420) ·
+  [fund](https://stellar.expert/explorer/public/tx/1617dff3c91452034046b273252ea2d5994e768067cdb068c33973b6aad968e0) ·
+  [evidence](https://stellar.expert/explorer/public/tx/9a7a389fdb61181dfa3cc2e992e1b5a65c2ebaa79f356e792294b208daf94803) ·
+  [approve](https://stellar.expert/explorer/public/tx/5e6d7e7c3ef5593ac4b3b9d0235197fffec175e327d81f288e097c0408fb02d2) ·
+  [release](https://stellar.expert/explorer/public/tx/52cbfd2d0099d94a7c3c542a688b1e261846ba64624b9e0a2c0163f94dd29bd0).
+  This wasn't a new SOW requirement by itself (the settlement contract
+  didn't change this session) — Ege asked for it as an extra real-money
+  regression check alongside the asset test. Notable finding along the
+  way: `create_engagement`'s Soroban resource fee was **5.14 XLM** right
+  now (a brand-new persistent ledger entry), while every later call on the
+  same engagement (fund, evidence, approve, release) cost under 0.03 XLM
+  each — mainnet write-rent is currently much higher than
+  `MAINNET_MILESTONE_CAP_USDC`-era assumptions, worth knowing before
+  budgeting XLM for any future real engagement.
 
-**Next:** deploy, then Ege runs the real funded smoke test across all four
-assets.
+**Next:** get the treasury address from Ege, deploy, then run the
+Plus/Pro purchase in each of the four assets.
 
 ## Deliverable 2 — Public Review API
 
