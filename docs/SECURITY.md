@@ -43,6 +43,20 @@ untrusted data in the model prompt, and the report is refused entirely if it
 cites a URL the builder never submitted — dropping such citations quietly would
 leave a reviewer reading a link nobody offered as evidence.
 
+## Deep review reads source, never runs it
+
+A Deep Review additionally reads a submitted repository's actual file tree and
+file contents through GitHub's API — more of a hackathon or milestone's real
+code, not only its README. Everything that comes back is still exactly the
+same kind of untrusted text as any other fetched evidence: no `git clone`, no
+package install, no build step, and no code execution of any kind. The
+advisory package cannot import `node:child_process`, call `eval`, construct a
+`Function` from a string, or run anything through `node:vm` — CI fails the
+build if it tries, the same enforcement that already covers the Stellar SDK
+boundary (`scripts/check-boundaries.mjs`). A hostile submission can at most
+make its own source say something unpleasant to the model; it still cannot
+make anything run.
+
 ## API controls
 
 Advisory generation accepts same-origin requests and applies a small in-process

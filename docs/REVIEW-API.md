@@ -25,7 +25,7 @@ No Bearer token, no wallet, no account — this returns exactly the report
 `POST /api/v1/review` would produce for the example request below, generated
 from a fixed draft rather than a live model call. Same input, same
 `report_id`, same `generated_at`, same `report_hash` every time:
-`sha256:88f6e90eaacb0ab49b9af7cb22b39ae1f0d27c75271f51e9da5316ed20d2a610`,
+`sha256:4652f8319e9fc2fb21ad8ffb866309f141c95ee089cf7441b009bf581de2f87e`,
 score 82, `ReadyForReview`. `pnpm --filter @sprintos/advisory fixtures`
 regenerates it byte for byte — see `packages/advisory/src/demo-fixture.ts`
 and `packages/advisory/fixtures/04-api-demo.report.json`.
@@ -64,8 +64,14 @@ Content-Type: application/json
 - `criteria`: 1–5 entries, each a short written check.
 - `evidence_links`: 1–5 public `https://` URLs, each typed as one of
   `repo`, `commit`, `pull_request`, `test_result`, `docs`, `demo`.
-- `kind`: `"standard"` (default) or `"deep"` — Deep asks the model to think
-  harder and read more of what it fetched, at a higher cost per call.
+- `kind`: `"standard"` (default) or `"deep"` — standard reads each link's
+  public metadata (a repository's description, README, recent commits);
+  deep additionally reads the repository's actual file tree and source,
+  in priority order (entry points and contracts first, then tests, then
+  everything else) until a size budget is reached, and asks the model to
+  think harder over what it read. Source is read, never executed — see
+  `docs/SECURITY.md`. Materially more expensive per call; size a key's rate
+  limit with that in mind for a run over many submissions.
 - Rate limited per key at whatever ceiling was set when the key was
   minted (20/hour by default), and only one request in flight per key at
   a time.
@@ -73,6 +79,13 @@ Content-Type: application/json
 Response is `{ "report": AdvisoryReport }` — the same schema documented in
 `packages/schemas/src/report.ts`, including `report_hash` so a stored copy
 can be checked for tampering later.
+
+Each entry in `report.criteria` carries both a categorical `verdict` and a
+`score` from 0 to 100 for that criterion alone — unweighted by how important
+it is relative to the others, since a caller who already weights its own
+rubric (judges scoring one track against another, say) does that arithmetic
+itself rather than trusting a second implementation of it here. `verdict` is
+the human-readable read; `score` is the number to weight and sum.
 
 ## What this is not
 

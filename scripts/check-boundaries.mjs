@@ -7,8 +7,10 @@
  * failure. It checks that the advisory module, the shared schemas, and — since
  * Month 3 — the public Review API's own surface:
  *
- *   1. do not depend on any Stellar SDK, and
- *   2. contain no signing or key-handling code.
+ *   1. do not depend on any Stellar SDK,
+ *   2. contain no signing or key-handling code, and
+ *   3. — since deep review started reading a submission's actual repository —
+ *      contain nothing that could execute what it fetched.
  *
  * If someone later adds `@stellar/stellar-sdk` to the advisory package —
  * innocently, to "just read a balance" — CI stops them. That is the difference
@@ -69,6 +71,23 @@ export const FORBIDDEN_PATTERNS = [
   { re: /\bTransactionBuilder\b/, why: "builds a Stellar transaction" },
 ];
 
+/**
+ * Patterns that would mean this code can execute something it fetched.
+ *
+ * `source.ts` reads a hackathon submission's actual repository — exactly the
+ * content a malicious entrant controls — so the same discipline that keeps
+ * the advisory package unable to sign a transaction also has to keep it
+ * unable to run a line of what it reads. Fetched text stays text, handed to
+ * a language model and nothing else.
+ */
+export const FORBIDDEN_EXECUTION_PATTERNS = [
+  { re: /\bchild_process\b/, why: "imports node:child_process" },
+  { re: /\bexecSync?\s*\(|\bspawnSync?\s*\(/, why: "executes a shell command" },
+  { re: /\beval\s*\(/, why: "calls eval" },
+  { re: /new\s+Function\s*\(/, why: "constructs a function from a string" },
+  { re: /\bvm\.(Script|createContext|runIn)/, why: "runs code through node:vm" },
+];
+
 function walk(dir, out = []) {
   for (const entry of readdirSync(dir)) {
     if (entry === "node_modules" || entry === "fixtures" || entry.startsWith(".")) continue;
@@ -88,7 +107,7 @@ function checkSource(file, problems) {
       problems.push(`${where} imports ${forbidden}.`);
     }
   }
-  for (const { re, why } of FORBIDDEN_PATTERNS) {
+  for (const { re, why } of [...FORBIDDEN_PATTERNS, ...FORBIDDEN_EXECUTION_PATTERNS]) {
     // Skip the line if it is a comment explaining the rule rather than breaking it.
     const lines = source.split("\n");
     lines.forEach((line, i) => {
@@ -149,13 +168,13 @@ if (isMain()) {
     for (const p of problems) console.error(`  · ${p}`);
     console.error(
       "\nNeither the advisory module nor the public Review API's own surface may have " +
-        "a way to sign a Stellar transaction.\nThis is the guarantee the whole project " +
-        "rests on — see docs/SECURITY.md.\n",
+        "a way to sign a Stellar transaction or execute what it fetches.\nThis is the " +
+        "guarantee the whole project rests on — see docs/SECURITY.md.\n",
     );
     process.exit(1);
   }
 
   console.log("✓ Security boundary intact");
-  console.log(`  ${SEALED_PACKAGES.join(", ")} carry no Stellar SDK and no signing code.`);
+  console.log(`  ${SEALED_PACKAGES.join(", ")} carry no Stellar SDK, no signing code, and no execution of fetched content.`);
   console.log(`  ${SEALED_API_PATHS.join(", ")} carry no Stellar SDK and no signing code.`);
 }

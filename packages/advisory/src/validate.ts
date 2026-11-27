@@ -22,6 +22,8 @@ export interface DraftCriterion {
   id: string;
   text: string;
   verdict: string;
+  /** Zero to a hundred. Optional — see CriterionAssessment's own doc comment. */
+  score?: number;
   confidence: string;
   supporting_links: string[];
   rationale: string;

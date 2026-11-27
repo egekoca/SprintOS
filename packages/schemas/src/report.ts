@@ -41,6 +41,16 @@ export const CriterionAssessment = z.object({
   id: z.string(),
   text: z.string(),
   verdict: CriterionVerdict,
+  /**
+   * Zero to a hundred, on the same scale as `advisory_score` — one number per
+   * criterion rather than only a four-value verdict. Optional so the three
+   * Month-1 sample reports, generated before this field existed, keep their
+   * published hashes unchanged; every report generated from here on carries
+   * it. Exists for a caller who weights criteria themselves (the public
+   * Review API's callers judge against their own rubric's own weights) and
+   * needs a number to weight, not a category to re-interpret into one.
+   */
+  score: z.number().int().min(0).max(100).optional(),
   confidence: Confidence,
   /** Must be a subset of the submitted evidence URLs — enforced on validation. */
   supporting_links: z.array(z.url()).max(MAX_EVIDENCE),

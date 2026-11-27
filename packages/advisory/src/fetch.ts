@@ -249,6 +249,76 @@ function looksBinary(text: string): boolean {
   return weird / Math.max(sample.length, 1) > 0.1;
 }
 
+/**
+ * A repository's default branch, for a caller that needs to pin a ref before
+ * reading anything — deep review's entry point into a repository, since a
+ * hackathon submission link is almost always just the repository root with
+ * no commit named.
+ */
+export async function fetchDefaultBranch(owner: string, repo: string): Promise<string | null> {
+  const res = await get(`https://api.github.com/repos/${owner}/${repo}`, githubHeaders());
+  if (!res.ok) return null;
+  const body = await readJson<GitHubRepo>(res);
+  return body.default_branch ?? null;
+}
+
+export interface GitHubTreeEntry {
+  path: string;
+  /** `commit` is a submodule pointer, not a file — never read its content. */
+  type: "blob" | "tree" | "commit";
+  size?: number;
+}
+
+export interface GitHubTreeResult {
+  entries: GitHubTreeEntry[];
+  /** GitHub refused to list the whole tree because the repository is too large. */
+  truncated: boolean;
+}
+
+/** The full recursive file listing at a ref — names and sizes, no content. */
+export async function fetchGitHubTree(owner: string, repo: string, ref: string): Promise<GitHubTreeResult> {
+  const res = await get(
+    `https://api.github.com/repos/${owner}/${repo}/git/trees/${encodeURIComponent(ref)}?recursive=1`,
+    githubHeaders(),
+  );
+  if (!res.ok) return { entries: [], truncated: false };
+  const body = await readJson<{ tree?: Array<{ path?: string; type?: string; size?: number }>; truncated?: boolean }>(res);
+  const entries: GitHubTreeEntry[] = [];
+  for (const entry of body.tree ?? []) {
+    if (typeof entry.path !== "string") continue;
+    if (entry.type !== "blob" && entry.type !== "tree" && entry.type !== "commit") continue;
+    entries.push({ path: entry.path, type: entry.type, size: entry.size });
+  }
+  return { entries, truncated: Boolean(body.truncated) };
+}
+
+/**
+ * One file's raw content at a ref, read and nothing else — not parsed, not
+ * imported, not executed. Returns `null` for anything unreadable or that
+ * looks binary, so a caller treats "could not read this one" the same way
+ * the rest of this module already does: a gap to report, not a crash.
+ */
+export async function fetchGitHubFile(
+  owner: string,
+  repo: string,
+  path: string,
+  ref: string,
+  maxChars: number,
+): Promise<string | null> {
+  try {
+    const res = await get(
+      `https://api.github.com/repos/${owner}/${repo}/contents/${encodePath(path)}?ref=${encodeURIComponent(ref)}`,
+      { ...githubHeaders(), Accept: "application/vnd.github.raw" },
+    );
+    if (!res.ok) return null;
+    const text = await readLimitedText(res);
+    if (looksBinary(text)) return null;
+    return text.length > maxChars ? `${text.slice(0, maxChars)}\n…[truncated]` : text;
+  } catch {
+    return null;
+  }
+}
+
 async function fetchGitHub(link: EvidenceLink, target: GitHubTarget): Promise<FetchedEvidence> {
   const base = { url: link.url, type: link.type };
   const headers = githubHeaders();
