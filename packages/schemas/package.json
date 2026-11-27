@@ -9,7 +9,9 @@
     ".": "./src/index.ts",
     "./milestone": "./src/milestone.ts",
     "./report": "./src/report.ts",
-    "./activity": "./src/activity.ts"
+    "./activity": "./src/activity.ts",
+    "./attestation": "./src/attestation.ts",
+    "./account": "./src/account.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",

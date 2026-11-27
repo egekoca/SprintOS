@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0.0",
+  "report_id": "d0d0d0d0-d0d0-4d0d-8d0d-d0d0d0d0d0d0",
+  "engagement_id": "0",
+  "milestone_idx": 0,
+  "generated_at": "2026-11-01T00:00:00.000Z",
+  "model": "gpt-5.6",
+  "binding": false,
+  "disclaimer": "Advisory only. This report is not binding. It cannot approve a milestone, authorize a transaction, or release funds. Only the assigned human reviewer can do that, by signing with their own wallet.",
+  "advisory_score": 82,
+  "recommendation": "ReadyForReview",
+  "criteria": [
+    {
+      "id": "c1",
+      "text": "Project has a public repository with a README",
+      "verdict": "met",
+      "confidence": "high",
+      "supporting_links": [
+        "https://github.com/egekoca/SprintOS"
+      ],
+      "rationale": "The repository is public and its README documents the project."
+    },
+    {
+      "id": "c2",
+      "text": "Project demonstrates a working demo",
+      "verdict": "met",
+      "confidence": "medium",
+      "supporting_links": [
+        "https://sprintos-ai.vercel.app/evidence"
+      ],
+      "rationale": "The linked evidence pack shows the product running against real Mainnet engagements rather than a mockup."
+    }
+  ],
+  "evidence": [
+    {
+      "url": "https://github.com/egekoca/SprintOS",
+      "type": "repo",
+      "fetched": true,
+      "public": true,
+      "summary": "Repository: egekoca/SprintOS · README present · MIT licensed"
+    },
+    {
+      "url": "https://sprintos-ai.vercel.app/evidence",
+      "type": "demo",
+      "fetched": true,
+      "public": true,
+      "summary": "Public evidence pack: live Mainnet engagements, AI-boundary proof, demo recordings"
+    }
+  ],
+  "missing_information": [],
+  "report_hash": "sha256:88f6e90eaacb0ab49b9af7cb22b39ae1f0d27c75271f51e9da5316ed20d2a610"
+}

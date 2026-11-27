@@ -28,8 +28,10 @@ import {
   LEGACY_SETTLEMENT_CONTRACT_ID,
   NETWORK,
   SETTLEMENT_CONTRACT_ID,
+  WRITE_FEE,
 } from "./config.ts";
 import { signTransaction } from "./wallet.ts";
+import { engagementPageRange } from "./pagination.ts";
 
 /**
  * Client for the settlement contract.
@@ -298,6 +300,39 @@ export async function listEngagements(): Promise<Engagement[]> {
     .reverse();
 }
 
+export interface EngagementPage {
+  engagements: Engagement[];
+  /** Pass back as `before` to fetch the next, older page. Unset once there is nothing older left. */
+  nextBefore: number | undefined;
+}
+
+/**
+ * One bounded page of engagements, newest first, instead of every id this
+ * deployment has ever issued.
+ *
+ * There is no indexer here — `listEngagements` above is a live simulated read
+ * per id, which is fine at the handful of engagements a testnet MVP has had,
+ * but a pilot that runs real repeat engagements will keep growing that count,
+ * and asking the network to simulate every single one of them on every page
+ * load does not stay cheap or fast as it does. This walks backward from the
+ * newest id a bounded `limit` at a time instead.
+ */
+export async function listEngagementsPage(
+  options: { limit?: number; before?: number } = {},
+): Promise<EngagementPage> {
+  const limit = options.limit ?? 20;
+  const next = await getEngagementCount();
+  const first = Math.min(FIRST_ENGAGEMENT_ID, next);
+  const { floor, ceiling } = engagementPageRange(next, FIRST_ENGAGEMENT_ID, limit, options.before);
+  const ids = Array.from({ length: Math.max(0, ceiling - floor) }, (_, i) => floor + i);
+  const results = await Promise.allSettled(ids.map((i) => getEngagement(i)));
+  const engagements = results
+    .filter((r): r is PromiseFulfilledResult<Engagement> => r.status === "fulfilled")
+    .map((r) => r.value)
+    .reverse();
+  return { engagements, nextBefore: floor > first ? floor : undefined };
+}
+
 /** Map a contract error code back to something a person can act on. */
 const ERROR_MESSAGES: Record<number, string> = {
   1: "This contract has already been initialized.",
@@ -357,7 +392,7 @@ async function invoke(
 ): Promise<SubmittedTx> {
   const account = await server.getAccount(address);
   const built = new TransactionBuilder(account, {
-    fee: BASE_FEE,
+    fee: WRITE_FEE ?? BASE_FEE,
     networkPassphrase: NETWORK.passphrase,
   })
     .addOperation(contract().call(method, ...args))

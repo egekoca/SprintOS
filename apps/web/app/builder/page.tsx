@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useWallet } from "@/components/WalletProvider";
 import {
   claimApprovedMilestone,
-  listEngagements,
+  listEngagementsPage,
   submitEvidence,
   type Engagement,
 } from "@/lib/stellar/contract";
@@ -37,10 +37,32 @@ export default function BuilderPage() {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<{ hash: string; action: "submit" | "claim" } | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [nextBefore, setNextBefore] = useState<number | undefined>(undefined);
 
   const refresh = useCallback(async () => {
-    setEngagements(await listEngagements());
+    const result = await listEngagementsPage();
+    setEngagements(result.engagements);
+    setNextBefore(result.nextBefore);
   }, []);
+
+  /* There is no indexer here — every page is a bounded batch of simulated
+     reads, newest first, filtered to this wallet's role afterward. An
+     engagement older than the loaded window stays reachable by loading
+     further back. */
+  const loadMore = useCallback(async () => {
+    if (nextBefore === undefined || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const result = await listEngagementsPage({ before: nextBefore });
+      setEngagements((prev) => [...prev, ...result.engagements]);
+      setNextBefore(result.nextBefore);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [nextBefore, loadingMore]);
 
   /* biome-ignore lint/correctness/useExhaustiveDependencies: `attempt` is a
      manual retry counter. It is not read in here — bumping it is the whole
@@ -181,6 +203,11 @@ export default function BuilderPage() {
               ))}
             </select>
           </label>
+        )}
+        {nextBefore !== undefined && (
+          <button type="button" className="btn btn-ghost btn-sm" disabled={loadingMore} onClick={loadMore}>
+            {loadingMore ? "Loading…" : "Load earlier engagements"}
+          </button>
         )}
       </header>
 

@@ -1,0 +1,48 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:1200px;height:675px;overflow:hidden}
+  body{
+    background:#12171b;
+    font-family:Inter,-apple-system,sans-serif;
+    position:relative;
+  }
+  .grid{position:absolute;inset:0;
+    background-image:linear-gradient(rgba(255,255,255,.028) 1px,transparent 1px),
+                     linear-gradient(90deg,rgba(255,255,255,.028) 1px,transparent 1px);
+    background-size:75px 75px;}
+  .glow{position:absolute;right:-120px;top:120px;width:620px;height:460px;
+    background:radial-gradient(circle,rgba(249,115,22,.10),transparent 68%);filter:blur(10px)}
+  .wrap{position:relative;padding:62px 76px;height:100%;display:flex;flex-direction:column}
+  .brand{display:flex;align-items:center;gap:16px}
+  .brand img{height:46px;width:auto;display:block}
+  .brand span{color:#fff;font-size:28px;font-weight:800;letter-spacing:-.01em}
+  .pill{display:inline-flex;align-items:center;gap:10px;align-self:flex-start;
+    margin-top:42px;padding:9px 20px;border:1px solid rgba(255,255,255,.17);border-radius:999px;
+    font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:500;letter-spacing:.11em;
+    color:#dfe5ea;text-transform:uppercase}
+  .pill i{width:9px;height:9px;border-radius:50%;background:#34d399;display:block;
+    box-shadow:0 0 10px rgba(52,211,153,.75)}
+  h1{margin-top:30px;color:#fff;font-size:60px;line-height:1.1;font-weight:800;letter-spacing:-.025em;max-width:1010px}
+  h1 em{font-style:normal;color:#f97316}
+  p.sub{margin-top:26px;color:#9fadb8;font-size:23px;line-height:1.52;max-width:860px;font-weight:400}
+  .foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:30px}
+  .chip{font-family:'JetBrains Mono',monospace;font-size:19px;color:#34d399;
+    border:1px solid rgba(52,211,153,.3);border-radius:9px;padding:14px 22px;background:rgba(52,211,153,.05)}
+  .chip b{color:#8fe9c4;font-weight:500}
+  .tags{font-family:'JetBrains Mono',monospace;font-size:17px;color:#5d6b76;white-space:nowrap}
+</style></head>
+<body>
+<div class="grid"></div><div class="glow"></div>
+<div class="wrap">
+  <div class="brand"><img src="fox.png"><span>SprintOS</span></div>
+  <div class="pill"><i></i>__PILL__</div>
+  <h1>__TITLE__</h1>
+  <p class="sub">__SUB__</p>
+  <div class="foot">
+    <div class="chip">__CHIP__</div>
+    <div class="tags">#Stellar&nbsp;&nbsp;#Soroban</div>
+  </div>
+</div>
+</body></html>

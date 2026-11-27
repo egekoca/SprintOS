@@ -36,3 +36,41 @@ export function takeRateLimit(
 export function clearRateLimitsForTests(): void {
   counters.clear();
 }
+
+/**
+ * One in-flight advisory job per milestone *version*, not per milestone.
+ *
+ * Keying by the evidence hash rather than just the milestone means a
+ * resubmission immediately opens its own job instead of waiting out a lock
+ * held by the version it just superseded — which, left unbounded, is also how
+ * a single evidence hash could otherwise rack up a run of parallel OpenAI
+ * calls from a reviewer double-clicking "Generate report". An in-process Set
+ * is the same scaling caveat as `takeRateLimit` above: fine for one instance,
+ * not for several behind a load balancer.
+ */
+const inFlightJobs = new Set<string>();
+/** A lock is not held forever if a process dies mid-request. */
+const JOB_LOCK_TTL_MS = 2 * 60_000;
+const jobLockDeadlines = new Map<string, number>();
+
+export function acquireJobLock(key: string, now = Date.now()): boolean {
+  const deadline = jobLockDeadlines.get(key);
+  if (deadline !== undefined && deadline <= now) {
+    inFlightJobs.delete(key);
+    jobLockDeadlines.delete(key);
+  }
+  if (inFlightJobs.has(key)) return false;
+  inFlightJobs.add(key);
+  jobLockDeadlines.set(key, now + JOB_LOCK_TTL_MS);
+  return true;
+}
+
+export function releaseJobLock(key: string): void {
+  inFlightJobs.delete(key);
+  jobLockDeadlines.delete(key);
+}
+
+export function clearJobLocksForTests(): void {
+  inFlightJobs.clear();
+  jobLockDeadlines.clear();
+}

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { rpc as stellarRpc } from "@stellar/stellar-sdk";
-import { NETWORK, SETTLEMENT_CONTRACT_ID, USDC_SAC_ID } from "@/lib/stellar/config";
+import { NETWORK, NETWORK_MODE, SETTLEMENT_CONTRACT_ID, USDC_SAC_ID } from "@/lib/stellar/config";
 import { storeBackend } from "@/lib/store";
 
 export const runtime = "nodejs";
@@ -58,7 +58,7 @@ export async function GET() {
     {
       status: coreReady ? "ok" : "degraded",
       checked_at: new Date().toISOString(),
-      network: "testnet",
+      network: NETWORK_MODE,
       rpc,
       settlement_contract: { configured: contractConfigured },
       settlement_asset: { configured: assetConfigured },

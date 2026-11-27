@@ -6,7 +6,7 @@ import { useWallet } from "@/components/WalletProvider";
 import { FoxLoader } from "@/components/FoxLoader";
 import { ProductIcon } from "@/components/ProductIcon";
 import { WalletGate } from "@/components/WalletGate";
-import { listEngagements, roleOf, type Engagement, type Role } from "@/lib/stellar/contract";
+import { listEngagementsPage, roleOf, type Engagement, type Role } from "@/lib/stellar/contract";
 import { formatUsdc } from "@/lib/stellar/config";
 import { UsdcMark } from "@/components/UsdcMark";
 
@@ -41,10 +41,33 @@ export default function ProjectsPage() {
   const { address } = useWallet();
   const [engagements, setEngagements] = useState<Engagement[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [nextBefore, setNextBefore] = useState<number | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
 
-  const load = useCallback(async () => setEngagements(await listEngagements()), []);
+  const load = useCallback(async () => {
+    const result = await listEngagementsPage();
+    setEngagements(result.engagements);
+    setNextBefore(result.nextBefore);
+  }, []);
+
+  /* There is no indexer here — every page is a bounded batch of simulated
+     reads, newest first, filtered to this wallet's role afterward. A project
+     older than the loaded window stays reachable by loading further back. */
+  const loadMore = useCallback(async () => {
+    if (nextBefore === undefined || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const result = await listEngagementsPage({ before: nextBefore });
+      setEngagements((prev) => [...prev, ...result.engagements]);
+      setNextBefore(result.nextBefore);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [nextBefore, loadingMore]);
 
   /* biome-ignore lint/correctness/useExhaustiveDependencies: `attempt` is a
      manual retry counter. It is not read in here — bumping it is the whole
@@ -139,6 +162,12 @@ export default function ProjectsPage() {
               );
             })}
           </ol>
+        )}
+
+        {nextBefore !== undefined && (
+          <button type="button" className="btn btn-ghost btn-sm" disabled={loadingMore} onClick={loadMore}>
+            {loadingMore ? "Loading…" : "Load earlier projects"}
+          </button>
         )}
       </>
       )}

@@ -8,13 +8,14 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test": "node --test --experimental-strip-types 'lib/**/*.test.ts'"
+    "test": "node --test --experimental-strip-types 'lib/**/*.test.ts' 'app/**/*.test.ts'"
   },
   "dependencies": {
     "@creit-tech/stellar-wallets-kit": "npm:@jsr/creit-tech__stellar-wallets-kit@^2.5.0",
     "@sprintos/advisory": "workspace:*",
     "@sprintos/schemas": "workspace:*",
     "@stellar/stellar-sdk": "^16.0.0",
+    "@vercel/analytics": "^2.0.1",
     "@vercel/blob": "^2.8.0",
     "next": "^15.5.25",
     "react": "^19.1.1",

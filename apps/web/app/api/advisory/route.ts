@@ -2,9 +2,13 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { AdvisoryUnavailableError, generateReport, verifyReportHash } from "@sprintos/advisory";
 import { ReportValidationError } from "@sprintos/advisory";
+import { canUse, entitlementOf, newAccount, recordUsage } from "@/lib/entitlement";
 import { StoreUnavailableError, store } from "@/lib/store";
-import { takeRateLimit } from "@/lib/rate-limit";
+import { acquireJobLock, releaseJobLock, takeRateLimit } from "@/lib/rate-limit";
 import { isSameOrigin, requestBodyIsTooLarge, requestClientKey } from "@/lib/request-security";
+
+/** A Deep Review thinks harder and is allowed to write a little more. */
+const DEEP_REVIEW_OPTIONS = { reasoningEffort: "medium" as const, maxOutputTokens: 6_000 };
 
 /**
  * The advisory endpoint.
@@ -26,6 +30,9 @@ const Body = z.object({
   milestone_idx: z.number().int().min(0).max(2),
   criteria_hash: z.string().regex(/^(?:sha256:)?[0-9a-f]{64}$/i),
   evidence_hash: z.string().regex(/^(?:sha256:)?[0-9a-f]{64}$/i),
+  /** Whoever is asking — used only to meter Free/Plus usage, never as an authorization input. */
+  address: z.string().regex(/^G[A-Z2-7]{55}$/).optional(),
+  kind: z.enum(["standard", "deep"]).default("standard"),
 });
 
 export async function POST(request: Request) {
@@ -55,74 +62,112 @@ export async function POST(request: Request) {
     );
   }
 
-  const { engagement_id, milestone_idx, criteria_hash, evidence_hash } = parsed;
+  const { engagement_id, milestone_idx, criteria_hash, evidence_hash, address, kind } = parsed;
 
-  const [criteria, evidence] = await Promise.all([
-    store.getCriteria(criteria_hash),
-    store.getEvidence(evidence_hash),
-  ]);
-
-  if (!criteria) {
-    return NextResponse.json(
-      { error: "No acceptance criteria are recorded for this milestone." },
-      { status: 404 },
-    );
-  }
-  if (!evidence) {
-    return NextResponse.json(
-      { error: "The builder has not submitted evidence for this milestone yet." },
-      { status: 404 },
-    );
-  }
-  if (criteria.milestone_idx !== milestone_idx) {
-    return NextResponse.json({ error: "The criteria hash belongs to another milestone." }, { status: 409 });
-  }
-  if (evidence.engagement_id !== engagement_id || evidence.milestone_idx !== milestone_idx) {
-    return NextResponse.json({ error: "The evidence hash belongs to another engagement or milestone." }, { status: 409 });
-  }
-
-  if (!process.env.OPENAI_API_KEY?.trim()) {
-    // Answered as a normal condition rather than a 500: a reviewer with no
-    // advisory service still has a working review screen, and the message says
-    // so plainly instead of looking like a crash.
+  let account = address ? (await store.getAccount(address)) ?? newAccount(address) : null;
+  if (account && !canUse(account, kind)) {
+    const entitlement = entitlementOf(account);
     return NextResponse.json(
       {
         error:
-          "The OpenAI advisory service is not configured on this deployment. You can still review the evidence and decide — the report is advisory only.",
-        advisory_available: false,
+          kind === "deep"
+            ? "No Deep Reviews remain in this wallet's current 30-day period."
+            : "No Standard Reviews remain in this wallet's current 30-day Free period. SprintOS Plus raises the limit.",
+        entitlement,
       },
-      { status: 503 },
+      { status: 402 },
+    );
+  }
+
+  /* One advisory job per milestone *version*, not per milestone — a
+     resubmission opens its own lock immediately rather than queuing behind
+     one held by the evidence it just superseded. */
+  const jobKey = `advisory-job:${engagement_id}:${milestone_idx}:${evidence_hash.replace(/^sha256:/, "")}`;
+  if (!acquireJobLock(jobKey)) {
+    return NextResponse.json(
+      { error: "A report is already being generated for this evidence version. Wait for it to finish." },
+      { status: 409 },
     );
   }
 
   try {
-    const report = await generateReport({ criteria, evidence });
-    await store.putReport(report, evidence_hash);
-    return NextResponse.json({ report });
-  } catch (err) {
-    if (err instanceof ReportValidationError) {
+    const [criteria, evidence] = await Promise.all([
+      store.getCriteria(criteria_hash),
+      store.getEvidence(evidence_hash),
+    ]);
+
+    if (!criteria) {
       return NextResponse.json(
-        {
-          error: "The generated report failed validation and was discarded.",
-          problems: err.problems,
-          advisory_available: true,
-        },
-        { status: 422 },
+        { error: "No acceptance criteria are recorded for this milestone." },
+        { status: 404 },
       );
     }
-    if (err instanceof AdvisoryUnavailableError) {
+    if (!evidence) {
       return NextResponse.json(
-        { error: err.message, advisory_available: false },
+        { error: "The builder has not submitted evidence for this milestone yet." },
+        { status: 404 },
+      );
+    }
+    if (criteria.milestone_idx !== milestone_idx) {
+      return NextResponse.json({ error: "The criteria hash belongs to another milestone." }, { status: 409 });
+    }
+    if (evidence.engagement_id !== engagement_id || evidence.milestone_idx !== milestone_idx) {
+      return NextResponse.json({ error: "The evidence hash belongs to another engagement or milestone." }, { status: 409 });
+    }
+
+    if (!process.env.OPENAI_API_KEY?.trim()) {
+      // Answered as a normal condition rather than a 500: a reviewer with no
+      // advisory service still has a working review screen, and the message says
+      // so plainly instead of looking like a crash.
+      return NextResponse.json(
+        {
+          error:
+            "The OpenAI advisory service is not configured on this deployment. You can still review the evidence and decide — the report is advisory only.",
+          advisory_available: false,
+        },
         { status: 503 },
       );
     }
-    if (err instanceof StoreUnavailableError) {
-      return NextResponse.json({ error: err.message }, { status: 503 });
+
+    try {
+      const report = await generateReport({
+        criteria,
+        evidence,
+        ...(kind === "deep" ? DEEP_REVIEW_OPTIONS : {}),
+      });
+      await store.putReport(report, evidence_hash);
+      if (account) {
+        account = recordUsage(account, kind);
+        await store.putAccount(account);
+      }
+      return NextResponse.json({ report, entitlement: account ? entitlementOf(account) : undefined });
+    } catch (err) {
+      if (err instanceof ReportValidationError) {
+        return NextResponse.json(
+          {
+            error: "The generated report failed validation and was discarded.",
+            problems: err.problems,
+            advisory_available: true,
+          },
+          { status: 422 },
+        );
+      }
+      if (err instanceof AdvisoryUnavailableError) {
+        return NextResponse.json(
+          { error: err.message, advisory_available: false },
+          { status: 503 },
+        );
+      }
+      if (err instanceof StoreUnavailableError) {
+        return NextResponse.json({ error: err.message }, { status: 503 });
+      }
+      return NextResponse.json(
+        { error: "The advisory report could not be produced. You can still decide without it." },
+        { status: 500 },
+      );
     }
-    return NextResponse.json(
-      { error: "The advisory report could not be produced. You can still decide without it." },
-      { status: 500 },
-    );
+  } finally {
+    releaseJobLock(jobKey);
   }
 }
 

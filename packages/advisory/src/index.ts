@@ -4,3 +4,4 @@ export * from "./validate.ts";
 export * from "./generate.ts";
 export * from "./milestone-plan.ts";
 export * from "./repository-evidence.ts";
+export * from "./demo-fixture.ts";

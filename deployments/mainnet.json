@@ -1,0 +1,26 @@
+{
+  "network": "mainnet",
+  "networkPassphrase": "Public Global Stellar Network ; September 2015",
+  "rpcUrl": "https://mainnet.sorobanrpc.com",
+  "horizonUrl": "https://horizon.stellar.org",
+  "settlementContractId": "CAD6T756NFMN2EVOBK2GLAE3CEM33I7RUBTQ6QRFWRXWES53Z5QG4OTE",
+  "usdcSacId": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+  "usdcAsset": "USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+  "usdcIssuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+  "deployedAt": "2026-10-03T21:08:37Z",
+  "features": {
+    "builderClaim": true,
+    "reviewerList": true
+  },
+  "explorer": {
+    "contract": "https://stellar.expert/explorer/public/contract/CAD6T756NFMN2EVOBK2GLAE3CEM33I7RUBTQ6QRFWRXWES53Z5QG4OTE",
+    "usdc": "https://stellar.expert/explorer/public/asset/USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+  },
+  "firstEngagementId": 0,
+  "wasmSha256": "0ab09039e8e9d16e162d7f27d8cf4008c262199e33c451851fed22545a804e23",
+  "previousDeployment": null,
+  "deployTransactions": {
+    "uploadWasm": "8e37137e8639c3c831efea3862261c0b645b29e6e1d351b783d29636577c0b69",
+    "createContract": "cf40c296f0597a11e60bbcc0d627fad30538611f7747e36d5370888cea58ba74"
+  }
+}

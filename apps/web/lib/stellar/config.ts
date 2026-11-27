@@ -1,12 +1,39 @@
-import deployment from "./deployment.json" with { type: "json" };
+import testnetDeployment from "./deployment.json" with { type: "json" };
+import mainnetDeployment from "./deployment.mainnet.json" with { type: "json" };
 
 /**
  * Network configuration.
  *
- * Testnet only, by design. The Statement of Work puts mainnet deployment and
- * settlement with real funds explicitly out of scope, so there is no mainnet
- * branch here to switch on by accident.
+ * Mainnet is opt-in through one explicit environment variable, never the
+ * default: a deployment with `NEXT_PUBLIC_NETWORK_MODE` unset or set to
+ * anything other than `"mainnet"` is testnet, full stop. That is what "no
+ * switch to flip by accident" means in practice — the switch exists now, but
+ * nothing flips it without a deliberate build-time choice.
+ *
+ * Flipping it is also refused outright while `deployment.mainnet.json` still
+ * holds any of its `REPLACE_*` placeholders, so a half-filled-in mainnet
+ * record fails loudly at startup instead of quietly serving testnet-shaped
+ * values under a mainnet label.
  */
+export const NETWORK_MODE: "testnet" | "mainnet" =
+  process.env.NEXT_PUBLIC_NETWORK_MODE === "mainnet" ? "mainnet" : "testnet";
+export const IS_MAINNET = NETWORK_MODE === "mainnet";
+
+function assertDeploymentIsReal(value: Record<string, unknown>): void {
+  for (const [key, val] of Object.entries(value)) {
+    if (typeof val === "string" && val.startsWith("REPLACE_")) {
+      throw new Error(
+        `Mainnet mode is on but deployment.mainnet.json."${key}" is still a placeholder (${val}). ` +
+          "Fill in every REPLACE_* value from a real, reviewed mainnet deployment before enabling mainnet mode.",
+      );
+    }
+  }
+}
+
+if (IS_MAINNET) assertDeploymentIsReal(mainnetDeployment as unknown as Record<string, unknown>);
+
+const deployment = IS_MAINNET ? mainnetDeployment : testnetDeployment;
+
 export const NETWORK = {
   passphrase: deployment.networkPassphrase,
   rpcUrl: process.env.NEXT_PUBLIC_STELLAR_RPC_URL ?? deployment.rpcUrl,
@@ -18,6 +45,49 @@ export const SETTLEMENT_CONTRACT_ID =
 
 export const USDC_SAC_ID = process.env.NEXT_PUBLIC_USDC_SAC_ID ?? deployment.usdcSacId;
 
+/**
+ * The classic asset behind that SAC, for the one path that still uses a plain
+ * Stellar payment rather than a Soroban contract call: a wallet paying for
+ * SprintOS Plus. `deployment.usdcAsset` is stored as `"CODE:ISSUER"`.
+ */
+const [DEFAULT_USDC_CODE, DEFAULT_USDC_ISSUER] = (deployment.usdcAsset ?? "").split(":");
+export const USDC_ASSET_CODE = process.env.NEXT_PUBLIC_USDC_ASSET_CODE ?? DEFAULT_USDC_CODE ?? "USDC";
+export const USDC_ISSUER =
+  process.env.NEXT_PUBLIC_USDC_ISSUER ?? deployment.usdcIssuer ?? DEFAULT_USDC_ISSUER ?? "";
+
+/**
+ * Where a Plus or Pro payment is sent.
+ *
+ * A public key only — nothing in this codebase ever holds its secret key.
+ * Unset on a deployment that is not selling either tier yet, in which case
+ * the purchase flow refuses to build a transaction rather than guess a
+ * recipient.
+ */
+export const TREASURY_ADDRESS = process.env.NEXT_PUBLIC_TREASURY_ADDRESS ?? "";
+
+/**
+ * Circle's canonical EURC issuer on Stellar mainnet, confirmed from
+ * developers.circle.com/stablecoins/eurc-contract-addresses on 2026-10-04.
+ * There is no equivalent well-known EURC on testnet, so this is only ever
+ * offered as a payment asset when `IS_MAINNET` — see payment-assets.ts.
+ */
+export const EURC_ASSET_CODE = process.env.NEXT_PUBLIC_EURC_ASSET_CODE ?? "EURC";
+export const EURC_ISSUER =
+  process.env.NEXT_PUBLIC_EURC_ISSUER ?? "GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2";
+
+/**
+ * USDT0 — the LayerZero omnichain bridge of Tether's USDT, licensed by
+ * Tether and operated by Everdawn Labs, backed 1:1 by USDT locked on
+ * Ethereum. Not a native Stellar Tether issuance; Tether does not issue
+ * classic USDT on Stellar directly. Confirmed from
+ * developers.stellar.org/docs/tokens/usdt0-layerzero and cross-checked
+ * against Horizon's live asset record (32k+ authorized trustlines, SAC id
+ * matches the docs) on 2026-10-29. Mainnet only — no testnet equivalent.
+ */
+export const USDT0_ASSET_CODE = process.env.NEXT_PUBLIC_USDT0_ASSET_CODE ?? "USDT0";
+export const USDT0_ISSUER =
+  process.env.NEXT_PUBLIC_USDT0_ISSUER ?? "GATISXX6BZ6NC7IKQBY37CJD4SOZL3CYZJWXEDG6JVIY4WBS6KXJHN6Q";
+
 const builderClaimOverride = process.env.NEXT_PUBLIC_BUILDER_CLAIM_ENABLED;
 export const BUILDER_CLAIM_ENABLED =
   builderClaimOverride === undefined || builderClaimOverride === ""
@@ -26,7 +96,29 @@ export const BUILDER_CLAIM_ENABLED =
 
 export const USDC_DECIMALS = 7;
 
-export const EXPLORER_BASE = "https://stellar.expert/explorer/testnet";
+/**
+ * The pilot safety cap: the most a single milestone may be funded for on
+ * mainnet, independent of the plan's own 100-USDC-style aggregate thinking.
+ * Keeping it per-milestone rather than only aggregate lets more small pilot
+ * engagements run without raising the amount any one of them ever risks.
+ * Testnet has no such cap — this only ever applies when `IS_MAINNET`.
+ */
+export const MAINNET_MILESTONE_CAP_USDC = Number(process.env.NEXT_PUBLIC_MAINNET_MILESTONE_CAP_USDC) || 20;
+
+/**
+ * The inclusion fee for a signed write (create_engagement, fund,
+ * submit_evidence, approve, hold, release, refund, add/remove_reviewer).
+ *
+ * The SDK's 100-stroop `BASE_FEE` is rejected outright on mainnet right now
+ * (`TxInsufficientFee`, confirmed against the live network on 2026-10-06 —
+ * the same problem `scripts/deploy-mainnet.sh` already had to work around
+ * with its own `--inclusion-fee`). Testnet has no such floor, so this only
+ * raises the fee where it is actually needed. 1,000,000 stroops is 0.1 XLM —
+ * negligible next to the 100 USDC pilot cap, and what cleared mainnet here.
+ */
+export const WRITE_FEE = IS_MAINNET ? "1000000" : undefined;
+
+export const EXPLORER_BASE = `https://stellar.expert/explorer/${IS_MAINNET ? "public" : "testnet"}`;
 
 /**
  * The origin this deployment is reachable at from outside.

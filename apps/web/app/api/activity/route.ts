@@ -158,15 +158,20 @@ export async function POST(request: Request) {
      methods carry the index too, so both are read from the ledger rather than
      from the caller. Creation returns its id instead of taking one, so decode
      that return value. Accepting the browser's copy here would let a valid
-     creation transaction be attached to an unrelated public engagement page. */
-  const [firstArg, secondArg] = call.args;
+     creation transaction be attached to an unrelated public engagement page.
+     approve/hold/release name their caller as the *first* argument (so the
+     contract can check who is calling without Soroban support for "one of
+     these addresses") — their id and milestone index sit one position later
+     than every other method's. */
+  const CALLER_FIRST_ACTIONS = new Set(["approved", "held", "released"]);
+  const [idArg, idxArg] = CALLER_FIRST_ACTIONS.has(action) ? call.args.slice(1) : call.args;
   const returnedId = action === "created"
     ? createdEngagementId(confirmed.returnValue ? scValToNative(confirmed.returnValue) : null)
     : null;
   const engagementId = action === "created"
     ? returnedId ?? ""
-    : typeof firstArg === "bigint"
-      ? firstArg.toString()
+    : typeof idArg === "bigint"
+      ? idArg.toString()
       : "";
   if (action === "created" && !returnedId) {
     return NextResponse.json({ error: "The creation transaction did not return an engagement id." }, { status: 409 });
@@ -175,7 +180,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "The supplied engagement id does not match the ledger result." }, { status: 409 });
   }
   const milestoneIdx =
-    action !== "created" && action !== "funded" && typeof secondArg === "number" ? secondArg : undefined;
+    action !== "created" && action !== "funded" && typeof idxArg === "number" ? idxArg : undefined;
+
+  /* submit_evidence's third argument is the evidence hash bytes. Decoding it
+     here — from the confirmed transaction, not from the browser's POST body —
+     is what lets the evidence version history (see evidence-versions.ts) be
+     read later without a separate, independently-trustable store for it. */
+  const thirdArg = call.args[2];
+  const evidenceHash =
+    action === "evidence_submitted" && thirdArg instanceof Uint8Array
+      ? Buffer.from(thirdArg).toString("hex")
+      : undefined;
 
   let entry: ActivityEntryValue;
   try {
@@ -188,6 +203,7 @@ export async function POST(request: Request) {
       actor: call.source,
       /* The ledger's own timestamp, not the browser's clock. */
       at: new Date(confirmed.createdAt * 1000).toISOString(),
+      ...(evidenceHash ? { evidence_hash: evidenceHash } : {}),
     });
   } catch (error) {
     return NextResponse.json(

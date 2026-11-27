@@ -50,5 +50,20 @@ export default defineConfig({
         url: "http://127.0.0.1:3100",
         reuseExistingServer: !process.env.CI,
         timeout: 180_000,
+        /*
+         * A throwaway admin secret, scoped to this locally-started server
+         * alone — never sent anywhere, never the production secret. It
+         * exists so review-api.spec.ts can mint its own disposable Review
+         * API key through `/api/admin/api-keys` and test real rate-limit and
+         * duplicate-request behaviour against the route, not just the shared
+         * rate-limit module in isolation. `OPENAI_API_KEY` is cleared so
+         * those calls fail fast and free at the route's own "no advisory
+         * service configured" branch instead of reaching OpenAI.
+         */
+        env: {
+          ...process.env,
+          SPRINTOS_ADMIN_SECRET: "e2e-local-admin-secret",
+          OPENAI_API_KEY: "",
+        },
       },
 });

@@ -7,6 +7,7 @@ import {
   calendarDateAfter,
   completedThrough,
   emptyMilestone,
+  exceedsMainnetCap,
   milestoneProblem,
   planProblemOf,
   renumber,
@@ -228,4 +229,15 @@ test("every collision the contract rejects is refused by the form first", () => 
     );
   }
   assert.equal(roleProblemOf({ sponsor: SPONSOR, builder: BUILDER, extraReviewers: [REVIEWER] }), null);
+});
+
+test("the mainnet pilot cap only ever applies in mainnet mode", () => {
+  const overCap = parseUsdc("25");
+  assert.equal(exceedsMainnetCap(overCap, true, 20), true);
+  assert.equal(exceedsMainnetCap(overCap, false, 20), false);
+});
+
+test("an amount at or under the mainnet cap is never flagged", () => {
+  assert.equal(exceedsMainnetCap(parseUsdc("20"), true, 20), false);
+  assert.equal(exceedsMainnetCap(parseUsdc("5"), true, 20), false);
 });

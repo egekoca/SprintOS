@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0.0",
+  "engagement_id": "0",
+  "milestone_idx": 0,
+  "title": "Hackathon submission rubric",
+  "outcome": "A complete, judgeable submission",
+  "criteria": [
+    {
+      "id": "c1",
+      "text": "Project has a public repository with a README"
+    },
+    {
+      "id": "c2",
+      "text": "Project demonstrates a working demo"
+    }
+  ]
+}

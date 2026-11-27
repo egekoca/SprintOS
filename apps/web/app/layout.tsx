@@ -1,13 +1,16 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { WalletProvider } from "@/components/WalletProvider";
 import { SiteHeader } from "@/components/SiteHeader";
+import { IS_MAINNET } from "@/lib/stellar/config";
 
 export const metadata: Metadata = {
-  title: "SprintOS — milestone settlement on Stellar",
-  description:
-    "Fund milestones in testnet USDC, submit public proof of work, and let a human reviewer decide. The AI advises; it cannot pay anyone.",
+  title: "SprintOS",
+  description: IS_MAINNET
+    ? "Fund milestones in mainnet USDC, submit public proof of work, and let a human reviewer decide. The AI advises; it cannot pay anyone."
+    : "Fund milestones in testnet USDC, submit public proof of work, and let a human reviewer decide. The AI advises; it cannot pay anyone.",
   icons: { icon: "/brand/sprintos-fox.png" },
 };
 
@@ -28,6 +31,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main>{children}</main>
           <SiteFooter />
         </WalletProvider>
+        {/* Reports nothing until Web Analytics is turned on for this project
+            in the Vercel dashboard — that toggle needs the account owner,
+            this component alone does not enable collection. Harmless no-op
+            off Vercel (local dev, another host). */}
+        <Analytics />
       </body>
     </html>
   );
@@ -38,7 +46,7 @@ function SiteFooter() {
     <footer className="shell" style={{ padding: "3rem 0 2.5rem", marginTop: "4rem", borderTop: "1px solid var(--edge)" }}>
       <div className="spread">
         <p className="faint" style={{ fontSize: "0.8125rem" }}>
-          SprintOS · Stellar testnet · Instawards with Stellar Türkiye
+          SprintOS · Stellar {IS_MAINNET ? "mainnet" : "testnet"} · Instawards with Stellar Türkiye
         </p>
         {/* The evidence pack is the link an Ambassador is given, so it has to be
             findable from any page rather than only from a message. */}
@@ -46,7 +54,9 @@ function SiteFooter() {
           <Link href="/evidence" style={{ color: "inherit" }}>Evidence pack</Link>
         </p>
         <p className="faint mono" style={{ fontSize: "0.75rem" }}>
-          Testnet only. No real funds move here.
+          {IS_MAINNET
+            ? "Live on Stellar mainnet. Real USDC moves here — only a human wallet signature releases it."
+            : "Testnet only. No real funds move here."}
         </p>
       </div>
     </footer>

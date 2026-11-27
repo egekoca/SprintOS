@@ -24,15 +24,24 @@ const ENVIRONMENT = [
   ["OPENAI_API_KEY", "Optional advisory report and milestone-plan generation."],
   ["NEXT_PUBLIC_STELLAR_RPC_URL", "Optional testnet RPC override."],
   ["GITHUB_TOKEN", "Optional higher rate limit for public repository scans."],
+  ["NEXT_PUBLIC_NETWORK_MODE", "\"mainnet\" or unset/testnet. Refuses to start in mainnet mode until deployment.mainnet.json is fully filled in."],
+  ["NEXT_PUBLIC_TREASURY_ADDRESS", "Where a SprintOS Plus or Pro payment is sent. Unset means this deployment does not sell either tier."],
 ] as const;
 
 const ENDPOINTS = [
-  ["GET", "/api/health", "Non-secret deployment diagnostics."],
+  ["GET", "/api/health", "Non-secret deployment diagnostics, including which network this deployment is on."],
   ["POST", "/api/criteria", "Validate and store acceptance criteria by hash."],
   ["POST", "/api/evidence", "Validate and store a builder evidence bundle by hash."],
-  ["POST", "/api/advisory", "Run a requested, non-binding advisory report."],
+  ["POST", "/api/advisory", "Run a requested, non-binding advisory report — Standard or Deep, metered against the caller's Free/Plus/Pro entitlement."],
   ["GET", "/api/advisory", "Read a stored report and verify its hash."],
   ["GET", "/api/activity?engagement_id=2", "Read indexed, network-verified transactions."],
+  ["GET", "/api/account?address=G...", "A wallet's Free/Plus/Pro plan and remaining reviews this period."],
+  ["POST", "/api/account/activate", "Activate Plus or Pro after a payment in an accepted asset is confirmed on the network."],
+  ["GET", "/api/policy?engagement_id=2", "The multi-reviewer approval threshold a sponsor configured, if any."],
+  ["POST", "/api/policy", "Set that threshold. Sponsor only."],
+  ["GET", "/api/attestation", "A milestone's reviewer attestations for one evidence version, and the tally against the threshold."],
+  ["POST", "/api/attestation", "Record one reviewer's attestation. Never itself moves funds — see /evidence/ai-boundary."],
+  ["POST", "/api/v1/review", "The public Review API for platforms outside a SprintOS engagement. Bearer key required — see docs/REVIEW-API.md."],
 ] as const;
 
 function ExternalLink({ href, children }: { href: string; children: React.ReactNode }) {
@@ -53,6 +62,8 @@ export default function DocsPage() {
             <div className="docs-sidebar-links">
               <Link href="/evidence"><ProductIcon name="eye" size={15} /> Evidence pack</Link>
               <Link href="/evidence/ai-boundary"><ProductIcon name="shield" size={15} /> AI boundary proof</Link>
+              <Link href="/plus"><ProductIcon name="milestone" size={15} /> Plans: Free, Plus, Pro</Link>
+              <ExternalLink href="https://github.com/egekoca/SprintOS/blob/main/docs/REVIEW-API.md"><ProductIcon name="eye" size={15} /> Review API docs</ExternalLink>
               <ExternalLink href="https://github.com/egekoca/SprintOS"><ProductIcon name="github" size={15} /> GitHub repository</ExternalLink>
             </div>
           </div>
@@ -173,9 +184,11 @@ pnpm dev`}</code></pre>
               <div><dt>Evidence</dt><dd>Written by the builder; bound by the evidence hash in <code>submit_evidence</code>.</dd></div>
               <div><dt>Report</dt><dd>Keyed by engagement, milestone and evidence hash; an old report cannot silently follow a new submission.</dd></div>
               <div><dt>Activity</dt><dd>Transaction hashes are read back from RPC and decoded before the public index accepts them.</dd></div>
+              <div><dt>Evidence version</dt><dd>Each <code>submit_evidence</code> call anchors its own hash; the activity index preserves every past one, not only the current.</dd></div>
             </dl>
             <p className="docs-inline-links">
-              <Link href="/e/2">Approval and release example</Link> · <Link href="/e/3">Hold and refund example</Link> · <Link href="/evidence">Full evidence pack</Link>
+              <Link href="/e/2">Approval and release example</Link> · <Link href="/e/3">Hold and refund example</Link> ·{" "}
+              <Link href="/proof/2">Public Proof page</Link> · <Link href="/evidence">Full evidence pack</Link>
             </p>
           </section>
 

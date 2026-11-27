@@ -1,0 +1,7 @@
+We ran five real engagements on Stellar mainnet with real money.
+
+Our own AI reviewer came back Revision Suggested, not Ready for Review. One submission scored 35/100.
+
+We shipped it that way. A reviewer that always says yes isn't a reviewer.
+
+#Stellar #Soroban

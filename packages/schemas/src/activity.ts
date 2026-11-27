@@ -51,6 +51,17 @@ export const ActivityEntry = z.object({
   /** The account that signed it. */
   actor: z.string().regex(/^G[A-Z2-7]{55}$/, "Expected a Stellar account id"),
   at: z.iso.datetime(),
+  /**
+   * The evidence hash a `submit_evidence` call carried, decoded from its own
+   * transaction arguments rather than accepted from the browser.
+   *
+   * The contract milestone record only ever holds the *current* evidence
+   * hash — each resubmission overwrites it. This index is therefore the only
+   * place the full version history survives: every past `evidence_submitted`
+   * entry still names the exact evidence bundle it anchored, so a revision
+   * cycle can show "Version 1" next to "Version 2" instead of only the latest.
+   */
+  evidence_hash: z.string().regex(/^[0-9a-f]{64}$/).optional(),
 });
 export type ActivityEntry = z.infer<typeof ActivityEntry>;
 

@@ -1,0 +1,5 @@
+Every finished SprintOS milestone leaves one public page: the acceptance criteria hashed at funding time, the evidence, the AI's advisory report, the human who approved it, and the settlement transaction.
+
+No login. Anyone can check it.
+
+#Stellar #Soroban

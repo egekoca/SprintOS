@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { listEngagements } from "@/lib/stellar/contract";
-import { formatUsdc } from "@/lib/stellar/config";
+import { formatUsdc, IS_MAINNET } from "@/lib/stellar/config";
 import { totalsOf, type Totals } from "@/lib/leaderboard";
 
 /**
@@ -40,7 +40,7 @@ export function LiveTotals() {
 
   return (
     <section className="live-totals shell">
-      <p className="eyebrow">Live on Stellar testnet</p>
+      <p className="eyebrow">Live on Stellar {IS_MAINNET ? "mainnet" : "testnet"}</p>
       <div className="live-totals-row">
         <span>
           <b>{formatUsdc(totals.distributed)}</b>

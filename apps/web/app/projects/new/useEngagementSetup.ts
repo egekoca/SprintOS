@@ -153,6 +153,29 @@ export function useEngagementSetup() {
     setMilestones((current) => current.map((milestone, index) => ({ ...milestone, amount: parts[index] })));
   }
 
+  /**
+   * Accept the AI's draft in one action: price every milestone by splitting
+   * the entered total evenly, then report whether the plan is ready to move
+   * on, rather than reviewing and typing an amount into each milestone card
+   * by hand. Title, dates and criteria already came from the model — amount
+   * is the one field it never fills in, and the one thing blocking
+   * `milestonesReady` on a freshly generated plan. Returns `false` without
+   * changing anything when there is no total to split yet, or when pricing
+   * alone still leaves something else unready (an expired due date, say) —
+   * the caller decides what to do next either way; this never force-advances
+   * the wizard on a plan that still has a real problem.
+   */
+  function acceptAiPlan(): boolean {
+    if (grantTarget === null) return false;
+    const parts = splitEvenly(grantTarget, milestones.length);
+    if (parts.length === 0) return false;
+    const priced = milestones.map((milestone, index) => ({ ...milestone, amount: parts[index] }));
+    setCreated(null);
+    setFunded(null);
+    setMilestones(priced);
+    return planProblemOf(priced) === null;
+  }
+
   function update(index: number, patch: Partial<MilestoneForm>) {
     invalidateSignature();
     setMilestones((current) => current.map((milestone, currentIndex) => (
@@ -362,7 +385,7 @@ export function useEngagementSetup() {
     scopeMode, setScopeMode, startManualPlan,
     brief, setBrief, readBriefFile, analyzeBrief, planning, planSummary, planNotice,
     milestones, update, addMilestone, removeMilestone, importMilestones,
-    grantTotal, setGrantTotal, grantTarget, distributeEvenly, total, remaining,
+    grantTotal, setGrantTotal, grantTarget, distributeEvenly, acceptAiPlan, total, remaining,
     builder, setBuilder, extraReviewers, addReviewer, updateReviewer, removeReviewer,
     planProblem, milestonesReady, roleProblem, rolesReady,
     readEverything, setReadEverything, confirming, setConfirming,
