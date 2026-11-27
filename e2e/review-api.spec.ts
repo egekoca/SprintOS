@@ -27,7 +27,7 @@ test.describe("keyless surface", () => {
     expect(report.advisory_score).toBe(82);
     expect(report.recommendation).toBe("ReadyForReview");
     expect(report.report_hash).toBe(
-      "sha256:88f6e90eaacb0ab49b9af7cb22b39ae1f0d27c75271f51e9da5316ed20d2a610",
+      "sha256:4652f8319e9fc2fb21ad8ffb866309f141c95ee089cf7441b009bf581de2f87e",
     );
   });
 

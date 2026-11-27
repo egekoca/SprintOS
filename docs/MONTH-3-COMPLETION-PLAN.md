@@ -87,7 +87,7 @@ Plus/Pro purchase in each of the four assets.
   `packages/advisory/src/demo-fixture.ts` (shared definition) +
   `packages/advisory/fixtures/04-api-demo.*.json` (the on-disk copy for the
   evidence package). Score 82, `ReadyForReview`, hash
-  `sha256:88f6e90eaacb0ab49b9af7cb22b39ae1f0d27c75271f51e9da5316ed20d2a610`.
+  `sha256:4652f8319e9fc2fb21ad8ffb866309f141c95ee089cf7441b009bf581de2f87e`.
   Regenerate with `pnpm --filter @sprintos/advisory fixtures` — byte-identical
   output confirmed against the pre-existing three Month-1 samples too.
 - ✅ **Keyless public demo endpoint** — `GET /api/v1/review/demo`, no auth,

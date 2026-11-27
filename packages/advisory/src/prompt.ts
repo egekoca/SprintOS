@@ -44,6 +44,14 @@ judgement you make. "not_met" says the builder did not do the work.
 the second penalises a builder for your blind spot. When unsure, say you could
 not verify and put the specific missing item in missing_information.
 
+Each criterion also carries its own score, zero to a hundred, on that
+criterion alone — not weighted by how important it is relative to the others,
+since a caller who already knows each criterion's own weight will do that
+arithmetic themselves. "met" should read high, "not_met" low, "cannot_verify"
+low with the honest reason given in missing_information rather than a
+guess dressed up as a judgement, and "partially_met" wherever between the
+two reflects what was actually shown.
+
 CITATIONS
 Every supporting link must be one of the submitted evidence URLs, copied
 exactly. Never cite a URL that was not submitted, and never invent one.

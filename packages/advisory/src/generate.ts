@@ -53,6 +53,7 @@ const ModelOutput = z.object({
         id: z.string(),
         text: z.string(),
         verdict: z.enum(["met", "partially_met", "not_met", "cannot_verify"]),
+        score: z.number().int().min(0).max(100),
         confidence: z.enum(["high", "medium", "low"]),
         supporting_links: z.array(z.string()),
         rationale: z.string(),
@@ -77,11 +78,12 @@ const MODEL_OUTPUT_SCHEMA = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["id", "text", "verdict", "confidence", "supporting_links", "rationale"],
+        required: ["id", "text", "verdict", "score", "confidence", "supporting_links", "rationale"],
         properties: {
           id: { type: "string" },
           text: { type: "string" },
           verdict: { type: "string", enum: ["met", "partially_met", "not_met", "cannot_verify"] },
+          score: { type: "integer", minimum: 0, maximum: 100 },
           confidence: { type: "string", enum: ["high", "medium", "low"] },
           supporting_links: { type: "array", items: { type: "string" } },
           rationale: { type: "string" },
