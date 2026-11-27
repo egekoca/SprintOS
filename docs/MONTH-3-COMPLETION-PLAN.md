@@ -23,16 +23,22 @@ this file is the single place to check what is left.
   EURC, native XLM, and USDT0 (LayerZero-bridged Tether, issuer
   `GATISXX6BZ6NC7IKQBY37CJD4SOZL3CYZJWXEDG6JVIY4WBS6KXJHN6Q`, verified against
   developers.stellar.org and live Horizon data 2026-10-29).
-- ✅ Committed 2026-11-26. Not yet deployed to production.
-- 🟡 Real on-chain smoke-test payment in each asset, with transaction hashes
-  for the evidence package (SOW §6.1). Test-buyer wallet
-  `GDQRTX7NPSFJA7WLKG5KNMTS5SZLK4SYOT2WYRT66KMGLAVW2V45XUEM` funded
-  2026-11-27 with 5 XLM + 0.5 USDC + 0.5 EURC + 0.5 USDT0, trustlines open.
-  **Blocked on `NEXT_PUBLIC_TREASURY_ADDRESS`** — reading it from Vercel's
-  env was refused by the harness's own classifier (it's a public address,
-  not a secret, but the classifier can't tell the difference); need Ege to
-  read it from the Vercel dashboard and hand it over. USDT0 purchase also
-  needs this session's work deployed first (not yet deployed).
+- ✅ Committed 2026-11-26, deployed to production 2026-11-27 (merged via
+  [PR #1](https://github.com/egekoca/SprintOS/pull/1)).
+- ✅ **Real on-chain smoke-test Plus activation in all four assets, 2026-11-27**
+  — test-buyer wallet `GDQRTX7NPSFJA7WLKG5KNMTS5SZLK4SYOT2WYRT66KMGLAVW2V45XUEM`,
+  real money, real production `/api/account/activate` calls, all four
+  confirmed:
+  - USDC: tx `035d15ddf0d5c97998d7a56778987b57770427a4d4ff899f7e21a1eacf33fb2d`
+  - XLM: tx `8968ab1d4bf85463ec8ff5a600b4ef6ab60825482268e80ceae0f36da2335564`
+  - EURC: tx `399f7e61e09879ac941325b9bd12710e7e9814ef137dbec42c05c541f3f95eae`
+  - USDT0: tx `8498d1eb66e8b871f01330465b5da0e6333bac998a46310e7f4f489809113c40`
+
+  The original production `NEXT_PUBLIC_TREASURY_ADDRESS` secret turned out to
+  be permanently unreadable (Vercel's "Secret" env type is write-only by
+  design, so neither the harness nor Ege's own dashboard could recover it) —
+  rotated to a wallet Ege controls and verified,
+  `GACTJJN3Y5YCSAFFITRUDSWQBNY5XJIZIKPUUI5646GFY5UXTSU6C2VO`, redeployed.
 - ✅ **Real mainnet milestone/escrow regression run, 2026-11-27** —
   `sprintos-mainnet-test-sponsor` / `sprintos-mainnet-test-builder`
   identities created, funded (11 XLM / 2 XLM), full lifecycle run for real
@@ -55,8 +61,7 @@ this file is the single place to check what is left.
   `MAINNET_MILESTONE_CAP_USDC`-era assumptions, worth knowing before
   budgeting XLM for any future real engagement.
 
-**Next:** get the treasury address from Ege, deploy, then run the
-Plus/Pro purchase in each of the four assets.
+**Deliverable 1 is done.**
 
 ## Deliverable 2 — Public Review API
 
@@ -93,15 +98,41 @@ Plus/Pro purchase in each of the four assets.
 - ✅ **Keyless public demo endpoint** — `GET /api/v1/review/demo`, no auth,
   per-IP rate limited, returns the exact fixture above computed live.
   Documented in `docs/REVIEW-API.md` with the literal `curl` command.
-- ⬜ **StelHacks real integration** — architecture confirmed correct
-  (2026-10-04), but no real API key has been minted for them yet, and no real
-  advisory evaluation has been generated for an actual submitted hackathon
-  project. This is the one item in this deliverable that needs StelHacks
-  coordination, not just engineering.
+- ✅ **Per-criterion numeric score (0-100)**, 2026-11-27 — added alongside
+  the existing categorical verdict specifically so a caller with its own
+  weighted rubric (StelHacks' on-chain `weight_bps` per criterion) can
+  apply its own weighting rather than trusting a second implementation of
+  that arithmetic here. [PR #2](https://github.com/egekoca/SprintOS/pull/2).
+- ✅ **Deep review now reads real source, not just metadata**, 2026-11-27 —
+  `packages/advisory/src/source.ts`: file tree + file contents via GitHub's
+  API, entry points/contracts first then tests then the rest, up to a
+  character budget. Never executes anything (`git clone`, install, build
+  all absent by design) — enforced by two new CI boundary-lint patterns
+  (`child_process`, `exec`/`spawn`, `eval`, `Function()`, `node:vm`), not
+  only documented. [PR #2](https://github.com/egekoca/SprintOS/pull/2).
+- ✅ **Real cost measurement against an actual StelHacks submission**,
+  2026-11-27 — cloned `github.com/emirykl/StelHacks` (read-only, local
+  inspection only) to study their existing in-house AI reviewer, then ran
+  SprintOS's own pipeline for real against their one live submission,
+  `github.com/emirykl/Beaver402` (Stellar Pro Hackathon İstanbul). Quick
+  pass: 1,970 input / 975 output tokens, ~1.6¢. Deep pass (real source
+  read): 19,794 input / 955 output tokens, ~5.1¢, and correctly upgraded
+  `code_quality` from `cannot_verify` (28/100) to `met` (98/100) once it
+  could see the actual Soroban contract and tests. A 300-submission
+  quick pass + a 10-submission deep pass on the shortlist comes to
+  roughly $5.50 total at these rates.
+- ⬜ **StelHacks real integration** — architecture confirmed correct, and
+  now proven end-to-end against their own real submission data above, but
+  StelHacks already built and shipped their own in-house AI reviewer
+  (`backend/reviewer/`, calling Claude directly) — Ege's direction is to
+  replace it with SprintOS's API rather than pursue a narrower
+  complementary angle. No real API key minted for them yet; this needs an
+  actual conversation with StelHacks, not more engineering.
 
-**Next:** deploy this session's work, then close the StelHacks loop (mint
-their real key, confirm volume/response-format expectations, get one real
-evaluation running in production).
+**Next:** merge [PR #2](https://github.com/egekoca/SprintOS/pull/2), then
+open the StelHacks conversation (mint their real key once they're in,
+confirm volume/response-format expectations, get one real evaluation
+running in their own production).
 
 ## Deliverable 3 — Reliability, UX, domain, launch
 
@@ -150,15 +181,14 @@ evaluation running in production).
   needed: one post once the new domain is live, and Ege actually posting
   these from the SprintOS AI Reviewer X account.
 
-**Next:** close the StelHacks loop (Deliverable 2) and deploy everything
-committed so far; get direction on the next-step-navigation item; domain
-migration once Ege has a name.
+**Next:** open the StelHacks conversation (Deliverable 2); get direction on
+the next-step-navigation item; connect `sprintos.xyz` (bought and attached
+to the Vercel project 2026-11-27, DNS propagating) and migrate.
 
 ## Summary: what needs Ege vs. what's engineering-only
 
 | Needs Ege | Pure engineering (can proceed now) |
 | --- | --- |
-| Fund `sprintos-mainnet-test-buyer` and run the real asset smoke tests | Deploy everything committed so far |
-| StelHacks coordination (real key, volume, format) | Pick a concrete next-step-navigation fix, once scoped |
-| Buy a domain | |
+| Open the actual StelHacks conversation — real key, volume, whether they'll swap their own reviewer for ours | Merge [PR #2](https://github.com/egekoca/SprintOS/pull/2) |
+| Pilot feedback for the next-step-navigation item | Finish the `sprintos.xyz` migration once DNS resolves |
 | Post the 6 ready X launch drafts (+ StelHacks one, once confirmed) | |
