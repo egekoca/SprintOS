@@ -169,9 +169,18 @@ running in their own production).
   this plan has not read verbatim — guessing at which pages risks fixing
   the wrong thing. Needs either the raw pilot feedback or Ege's own sense
   of where people get lost before picking a concrete change.
-- ⬜ Real owned domain — purchase + DNS/TLS migration off `*.vercel.app` for
-  the web app, Public Proof pages, and the API. Needs Ege to pick/buy a
-  domain; I can wire DNS and Vercel once there's a name.
+- ✅ **Real owned domain**, 2026-11-27 — `sprintos.xyz` bought through
+  Vercel (Ege confirmed the purchase interactively; the CLI itself refuses
+  to buy a domain non-interactively, by Vercel's own design), attached to
+  the project, DNS verified, TLS live. `NEXT_PUBLIC_APP_URL` updated to
+  `https://sprintos.xyz` and production redeployed — confirmed serving
+  correctly. The web app, Public Proof pages and the API are all reachable
+  there now. 🟡 One piece left: the SOW asks for the old `*.vercel.app`
+  subdomain to redirect, which Vercel only exposes through the dashboard's
+  domain settings (a "Redirect to" toggle), not the CLI — both domains
+  currently serve the same live content correctly, just without the 301.
+  Two clicks in the dashboard closes this; ask if that redirect should be
+  set up.
 - 🟡 ≥5 new X posts specifically announcing this period's launch — **6
   drafts ready** in `marketing/` (text + matching card image each):
   `tweet-multi-asset`, `tweet-pro-tier`, `tweet-boundary-enforced`,
@@ -182,13 +191,13 @@ running in their own production).
   these from the SprintOS AI Reviewer X account.
 
 **Next:** open the StelHacks conversation (Deliverable 2); get direction on
-the next-step-navigation item; connect `sprintos.xyz` (bought and attached
-to the Vercel project 2026-11-27, DNS propagating) and migrate.
+the next-step-navigation item; decide on the old-subdomain redirect.
 
 ## Summary: what needs Ege vs. what's engineering-only
 
 | Needs Ege | Pure engineering (can proceed now) |
 | --- | --- |
 | Open the actual StelHacks conversation — real key, volume, whether they'll swap their own reviewer for ours | Merge [PR #2](https://github.com/egekoca/SprintOS/pull/2) |
-| Pilot feedback for the next-step-navigation item | Finish the `sprintos.xyz` migration once DNS resolves |
+| Pilot feedback for the next-step-navigation item | — |
 | Post the 6 ready X launch drafts (+ StelHacks one, once confirmed) | |
+| Set the `*.vercel.app` → `sprintos.xyz` redirect in the Vercel dashboard (CLI can't do this one) | |
