@@ -8,7 +8,7 @@ import { acquireJobLock, releaseJobLock, takeRateLimit } from "@/lib/rate-limit"
 import { isSameOrigin, requestBodyIsTooLarge, requestClientKey } from "@/lib/request-security";
 
 /** A Deep Review thinks harder and is allowed to write a little more. */
-const DEEP_REVIEW_OPTIONS = { reasoningEffort: "medium" as const, maxOutputTokens: 6_000 };
+const DEEP_REVIEW_OPTIONS = { reasoningEffort: "medium" as const, maxOutputTokens: 6_000, deepSource: true as const };
 
 /**
  * The advisory endpoint.

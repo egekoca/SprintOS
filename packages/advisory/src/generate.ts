@@ -8,10 +8,11 @@ import {
   REPORT_SCHEMA_VERSION,
   sha256Prefixed,
 } from "@sprintos/schemas";
-import { fetchAllEvidence, type FetchedEvidence } from "./fetch.ts";
+import { fetchAllEvidence, parseGitHubUrl, type FetchedEvidence } from "./fetch.ts";
 import { buildUserPrompt, SYSTEM_PROMPT } from "./prompt.ts";
 import { type Draft, normalizeCriterionId, parseReport, validateDraft } from "./validate.ts";
 import { requestStructuredJson } from "./openai.ts";
+import { fetchRepositorySource, renderRepositorySource } from "./source.ts";
 
 export const DEFAULT_MODEL = process.env.OPENAI_MODEL?.trim() || "gpt-5.6";
 
@@ -107,6 +108,16 @@ export interface GenerateOptions {
   maxOutputTokens?: number;
   /** Injected in tests and fixtures so no network call is made. */
   fetcher?: (bundle: EvidenceBundle) => Promise<FetchedEvidence[]>;
+  /**
+   * Read each `repo`-typed evidence link's actual source, in addition to its
+   * metadata — still never executed, only read as text (see `source.ts`).
+   * Replaces that evidence entry's `content` with the deep read; everything
+   * else about the pipeline, including the citation-validation rule that a
+   * cited link must be one of the submitted ones, is unchanged.
+   */
+  deepSource?: boolean;
+  /** Injected in tests so no network call is made for the deep source read. */
+  sourceFetcher?: (owner: string, repo: string) => Promise<string>;
 }
 
 /**
@@ -149,6 +160,23 @@ export async function generateReport(options: GenerateOptions): Promise<Advisory
   const fetched = options.fetcher
     ? await options.fetcher(evidence)
     : await fetchAllEvidence(evidence.links);
+
+  if (options.deepSource) {
+    for (const entry of fetched) {
+      if (entry.type !== "repo" || !entry.fetched) continue;
+      const target = parseGitHubUrl(entry.url);
+      if (target?.kind !== "repo") continue;
+      try {
+        const rendered = options.sourceFetcher
+          ? await options.sourceFetcher(target.owner, target.repo)
+          : renderRepositorySource(await fetchRepositorySource(target.owner, target.repo));
+        entry.content = `${entry.content}\n\n${rendered}`;
+      } catch {
+        // A deep read failing is a narrower evidence, not a failed report —
+        // the model still has the metadata summary fetched above.
+      }
+    }
+  }
 
   let draft: Draft;
   try {

@@ -25,7 +25,7 @@ import { requestBodyIsTooLarge } from "@/lib/request-security";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const DEEP_REVIEW_OPTIONS = { reasoningEffort: "medium" as const, maxOutputTokens: 6_000 };
+const DEEP_REVIEW_OPTIONS = { reasoningEffort: "medium" as const, maxOutputTokens: 6_000, deepSource: true as const };
 
 const Body = z.object({
   title: z.string().min(1).max(200),

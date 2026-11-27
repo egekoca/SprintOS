@@ -64,8 +64,14 @@ Content-Type: application/json
 - `criteria`: 1–5 entries, each a short written check.
 - `evidence_links`: 1–5 public `https://` URLs, each typed as one of
   `repo`, `commit`, `pull_request`, `test_result`, `docs`, `demo`.
-- `kind`: `"standard"` (default) or `"deep"` — Deep asks the model to think
-  harder and read more of what it fetched, at a higher cost per call.
+- `kind`: `"standard"` (default) or `"deep"` — standard reads each link's
+  public metadata (a repository's description, README, recent commits);
+  deep additionally reads the repository's actual file tree and source,
+  in priority order (entry points and contracts first, then tests, then
+  everything else) until a size budget is reached, and asks the model to
+  think harder over what it read. Source is read, never executed — see
+  `docs/SECURITY.md`. Materially more expensive per call; size a key's rate
+  limit with that in mind for a run over many submissions.
 - Rate limited per key at whatever ceiling was set when the key was
   minted (20/hour by default), and only one request in flight per key at
   a time.
